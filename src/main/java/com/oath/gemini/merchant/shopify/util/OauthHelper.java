@@ -1,4 +1,4 @@
-package com.oath.gemini.merchant.shopify;
+package com.oath.gemini.merchant.shopify.util;
 
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
@@ -8,9 +8,9 @@ import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 
-public class AuthHelper {
-    final static String SECRETE_KEY = "23a579690626c631eb4a49b4a4d7cb1f";
-    final static String API_KEY = "62928398fafea63bad905e52e8410079";
+public class OauthHelper {
+    public final static String SECRETE_KEY = "23a579690626c631eb4a49b4a4d7cb1f";
+    public final static String API_KEY = "62928398fafea63bad905e52e8410079";
 
     public static String generateHMac(String... pairs)
             throws NoSuchAlgorithmException, InvalidKeyException, DecoderException {
@@ -29,7 +29,7 @@ public class AuthHelper {
         return Hex.encodeHexString(hmacBytes);
     }
 
-    private AuthHelper() {
+    private OauthHelper() {
     }
 
     private final static SecretKeySpec keySpec = new SecretKeySpec(SECRETE_KEY.getBytes(StandardCharsets.UTF_8), "HmacSHA256");

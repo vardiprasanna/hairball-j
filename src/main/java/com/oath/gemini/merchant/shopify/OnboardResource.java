@@ -1,12 +1,11 @@
 package com.oath.gemini.merchant.shopify;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.concurrent.TimeUnit;
+import java.util.HashMap;
 import javax.annotation.Resource;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
@@ -14,14 +13,14 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 import org.apache.commons.configuration.Configuration;
-import org.eclipse.jetty.client.HttpClient;
-import org.eclipse.jetty.client.api.ContentResponse;
-import org.eclipse.jetty.client.api.Request;
-import org.eclipse.jetty.client.util.StringContentProvider;
-import org.eclipse.jetty.http.HttpHeader;
-import org.eclipse.jetty.util.ssl.SslContextFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.inject.Inject;
+import com.oath.gemini.merchant.AppConfiguration;
+import com.oath.gemini.merchant.shopify.api.RequestUtil;
+import com.oath.gemini.merchant.shopify.data.AuthTokenRequestBody;
+import com.oath.gemini.merchant.shopify.data.AuthTokenResponseBody;
+import com.oath.gemini.merchant.shopify.util.OauthHelper;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -36,13 +35,12 @@ import lombok.extern.slf4j.Slf4j;
 @Path("shopify")
 public class OnboardResource {
     @Inject
-    private Configuration config;
     private static int DEFAULT_THREADPOOL_TIMEOUT = 10;
-
-    @POST
-    @Path("test")
-    public Response test() {
-        return Response.ok().build();
+    
+    @GET
+    @Path("pixel/sample.js")
+    public Response build(@Context UriInfo info) {
+        return Response.ok("<p>hello</p>").build();
     }
 
     /**
@@ -64,7 +62,7 @@ public class OnboardResource {
     public Response install(@Context UriInfo info, @QueryParam("hmac") String hmac, @QueryParam("shop") String shop,
             @QueryParam("timestamp") String ts) throws MalformedURLException, URISyntaxException {
         try {
-            String counterHmac = AuthHelper.generateHMac("shop=" + shop, "timestamp=" + ts);
+            String counterHmac = OauthHelper.generateHMac("shop=" + shop, "timestamp=" + ts);
             if (!hmac.equals(counterHmac)) {
                 return Response.status(Status.UNAUTHORIZED).build();
             }
@@ -78,8 +76,8 @@ public class OnboardResource {
         String path = info.getAbsolutePath().toString();
         String redirectUrl = path.substring(0, path.indexOf("shopify")) + "shopify/permission";
 
-        URL url = buildScopeRequestUrl(shop, redirectUrl);
-        return Response.temporaryRedirect(url.toURI()).build();
+        URI uri = buildScopeRequestUrl(shop, redirectUrl);
+        return Response.temporaryRedirect(uri).build();
     }
 
     /**
@@ -97,7 +95,7 @@ public class OnboardResource {
             throws Exception {
 
         try {
-            String counterHmac = AuthHelper.generateHMac("code=" + code, "shop=" + shop, "state=" + state,
+            String counterHmac = OauthHelper.generateHMac("code=" + code, "shop=" + shop, "state=" + state,
                     "timestamp=" + ts);
             if (!hmac.equals(counterHmac)) {
                 return Response.status(Status.UNAUTHORIZED).build();
@@ -107,12 +105,16 @@ public class OnboardResource {
         }
 
         // TODO: need to persist a shopper's token
-        URL shopifyUrl = buildAuthTokenRequestUrl(shop);
-        AuthTokenResponseBody response = submit(shopifyUrl.toString(), code);
+        String shopifyUrl = RequestUtil.buildShopifyUrl(shop, "URL_FETCH_TOKEN");
+        AuthTokenResponseBody response = fetchAuthToken(shop, code); // fetchAuthToken(shopifyUrl, code);
+
+        // Inject a script tag
+        shopifyUrl = RequestUtil.buildShopifyUrl(shop, "URL_WRITE_SCRIPT_TAG");
+        injectScriptTag(shop, response.getAccessToken());
 
         // TODO: redirect to this app's setting page
-        URL url = buildShopAppsUrl(shop);
-        return Response.temporaryRedirect(url.toURI()).build();
+        shopifyUrl = RequestUtil.buildShopifyUrl(shop, "URL_SHOP_APPS_PAGE");
+        return Response.temporaryRedirect(URI.create(shopifyUrl)).build();
     }
 
     /**
@@ -125,61 +127,38 @@ public class OnboardResource {
      * 
      * @throws Exception
      */
-    public static AuthTokenResponseBody submit(String shopifyUrl, String authCode) throws Exception {
+    private static AuthTokenResponseBody fetchAuthToken(String shop, String authCode) throws Exception {
         AuthTokenRequestBody reqestBody = new AuthTokenRequestBody();
 
         // Prepare request POST content
-        reqestBody.setClientId(AuthHelper.API_KEY);
-        reqestBody.setClientSecret(AuthHelper.SECRETE_KEY);
+        reqestBody.setClientId(OauthHelper.API_KEY);
+        reqestBody.setClientSecret(OauthHelper.SECRETE_KEY);
         reqestBody.setCode(authCode);
 
         ObjectMapper mapper = new ObjectMapper();
         String content = mapper.writeValueAsString(reqestBody);
-        StringContentProvider provider = new StringContentProvider(content);
+        String responseBody = RequestUtil.requestPOST(shop, authCode, "URL_FETCH_TOKEN", content);
+        AuthTokenResponseBody result = null;
 
-        HttpClient httpClient = null;
-
-        try {
-            httpClient = new HttpClient(new SslContextFactory());
-            httpClient.start();
-
-            // Post a request
-            Request request = httpClient.POST(shopifyUrl);
-            request = prepareRequestHeader(request);
-            request = request.content(provider);
-            request = request.timeout(DEFAULT_THREADPOOL_TIMEOUT, TimeUnit.SECONDS);
-
-            ContentResponse response = request.send();
-            AuthTokenResponseBody result = null;
-
-            // Process a response
-            if (response.getStatus() == 200) {
-                String responseBody = response.getContentAsString();
-                result = mapper.readValue(responseBody, AuthTokenResponseBody.class);
-            } else {
-                log.error("received an unexpected status code=" + response.getStatus());
-            }
-            return result;
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-        } finally {
-            if (httpClient != null) {
-                httpClient.stop();
-            }
+        if (responseBody != null) {
+            result = mapper.readValue(responseBody, AuthTokenResponseBody.class);
         }
+        return result;
     }
 
-    private static Request prepareRequestHeader(Request request) {
-        // if (!yapeeYcaDisable) {
-        // try {
-        // String ycaString = YCAUtil.getCert(yapeeYcaAppId);
-        // request.header("Yahoo-App-Auth", ycaString);
-        // } catch (Throwable e) {
-        // log.warn("Unable to fetch a yca certifificat for appid: " + yapeeYcaAppId, e);
-        // }
-        // }
-        return request.header(HttpHeader.CONTENT_TYPE, "application/json");
+    private static String injectScriptTag(String shop, String authCode) throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode objNode = mapper.createObjectNode();
+        ObjectNode outerNode = mapper.createObjectNode();
+
+        Configuration config = AppConfiguration.getConfig();
+        objNode.put("event", "onload");
+        objNode.put("src", config.getString("DOT_PIXEL"));
+        outerNode.putPOJO("script_tag", objNode);
+
+        String content = mapper.writeValueAsString(outerNode);
+        String responseBody = RequestUtil.requestPOST(shop, authCode, "URL_WRITE_SCRIPT_TAG", content);
+        return responseBody;
     }
 
     /**
@@ -189,7 +168,8 @@ public class OnboardResource {
      * {shop} - substitute this with the name of the user’s shop. <br/>
      * {api_key} - substitute this with the app’s API Key. <br/>
      * {scopes} - substitute this with a comma-separated list of scopes. For example, to write orders and read customers
-     * use scope=write_orders,read_customers. <br/>
+     * use scope=write_orders,read_customers. https://help.shopify.com/api/getting-started/authentication/oauth#scopes
+     * <br/>
      * 
      * {redirect_uri} - (Required) substitute this with the URL where you want to redirect the users after they
      * authorize the client. The complete URL specified here must be identical to one of the Application Redirect URLs.
@@ -205,29 +185,14 @@ public class OnboardResource {
      * 
      * @throws MalformedURLException
      */
-    private static URL buildScopeRequestUrl(String shop, String redirectUrl) throws MalformedURLException {
-        StringBuilder url = new StringBuilder("https://").append(shop).append("/admin/oauth/authorize?");
+    private static URI buildScopeRequestUrl(String shop, String redirectUrl) throws MalformedURLException {
+        Configuration config = AppConfiguration.getConfig();
+        HashMap<String, String> params = new HashMap<>();
 
-        url.append("client_id=").append(AuthHelper.API_KEY);
-        url.append("&scope=read_orders");
-        url.append("&redirect_uri=").append(redirectUrl);
-        url.append("&state=").append(System.nanoTime());
-        return new URL(url.toString());
-    }
-
-    /**
-     * https://{shop}.myshopify.com/admin/oauth/access_token without query parameters
-     */
-    private static URL buildAuthTokenRequestUrl(String shop) throws MalformedURLException {
-        StringBuilder url = new StringBuilder("https://").append(shop).append("/admin/oauth/access_token");
-        return new URL(url.toString());
-    }
-
-    /**
-     * https://{shop}.myshopify.com/admin/apps
-     */
-    private static URL buildShopAppsUrl(String shop) throws MalformedURLException {
-        StringBuilder url = new StringBuilder("https://").append(shop).append("/admin/apps");
-        return new URL(url.toString());
+        params.put("client_id", OauthHelper.API_KEY);
+        params.put("scope", config.getString("ACCESS_SCOPES"));
+        params.put("redirect_uri", redirectUrl);
+        params.put("state", Long.toString(System.nanoTime()));
+        return URI.create(RequestUtil.buildShopifyUrl(shop, "URL_REQUEST_ACCESS", params));
     }
 }
