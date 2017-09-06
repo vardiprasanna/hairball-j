@@ -48,6 +48,7 @@ public class App extends ResourceConfig {
     }
 
     protected void setFields(Configuration cfg, final SessionFactory sessions, final SessionFactory localSessions) {
+        super.register(OAuthResource.class);
         super.register(OnboardResource.class);
     }
 

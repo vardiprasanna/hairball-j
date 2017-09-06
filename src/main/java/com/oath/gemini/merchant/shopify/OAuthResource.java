@@ -3,16 +3,16 @@ package com.oath.gemini.merchant.shopify;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.util.Enumeration;
 import javax.inject.Singleton;
+import javax.servlet.ServletInputStream;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import org.apache.commons.configuration.Configuration;
-import org.eclipse.jetty.client.HttpRequest;
-import org.eclipse.jetty.http.HttpField;
-import org.eclipse.jetty.http.HttpFields;
 import org.glassfish.jersey.server.ResourceConfig;
 
 @Singleton
@@ -35,7 +35,7 @@ public class OAuthResource extends ResourceConfig {
 
         buf.append("https://api.login.yahoo.com/oauth2/request_auth?response_type=code&language=en-us");
         buf.append("&client_id=dj0yJmk9NEJVRHRaRnpWa09SJmQ9WVdrOVREQktiREUzTjJrbWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmeD1iYQ--");
-        buf.append("&redirect_uri=").append(URLEncoder.encode("https://hairball.herokuapp.com/oauth/approval", "UTF-8"));
+        buf.append("&redirect_uri=").append(URLEncoder.encode("https://hairball.herokuapp.com/oauth/redirect", "UTF-8"));
 
         Response.ResponseBuilder builder = Response.temporaryRedirect(URI.create(buf.toString()));
         builder.header("incognito", true);
@@ -47,25 +47,58 @@ public class OAuthResource extends ResourceConfig {
      */
     @POST
     @Path("approval")
-    public Response approve(@Context HttpRequest req) {
+    public Response approve(@Context HttpServletRequest req) {
+        return Response.ok(dump(req)).build();
+    }
+
+    @POST
+    @Path("redirect")
+    public Response redirectPost(@Context HttpServletRequest req) {
+        return redirectGet(req);
+    }
+
+    @GET
+    @Path("redirect")
+    public Response redirectGet(@Context HttpServletRequest req) {
+        String content = REDIRECT_FORM.replace("${body}", dumpContent(req));
+        return Response.ok(content).build();
+    }
+
+    public static String dump(HttpServletRequest req) {
         StringBuilder buf = new StringBuilder();
-        HttpFields headers = req.getHeaders();
 
-        buf.append("<div>");
-        if (headers != null) {
-            for (HttpField f : headers) {
-                buf.append("<p>").append(f.getName()).append('=').append(f.getValue()).append("</p>");
-            }
+        buf.append("<div>\n").append(dumpHeaders(req)).append("</div>\n");
+        buf.append("<div>\n").append(dumpContent(req)).append("</div>\n");
+        return buf.toString();
+    }
+
+    private static String dumpHeaders(HttpServletRequest req) {
+        StringBuilder buf = new StringBuilder();
+        Enumeration<String> heads = req.getHeaderNames();
+
+        while (heads.hasMoreElements()) {
+            String name = heads.nextElement();
+            String val = req.getHeader(name);
+            buf.append("  <p>").append(name).append('=').append(val).append("</p>\n");
         }
+        return buf.toString();
+    }
 
-        buf.append("</div><div>");
-        try {
-            String content = req.getContent().toString();
-            buf.append(content);
+    private static String dumpContent(HttpServletRequest req) {
+        StringBuilder buf = new StringBuilder();
+
+        try (ServletInputStream reader = req.getInputStream()) {
+            byte[] bytes = new byte[1000];
+            int len = reader.readLine(bytes, 0, bytes.length);
+
+            if (len > 0) {
+                buf.append(new String(bytes, 0, len));
+            }
         } catch (Exception e) {
             buf.append("content error: " + e.toString());
         }
-        buf.append("</div>");
-        return Response.ok(buf.toString()).build();
+        return buf.toString();
     }
+
+    private final static String REDIRECT_FORM = "<html><body onload='setTimeout(function() { document.oauth_status.submit() }, 5000)'><form action='http://localhost:4080/oauth/approval' name='oauth_status' method='post'><input name='dropbox' value='${body}' /></form></body></html>";
 }
