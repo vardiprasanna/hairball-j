@@ -103,7 +103,7 @@ public class App extends ResourceConfig {
             throw new RuntimeException("Keystore not readable");
         }
 
-        int port = 443; // config.getInt("ssl.port", 4443);
+        int port = config.getInt("ssl.port", 4443);
         httpCfg.setSecureScheme("https");
         httpCfg.setSecurePort(port);
 
