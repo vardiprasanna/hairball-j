@@ -105,7 +105,7 @@ public class App extends ResourceConfig {
 
         int port = config.getInt("ssl.port", 4443);
         httpCfg.setSecureScheme("https");
-        httpCfg.setSecurePort(port);
+    //    httpCfg.setSecurePort(port);
 
         HttpConfiguration cfg = new HttpConfiguration(httpCfg);
         cfg.addCustomizer(new SecureRequestCustomizer());
