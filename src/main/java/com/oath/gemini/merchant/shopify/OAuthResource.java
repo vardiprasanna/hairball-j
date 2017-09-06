@@ -1,5 +1,6 @@
 package com.oath.gemini.merchant.shopify;
 
+import static com.oath.gemini.merchant.App.DEFAULT_HTTP_PORT;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -13,7 +14,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import org.apache.commons.configuration.Configuration;
-import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.ResourceConfig;;
 
 @Singleton
 @Path("")
@@ -61,6 +62,9 @@ public class OAuthResource extends ResourceConfig {
     @Path("redirect")
     public Response redirectGet(@Context HttpServletRequest req) {
         String content = REDIRECT_FORM.replace("${body}", dumpContent(req));
+
+        int port = config.getInt("port", DEFAULT_HTTP_PORT);
+        content = content.replace("${port}", Integer.toString(port));
         return Response.ok(content).build();
     }
 
@@ -100,5 +104,5 @@ public class OAuthResource extends ResourceConfig {
         return buf.toString();
     }
 
-    private final static String REDIRECT_FORM = "<html><body onload='setTimeout(function() { document.oauth_status.submit() }, 5000)'><form action='http://localhost:4080/oauth/approval' name='oauth_status' method='post'><input name='dropbox' value='${body}' /></form></body></html>";
+    private final static String REDIRECT_FORM = "<html><body onload='setTimeout(function() { document.oauth_status.submit() }, 5000)'><form action='http://localhost:${port}/oauth/approval' name='oauth_status' method='post'><input name='dropbox' value='${body}' /></form></body></html>";
 }
