@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-Frame-Options" content="ALLOW-FROM https://localhost:4443/">
+    <script src="https://cdn.shopify.com/s/assets/external/app.js"></script>
+    <script type="text/javascript">
+        ShopifyApp.init({
+            apiKey: '62928398fafea63bad905e52e8410079',
+            shopOrigin: ''
+        });
+         ShopifyApp.ready(function(){
+            ShopifyApp.Bar.initialize({
+                icon: 'http://localhost:4443/yahoo-logo.png',
+                title: 'The Hairball Title'
+            });
+        });
+    </script>
+</head>
+<body>
+<div>Hello</div>
+</body>
+</html>

@@ -11,12 +11,20 @@ import org.glassfish.jersey.server.ResourceConfig;
 @Resource
 @Path("")
 public class PixelResourceHandler extends ResourceConfig {
+    private long time = System.nanoTime();
+
     public PixelResourceHandler() {
         register(this);
     }
+    
+    @Path("asset/setup/shopify.html")
+    @GET
+    public Response test() {
+        return Response.ok().build();
+    }
 
     @GET
-    // @Path("sample.js")
+    @Path("sample.js")
     public Response build(@Context UriInfo info) {
         return Response.ok(DEMO_PIXEL_JS).build();
     }

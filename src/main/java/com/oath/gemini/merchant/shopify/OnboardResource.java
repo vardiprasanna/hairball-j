@@ -3,8 +3,16 @@ package com.oath.gemini.merchant.shopify;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.util.HashMap;
 import javax.annotation.Resource;
+import javax.inject.Singleton;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
@@ -17,11 +25,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.inject.Inject;
 import com.oath.gemini.merchant.AppConfiguration;
-import com.oath.gemini.merchant.shopify.api.RequestUtil;
 import com.oath.gemini.merchant.shopify.data.AuthTokenRequestBody;
 import com.oath.gemini.merchant.shopify.data.AuthTokenResponseBody;
 import com.oath.gemini.merchant.shopify.util.OauthHelper;
-import lombok.extern.slf4j.Slf4j;
+import com.oath.gemini.merchant.shopify.util.RequestUtil;
 
 /**
  * When a store owner adds our app, it will go through the steps supported in this class. See the flow:
@@ -30,17 +37,17 @@ import lombok.extern.slf4j.Slf4j;
  * @see the onboard flow - https://github.com/Shopify/omniauth-shopify-oauth2/wiki/Shopify-OAuth
  * @see more detail - https://help.shopify.com/api/getting-started/authentication/oauth#confirming-installation
  */
-@Slf4j
+@Singleton
 @Resource
 @Path("shopify")
 public class OnboardResource {
     @Inject
-    private static int DEFAULT_THREADPOOL_TIMEOUT = 10;
-    
+    private long time = System.nanoTime();
+
     @GET
     @Path("pixel/sample.js")
     public Response build(@Context UriInfo info) {
-        return Response.ok("<p>hello</p>").build();
+        return Response.ok("<p>hello: " + time + "</p>").build();
     }
 
     /**
@@ -90,9 +97,9 @@ public class OnboardResource {
      */
     @GET
     @Path("permission")
-    public Response grant(@Context UriInfo info, @QueryParam("hmac") String hmac, @QueryParam("shop") String shop,
-            @QueryParam("timestamp") String ts, @QueryParam("code") String code, @QueryParam("state") String state)
-            throws Exception {
+    public Response grant(@Context HttpServletRequest servletRequest, @Context HttpServletResponse servletResponse,
+            @QueryParam("hmac") String hmac, @QueryParam("shop") String shop, @QueryParam("timestamp") String ts,
+            @QueryParam("code") String code, @QueryParam("state") String state) throws Exception {
 
         try {
             String counterHmac = OauthHelper.generateHMac("code=" + code, "shop=" + shop, "state=" + state,
@@ -108,13 +115,47 @@ public class OnboardResource {
         String shopifyUrl = RequestUtil.buildShopifyUrl(shop, "URL_FETCH_TOKEN");
         AuthTokenResponseBody response = fetchAuthToken(shop, code); // fetchAuthToken(shopifyUrl, code);
 
-        // Inject a script tag
-        shopifyUrl = RequestUtil.buildShopifyUrl(shop, "URL_WRITE_SCRIPT_TAG");
-        injectScriptTag(shop, response.getAccessToken());
+        HttpSession session = servletRequest.getSession();
+        Object phase = session.getAttribute("isInstallation");
 
-        // TODO: redirect to this app's setting page
-        shopifyUrl = RequestUtil.buildShopifyUrl(shop, "URL_SHOP_APPS_PAGE");
-        return Response.temporaryRedirect(URI.create(shopifyUrl)).build();
+        return Response.temporaryRedirect(URI.create("http://localhost:3000/")).build();
+
+        /**
+        if (phase instanceof Boolean) {
+            // we are here because a store shop is installing our app");
+            // Inject a script tag
+            shopifyUrl = RequestUtil.buildShopifyUrl(shop, "URL_WRITE_SCRIPT_TAG");
+            injectScriptTag(shop, response.getAccessToken());
+
+            // TODO: redirect to this app's setting page
+            shopifyUrl = RequestUtil.buildShopifyUrl(shop, "URL_SHOP_APPS_PAGE");
+            return Response.temporaryRedirect(URI.create(shopifyUrl)).build();
+        }
+        if (phase == null) {
+            ServletContext assetContext = servletRequest.getServletContext().getContext("/");
+            RequestDispatcher dispatcher = assetContext.getRequestDispatcher("/asset/setup/shopify.html");
+            dispatcher.forward(servletRequest, servletResponse);
+            return null;
+
+        } else {
+            // we are here because a store shop admin is clicking our app");
+            java.nio.file.Path path = FileSystems.getDefault().getPath("asset", "setup", "shopify.html");
+            byte[] content = Files.readAllBytes(path);
+            return Response.ok(content).build();
+
+            // return Response.ok("<script type='text/javascript'> if (window.top == window.self)
+            // {window.top.location.href = \\\"https://dpa-bridge.myshopify.com/admin/oauth?shop=dpa-bridge\\\";} else
+            // {message = JSON.stringify({message: \\\"Shopify.API.remoteRedirect\\\",data: { location:
+            // window.location.origin + \\\"https://dpa-bridge.myshopify.com/admin/oauth?shop=dpa-bridge\\\" }});
+            // window.parent.postMessage(message, \\\"https://dpa-bridge.myshopify.com\\\");} </script>").build();
+        }
+        */
+    }
+    
+    @Path("store.json")
+    @GET
+    public Response test() {
+        return Response.ok("{'store':{'name':'dpa-bridge'}}").build();
     }
 
     /**
@@ -154,6 +195,8 @@ public class OnboardResource {
         Configuration config = AppConfiguration.getConfig();
         objNode.put("event", "onload");
         objNode.put("src", config.getString("DOT_PIXEL"));
+        // objNode.put("src", "https://hairball.herokuapp.com/pixel.js");
+        // objNode.put("src", "https://s.yimg.com/rq/sbox/bv.js");
         outerNode.putPOJO("script_tag", objNode);
 
         String content = mapper.writeValueAsString(outerNode);

@@ -1,4 +1,4 @@
-package com.oath.gemini.merchant.shopify.api;
+package com.oath.gemini.merchant.shopify.util;
 
 import java.net.MalformedURLException;
 import java.util.Map;
