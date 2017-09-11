@@ -25,8 +25,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.inject.Inject;
 import com.oath.gemini.merchant.AppConfiguration;
-import com.oath.gemini.merchant.shopify.data.AuthTokenRequestBody;
-import com.oath.gemini.merchant.shopify.data.AuthTokenResponseBody;
+import com.oath.gemini.merchant.shopify.data.ShopifyTokenRequest;
+import com.oath.gemini.merchant.shopify.data.ShopifyAccessToken;
 import com.oath.gemini.merchant.shopify.util.OauthHelper;
 import com.oath.gemini.merchant.shopify.util.RequestUtil;
 
@@ -113,7 +113,7 @@ public class OnboardResource {
 
         // TODO: need to persist a shopper's token
         String shopifyUrl = RequestUtil.buildShopifyUrl(shop, "URL_FETCH_TOKEN");
-        AuthTokenResponseBody response = fetchAuthToken(shop, code); // fetchAuthToken(shopifyUrl, code);
+        ShopifyAccessToken response = fetchAuthToken(shop, code); // fetchAuthToken(shopifyUrl, code);
 
         HttpSession session = servletRequest.getSession();
         Object phase = session.getAttribute("isInstallation");
@@ -168,8 +168,8 @@ public class OnboardResource {
      * 
      * @throws Exception
      */
-    private static AuthTokenResponseBody fetchAuthToken(String shop, String authCode) throws Exception {
-        AuthTokenRequestBody reqestBody = new AuthTokenRequestBody();
+    private static ShopifyAccessToken fetchAuthToken(String shop, String authCode) throws Exception {
+        ShopifyTokenRequest reqestBody = new ShopifyTokenRequest();
 
         // Prepare request POST content
         reqestBody.setClientId(OauthHelper.API_KEY);
@@ -179,10 +179,10 @@ public class OnboardResource {
         ObjectMapper mapper = new ObjectMapper();
         String content = mapper.writeValueAsString(reqestBody);
         String responseBody = RequestUtil.requestPOST(shop, authCode, "URL_FETCH_TOKEN", content);
-        AuthTokenResponseBody result = null;
+        ShopifyAccessToken result = null;
 
         if (responseBody != null) {
-            result = mapper.readValue(responseBody, AuthTokenResponseBody.class);
+            result = mapper.readValue(responseBody, ShopifyAccessToken.class);
         }
         return result;
     }

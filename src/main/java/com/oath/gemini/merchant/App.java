@@ -23,7 +23,7 @@ import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.hibernate.SessionFactory;
-import com.oath.gemini.merchant.shopify.OAuthResource;
+import com.oath.gemini.merchant.ews.EWSAuthentication;
 import com.oath.gemini.merchant.shopify.OnboardResource;
 import com.oath.gemini.merchant.shopify.PixelResourceHandler;
 
@@ -51,7 +51,7 @@ public class App extends ResourceConfig {
     }
 
     protected void setFields(Configuration cfg, final SessionFactory sessions, final SessionFactory localSessions) {
-        super.register(OAuthResource.class);
+        super.register(EWSAuthentication.class);
         super.register(OnboardResource.class);
     }
 
@@ -77,7 +77,7 @@ public class App extends ResourceConfig {
 
         ServletContextHandler servletContextHandler = new ServletContextHandler(jetty, "/", ServletContextHandler.SESSIONS);
         servletContextHandler.addServlet(new ServletHolder(new ServletContainer(this)), "/API/V1/*");
-        servletContextHandler.addServlet(new ServletHolder(new ServletContainer(new OAuthResource(config))), "/oauth/*");
+        servletContextHandler.addServlet(new ServletHolder(new ServletContainer(new EWSAuthentication(config))), "/oauth/*");
         servletContextHandler.addServlet(new ServletHolder(new ServletContainer(new PixelResourceHandler())), "/pixel/*");
 
         // Add the filter, and then use the provided FilterHolder to configure it

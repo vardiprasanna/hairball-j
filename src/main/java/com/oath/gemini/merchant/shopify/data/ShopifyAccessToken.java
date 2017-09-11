@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class AuthTokenResponseBody {
+public class ShopifyAccessToken {
     // is an API access token that can be used to access the shop’s data as long as the client is installed. Clients
     // should store the token somewhere to make authenticated requests for a shop’s data. For example:
     // "f85632530bf277ec9ac6f649fc327f17"
