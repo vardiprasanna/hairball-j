@@ -1,15 +1,17 @@
 package com.oath.gemini.merchant.shopify;
 
+import com.google.inject.Inject;
+import com.oath.gemini.merchant.AppConfiguration;
+import com.oath.gemini.merchant.BaseHttpClientService;
+import com.oath.gemini.merchant.shopify.data.ShopifyAccessToken;
+import com.oath.gemini.merchant.shopify.data.ShopifyTokenRequest;
+import com.oath.gemini.merchant.shopify.util.OauthHelper;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
 import java.util.HashMap;
 import javax.annotation.Resource;
 import javax.inject.Singleton;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -21,14 +23,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 import org.apache.commons.configuration.Configuration;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.inject.Inject;
-import com.oath.gemini.merchant.AppConfiguration;
-import com.oath.gemini.merchant.shopify.data.ShopifyTokenRequest;
-import com.oath.gemini.merchant.shopify.data.ShopifyAccessToken;
-import com.oath.gemini.merchant.shopify.util.OauthHelper;
-import com.oath.gemini.merchant.shopify.util.RequestUtil;
 
 /**
  * When a store owner adds our app, it will go through the steps supported in this class. See the flow:
@@ -112,13 +106,21 @@ public class OnboardResource {
         }
 
         // TODO: need to persist a shopper's token
-        String shopifyUrl = RequestUtil.buildShopifyUrl(shop, "URL_FETCH_TOKEN");
-        ShopifyAccessToken response = fetchAuthToken(shop, code); // fetchAuthToken(shopifyUrl, code);
+        ShopifyAccessToken response = fetchAuthToken(shop, code);
+        ShopifyClientService ps = new ShopifyClientService(shop, response.getAccessToken());
+        
+        String result = ps.get(ShopifyEndpointEnum.URL_PROD_COUNT);
+        System.out.println(result);
+        
+        result = ps.get(ShopifyEndpointEnum.URL_PROD_ALL);
+        System.out.println(result);
 
         HttpSession session = servletRequest.getSession();
         Object phase = session.getAttribute("isInstallation");
 
-        return Response.temporaryRedirect(URI.create("http://localhost:3000/")).build();
+        // TODO: ask the store owner to his/her Gemini access if needed; otherwise go to our setting page. For now, we assume we
+        // haven't yet
+        return Response.temporaryRedirect(URI.create("https://localhost:4443/oauth/signon")).build(); // setting page: http://localhost:3000/
 
         /**
         if (phase instanceof Boolean) {
@@ -128,7 +130,7 @@ public class OnboardResource {
             injectScriptTag(shop, response.getAccessToken());
 
             // TODO: redirect to this app's setting page
-            shopifyUrl = RequestUtil.buildShopifyUrl(shop, "URL_SHOP_APPS_PAGE");
+            shopifyUrl = RequestUtil.buildShopifyUrl(shop, ShopifyEndpointEnum.URL_SHOP_APPS_PAGE);
             return Response.temporaryRedirect(URI.create(shopifyUrl)).build();
         }
         if (phase == null) {
@@ -169,24 +171,18 @@ public class OnboardResource {
      * @throws Exception
      */
     private static ShopifyAccessToken fetchAuthToken(String shop, String authCode) throws Exception {
+        ShopifyClientService ps = new ShopifyClientService(shop, authCode);
+        
         ShopifyTokenRequest reqestBody = new ShopifyTokenRequest();
 
         // Prepare request POST content
         reqestBody.setClientId(OauthHelper.API_KEY);
         reqestBody.setClientSecret(OauthHelper.SECRETE_KEY);
         reqestBody.setCode(authCode);
-
-        ObjectMapper mapper = new ObjectMapper();
-        String content = mapper.writeValueAsString(reqestBody);
-        String responseBody = RequestUtil.requestPOST(shop, authCode, "URL_FETCH_TOKEN", content);
-        ShopifyAccessToken result = null;
-
-        if (responseBody != null) {
-            result = mapper.readValue(responseBody, ShopifyAccessToken.class);
-        }
-        return result;
+        return ps.post(ShopifyAccessToken.class, reqestBody, ShopifyEndpointEnum.URL_FETCH_TOKEN);
     }
 
+    /**
     private static String injectScriptTag(String shop, String authCode) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode objNode = mapper.createObjectNode();
@@ -200,9 +196,10 @@ public class OnboardResource {
         outerNode.putPOJO("script_tag", objNode);
 
         String content = mapper.writeValueAsString(outerNode);
-        String responseBody = RequestUtil.requestPOST(shop, authCode, "URL_WRITE_SCRIPT_TAG", content);
+        String responseBody = RequestUtil.requestPOST(shop, authCode, ShopifyEndpointEnum.URL_WRITE_SCRIPT_TAG, content);
         return responseBody;
     }
+    */
 
     /**
      * https://{shop}.myshopify.com/admin/oauth/authorize?client_id={api_key}&scope={scopes}&redirect_uri={redirect_uri}&state={nonce}&grant_options[]={option}
@@ -233,9 +230,12 @@ public class OnboardResource {
         HashMap<String, String> params = new HashMap<>();
 
         params.put("client_id", OauthHelper.API_KEY);
-        params.put("scope", config.getString("ACCESS_SCOPES"));
+        params.put("scope", config.getString("SHOPIFY_ACCESS_SCOPES"));
         params.put("redirect_uri", redirectUrl);
         params.put("state", Long.toString(System.nanoTime()));
-        return URI.create(RequestUtil.buildShopifyUrl(shop, "URL_REQUEST_ACCESS", params));
+        
+        String path = BaseHttpClientService.replacePositionedParams(ShopifyEndpointEnum.URL_REQUEST_ACCESS.toString(), shop);
+        path = BaseHttpClientService.buildQueries(path, params);
+        return URI.create(path);
     }
 }

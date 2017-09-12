@@ -6,17 +6,19 @@ public enum EWSEndpointEnum {
     CAMPAIGN_OPS("campaign"), CAMPAIGN_BY_ADVERTISER("campaign/?advertiserId=${0}"),
 
     ADGROUP_OPS("adgroup"), ADGROUP_BY_ID("adgroup/${0}"), ADGROUP_BY_CAMPAIGN("adgroup?campaignId=${0}"), ADGROUP_BY_ADVERTISER(
-            "adgroup?advertiserId=${0}");
+            "adgroup?advertiserId=${0}"),
 
-    EWSEndpointEnum(String path) {
-        url = BASE_URL + path;
+    PRODUCT_FEED("feed"), PRODUCT_FEED_STATUS("feed/status?feedId=${0}"), PRODUCT_SET_OPS("productset"), PRODUCT_SET_BY_ID(
+            "productset/${0}"), PRODUCT_SET_BY_ADVERTISER(
+                    "productset?advertiserId=${0}"), PRODUCT_SET_BY_ADGROUP("productset?adgroupId=${0}");
+    private String url = "";
+
+    EWSEndpointEnum(String subpath) {
+        url = "https://api.gemini.yahoo.com/v3/rest/" + subpath;
     }
 
     @Override
     public String toString() {
         return url;
     }
-
-    private String url = "";
-    private final static String BASE_URL = "https://api.gemini.yahoo.com/v3/rest/";
 }

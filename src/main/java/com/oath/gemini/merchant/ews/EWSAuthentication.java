@@ -16,6 +16,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.http.HttpHeader;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -43,10 +44,17 @@ public class EWSAuthentication extends ResourceConfig {
     public EWSAuthentication(Configuration config) {
         this.config = config;
         register(this);
+
+        try {
+            init(0);
+        } catch (UnsupportedEncodingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     /**
-     * Switch an oauth application for a different testing: 1 - use an installed-app; 0 - use a web-app
+     * Switch an oauth application between two modes: 1 - use an installed-app; 0 - use a web-app
      * 
      * @throws UnsupportedEncodingException
      */
@@ -88,7 +96,6 @@ public class EWSAuthentication extends ResourceConfig {
     @Path("signon")
     public Response signOn() throws UnsupportedEncodingException {
         Response.ResponseBuilder builder = Response.temporaryRedirect(URI.create(requestAuth));
-        builder.header("incognito", true);
         return builder.build();
     }
 
@@ -132,6 +139,9 @@ public class EWSAuthentication extends ResourceConfig {
     @GET
     @Path("approval")
     public Response approve(@Context HttpServletRequest req, @DefaultValue("") @QueryParam("code") String code) {
+        if (StringUtils.isEmpty(code)) {
+            // TODO: indicate that the user denies the permission
+        }
         try {
             EWSAccessTokenData tokens = getAccessTokenFromAuthCode(code);
 
@@ -147,7 +157,7 @@ public class EWSAuthentication extends ResourceConfig {
         return Response.ok(dump(req)).build();
     }
 
-    public static String dump(HttpServletRequest req) {
+    private static String dump(HttpServletRequest req) {
         StringBuilder buf = new StringBuilder();
 
         buf.append("<div>\n").append(dumpHeaders(req)).append("</div>\n");
