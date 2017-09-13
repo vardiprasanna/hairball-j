@@ -1,15 +1,16 @@
 package com.oath.gemini.merchant.shopify;
 
-import com.oath.gemini.merchant.BaseHttpClientService;
+import com.oath.gemini.merchant.ClosableHttpClient;
 import javax.inject.Singleton;
 import org.eclipse.jetty.client.api.Request;
+import org.eclipse.jetty.http.HttpHeader;
 import lombok.Getter;
 import lombok.Setter;
 
 @Singleton
 @Getter
 @Setter
-public class ShopifyClientService extends BaseHttpClientService {
+public class ShopifyClientService {
     private String accessToken;
     private String shop;
 
@@ -25,20 +26,28 @@ public class ShopifyClientService extends BaseHttpClientService {
     }
 
     public Request headers(Request request) {
-        return super.headers(request).header("X-Shopify-Access-Token", accessToken);
+        request.header(HttpHeader.ACCEPT, "application/json");
+        request.header(HttpHeader.CONTENT_TYPE, "application/json");
+        return request.header("X-Shopify-Access-Token", accessToken);
     }
 
-    public String get(Enum<?> path, Object... params) throws Exception {
-        return get(String.class, path, params);
+    public String get(Enum<?> path) throws Exception {
+        return get(String.class, path);
     }
 
-    public <T> T get(Class<T> responseType, Enum<?> path, Object... params) throws Exception {
-        String shopPath = super.replacePositionedParams(path.toString(), this.shop);
-        return super.get(responseType, shopPath, params);
+    public <T> T get(Class<T> responseType, Enum<?> path) throws Exception {
+        try (ClosableHttpClient httpClient = new ClosableHttpClient()) {
+            Request request = httpClient.newGET(path.toString(), shop);
+            headers(request);
+            return httpClient.send(responseType);
+        }
     }
 
-    public <T> T post(Class<T> responseType, Object requestBody, Enum<?> path, Object... params) throws Exception {
-        String shopPath = super.replacePositionedParams(path.toString(), this.shop);
-        return super.post(responseType, requestBody, shopPath, params);
+    public <T> T post(Class<T> responseType, Object requestBody, Enum<?> path) throws Exception {
+        try (ClosableHttpClient httpClient = new ClosableHttpClient()) {
+            Request request = httpClient.newPOST(path.toString(), requestBody, shop);
+            headers(request);
+            return httpClient.send(responseType);
+        }
     }
 }

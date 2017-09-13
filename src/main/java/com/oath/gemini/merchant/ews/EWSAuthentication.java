@@ -148,7 +148,7 @@ public class EWSAuthentication extends ResourceConfig {
             // Redirect user to a campaign setup page
             if (tokens != null) {
                 refreshToken = tokens.getRefreshToken();
-                new EWSClientService(refreshToken).archtype();
+                new EWSClientService(refreshToken).archetype();
             }
         } catch (Exception e) {
             // TODO Auto-generated catch block

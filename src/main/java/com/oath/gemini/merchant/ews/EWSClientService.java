@@ -25,7 +25,7 @@ public class EWSClientService {
     /**
      * Initialize a new campaign
      */
-    public void archtype() {
+    public void archetype() {
         try {
             EWSResponseData<AdvertiserData> advResponse = get(AdvertiserData.class, EWSEndpointEnum.ADVERTISER);
             if (EWSResponseData.isEmpty(advResponse)) {
@@ -162,7 +162,7 @@ public class EWSClientService {
         EWSResponseData<T> response = null;
 
         try (ClosableHttpClient httpClient = new ClosableHttpClient()) {
-            Request request = httpClient.newRequest(method, replacePositionedParams(path.toString(), params), requestBody);
+            Request request = httpClient.newRequest(method, path.toString(), requestBody, null, params);
 
             // Send a request
             request.header(HttpHeader.ACCEPT, "application/json");
@@ -193,16 +193,5 @@ public class EWSClientService {
             }
         }
         return response;
-    }
-
-    private static String replacePositionedParams(String src, Object[] params) {
-        String tgt = src;
-
-        if (tgt != null && params != null) {
-            for (int i = 0; i < params.length; i++) {
-                tgt = tgt.replace("${" + i + "}", params[0].toString());
-            }
-        }
-        return tgt;
     }
 }

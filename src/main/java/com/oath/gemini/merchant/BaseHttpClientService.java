@@ -7,6 +7,7 @@ import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpMethod;
 
 public abstract class BaseHttpClientService {
+    /**
     public Request headers(Request request) {
         request.header(HttpHeader.ACCEPT, "application/json");
         request.header(HttpHeader.CONTENT_TYPE, "application/json");
@@ -50,4 +51,5 @@ public abstract class BaseHttpClientService {
         }
         return tgt;
     }
+    */
 }

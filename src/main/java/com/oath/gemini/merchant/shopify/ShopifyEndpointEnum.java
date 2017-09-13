@@ -13,6 +13,8 @@ public enum ShopifyEndpointEnum {
 
     URL_WRITE_SCRIPT_TAG("script_tags.json"),
 
+    URL_SCRIPT_TAG_ALL("script_tags.json"),
+
     URL_SCRIPT_TAG_COUNT("script_tags/count.json"),
 
     PROD_FEED("https://${0}/collections/", "all.atom");

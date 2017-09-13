@@ -1,8 +1,13 @@
 package com.oath.gemini.merchant;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import javax.ws.rs.core.UriBuilder;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.api.Request;
@@ -10,9 +15,6 @@ import org.eclipse.jetty.client.util.StringContentProvider;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -25,16 +27,26 @@ public class ClosableHttpClient extends HttpClient implements Closeable, AutoClo
         super.start();
     }
 
-    public Request newGET(String url) {
-        this.request = super.newRequest(url);
-        return request.timeout(DEFAULT_THREADPOOL_TIMEOUT, TimeUnit.SECONDS);
+    public Request newGET(String url, Map<String, String> queries, Object... macros) throws Exception {
+        return newRequest(HttpMethod.GET, url, null, queries, macros);
     }
 
-    public Request newPOST(String url, Object content) throws JsonProcessingException {
-        return newRequest(HttpMethod.POST, url, content);
+    public Request newGET(String url, Object... macros) throws Exception {
+        return newRequest(HttpMethod.GET, url, null, null, macros);
     }
 
-    public Request newRequest(HttpMethod method, String url, Object content) throws JsonProcessingException {
+    public Request newPOST(String url, Object content, Map<String, String> queries, Object... macros) throws Exception {
+        return newRequest(HttpMethod.POST, url, content, queries, macros);
+    }
+
+    public Request newPOST(String url, Object content, Object... macros) throws Exception {
+        return newRequest(HttpMethod.POST, url, content, null, macros);
+    }
+
+    public Request newRequest(HttpMethod method, String url, Object content, Map<String, String> queries, Object... macros)
+            throws JsonProcessingException {
+        url = replacePositionedParams(url, macros);
+        url = buildQueries(url, queries);
         this.request = newRequest(url);
 
         if (method != null) {
@@ -56,10 +68,6 @@ public class ClosableHttpClient extends HttpClient implements Closeable, AutoClo
             request.content(provider);
         }
         return request.timeout(DEFAULT_THREADPOOL_TIMEOUT, TimeUnit.SECONDS);
-    }
-
-    public String send() throws Exception {
-        return send(String.class);
     }
 
     @SuppressWarnings("unchecked")
@@ -95,5 +103,27 @@ public class ClosableHttpClient extends HttpClient implements Closeable, AutoClo
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static String buildQueries(String path, Map<String, String> queries) {
+        if (queries != null && queries.size() > 0) {
+            UriBuilder uriBuilder = UriBuilder.fromPath(path);
+            for (Map.Entry<String, String> entry : queries.entrySet()) {
+                uriBuilder.queryParam(entry.getKey(), entry.getValue());
+            }
+            path = uriBuilder.toString();
+        }
+        return path;
+    }
+
+    public static String replacePositionedParams(String path, Object... macros) {
+        String tgt = path;
+
+        if (tgt != null && macros != null) {
+            for (int i = 0; i < macros.length; i++) {
+                tgt = tgt.replace("${" + i + "}", macros[0].toString());
+            }
+        }
+        return tgt;
     }
 }
