@@ -1,5 +1,6 @@
 package com.oath.gemini.merchant.shopify;
 
+import static com.oath.gemini.merchant.ClosableHttpClient.buildQueries;
 import com.oath.gemini.merchant.AppConfiguration;
 import com.oath.gemini.merchant.ClosableHttpClient;
 import com.oath.gemini.merchant.shopify.data.ScriptTagArrayData;
@@ -11,11 +12,13 @@ import com.oath.gemini.merchant.shopify.util.OauthHelper;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Base64;
 import java.util.HashMap;
+import java.util.Map;
 import javax.annotation.Resource;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
@@ -24,6 +27,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.lang3.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * When a store owner adds our app, it will go through the steps supported in this class. See the flow:
@@ -32,10 +37,13 @@ import org.apache.commons.configuration.Configuration;
  * @see the onboard flow - https://github.com/Shopify/omniauth-shopify-oauth2/wiki/Shopify-OAuth
  * @see more detail - https://help.shopify.com/api/getting-started/authentication/oauth#confirming-installation
  */
+@Slf4j
 @Singleton
 @Resource
 @Path("shopify")
 public class OnboardResource {
+    // TODO: we will use database to persist refresh tokens
+    public static Map<String, String> merchantTokenStorage = new HashMap<>();
 
     /**
      * The user reaches here when he initiates the installation of our app in Shopify admin console
@@ -79,13 +87,14 @@ public class OnboardResource {
      * A sample URL initiated from Shopify is: <br/>
      * http://localhost:4080/API/V1/shopify/home?code=22805a9745d6f27ea0b989818670976c&hmac=9b1d163afc0ea825e121505920d2f223cd90f89f98e027f6c21cb70d5a5fe2ce&shop=dpa-bridge.myshopify.com&timestamp=1503786189
      * 
-     * @throws Exception
+     * @param _refresh is a Gemini's OAuth2 refresh token
+     * @param _mc is a merchant access code
      */
     @GET
     @Path("home")
-    public Response grant(@Context HttpServletRequest servletRequest, @Context HttpServletResponse servletResponse,
-            @QueryParam("hmac") String hmac, @QueryParam("shop") String shop, @QueryParam("timestamp") String ts,
-            @QueryParam("code") String code, @QueryParam("state") String state) throws Exception {
+    public Response home(@Context HttpServletRequest req, @QueryParam("hmac") String hmac, @QueryParam("shop") String shop,
+            @QueryParam("timestamp") String ts, @QueryParam("code") String code, @QueryParam("state") String state,
+            @DefaultValue("") @QueryParam("_refresh") String _refresh, @DefaultValue("") @QueryParam("_mc") String _mc) throws Exception {
 
         try {
             String counterHmac = OauthHelper.generateHMac("code=" + code, "shop=" + shop, "state=" + state, "timestamp=" + ts);
@@ -93,26 +102,36 @@ public class OnboardResource {
                 return Response.status(Status.UNAUTHORIZED).build();
             }
         } catch (Exception e) {
+            log.error("failed to validate the legitimate of the call", e);
             return Response.serverError().build();
         }
 
-        // TODO: need to persist a shopper's token
-        ShopifyAccessToken response = fetchAuthToken(shop, code);
-        ShopifyClientService ps = new ShopifyClientService(shop, response.getAccessToken());
+        String target = "http://localhost:3000/";
 
-        // we are here because a store shop is installing our app");
-        // Inject a script tag
-        injectScriptTag(shop, response.getAccessToken());
+        if (StringUtils.isBlank(_refresh) || StringUtils.isBlank(_mc)) {
+            // TODO: need to persist a shopper's token
+            ShopifyAccessToken tokens = fetchAuthToken(shop, code);
 
-        // TODO: ask the store owner to his/her Gemini access if needed; otherwise go to our setting page. For now, we assume we
-        // haven't yet
-        return Response.temporaryRedirect(URI.create("http://localhost:4080/oauth/signon")).build(); // setting page: http://localhost:3000/
-    }
+            if (merchantTokenStorage.containsKey(tokens.getAccessToken())) {
+                _mc = tokens.getAccessToken();
+            } else {
+                injectScriptTag(shop, tokens.getAccessToken());
 
-    @Path("store.json")
-    @GET
-    public Response test() {
-        return Response.ok("{'store':{'name':'dpa-bridge'}}").build();
+                // Redirect to the OAuth2 handler for user's Gemini access. Will will be redirected to here when OAuth2 done
+                String rd = req.getRequestURL().append('?').append(req.getQueryString()).toString();
+
+                rd = buildQueries(rd, "_mc", tokens.getAccessToken());
+                target = buildQueries("http://localhost:4080/oauth/signon", "_rd", Base64.getEncoder().encodeToString(rd.getBytes()));
+            }
+        }
+
+        if ("denied".equalsIgnoreCase(_refresh)) {
+            // TODO: handle a denied-access case
+        } else if (!merchantTokenStorage.containsKey(_mc)) {
+            merchantTokenStorage.put(_mc, _refresh);
+        }
+
+        return Response.temporaryRedirect(URI.create(target)).build();
     }
 
     /**

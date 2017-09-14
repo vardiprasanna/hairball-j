@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.ws.rs.core.UriBuilder;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.api.Request;
@@ -105,9 +106,29 @@ public class ClosableHttpClient extends HttpClient implements Closeable, AutoClo
         }
     }
 
+    /**
+     * number of queries should be even, with a name followed by its value
+     */
+    public static String buildQueries(String path, String... queries) {
+        if (queries != null && (queries.length & 1) == 0) {
+            UriBuilder uriBuilder = UriBuilder.fromUri(path);
+            for (int i = 0; i < queries.length; i += 2) {
+                if (StringUtils.isBlank(queries[i])) {
+                    log.error("the {}-th param key is null", i);
+                } else if (StringUtils.isBlank(queries[i + 1])) {
+                    uriBuilder.queryParam(queries[i], "");
+                } else {
+                    uriBuilder.queryParam(queries[i], queries[i + 1]);
+                }
+            }
+            path = uriBuilder.toString();
+        }
+        return path;
+    }
+
     public static String buildQueries(String path, Map<String, String> queries) {
         if (queries != null && queries.size() > 0) {
-            UriBuilder uriBuilder = UriBuilder.fromPath(path);
+            UriBuilder uriBuilder = UriBuilder.fromUri(path);
             for (Map.Entry<String, String> entry : queries.entrySet()) {
                 uriBuilder.queryParam(entry.getKey(), entry.getValue());
             }

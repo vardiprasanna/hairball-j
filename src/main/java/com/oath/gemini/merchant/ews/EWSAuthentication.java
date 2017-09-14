@@ -1,5 +1,6 @@
 package com.oath.gemini.merchant.ews;
 
+import static com.oath.gemini.merchant.ClosableHttpClient.buildQueries;
 import com.oath.gemini.merchant.ClosableHttpClient;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -29,8 +30,6 @@ import lombok.extern.slf4j.Slf4j;;
 @Singleton
 @Path("")
 public class EWSAuthentication extends ResourceConfig {
-    private Configuration config;
-
     // Either an installed-app or a web-app
     private static String requestAuth;
     private static String requestTokenBody;
@@ -42,7 +41,6 @@ public class EWSAuthentication extends ResourceConfig {
     private static String OAUTH_BASE64;
 
     public EWSAuthentication(Configuration config) {
-        this.config = config;
         register(this);
 
         try {
@@ -94,9 +92,9 @@ public class EWSAuthentication extends ResourceConfig {
      */
     @GET
     @Path("signon")
-    public Response signOn() throws UnsupportedEncodingException {
-        Response.ResponseBuilder builder = Response.temporaryRedirect(URI.create(requestAuth));
-        return builder.build();
+    public Response signOn(@Context HttpServletRequest req, @QueryParam("_rd") String rd) throws UnsupportedEncodingException {
+        req.getSession().setAttribute("_rd", rd);
+        return Response.temporaryRedirect(URI.create(requestAuth)).build();
     }
 
     /**
@@ -140,7 +138,7 @@ public class EWSAuthentication extends ResourceConfig {
     @Path("approval")
     public Response approve(@Context HttpServletRequest req, @DefaultValue("") @QueryParam("code") String code) {
         if (StringUtils.isEmpty(code)) {
-            // TODO: indicate that the user denies the permission
+            // TODO: indicate that the user denies our access request
         }
         try {
             EWSAccessTokenData tokens = getAccessTokenFromAuthCode(code);
@@ -149,6 +147,15 @@ public class EWSAuthentication extends ResourceConfig {
             if (tokens != null) {
                 refreshToken = tokens.getRefreshToken();
                 new EWSClientService(refreshToken).archetype();
+
+                String rd = (String) req.getSession().getAttribute("_rd");
+                if (StringUtils.isNotBlank(rd)) {
+                    byte[] homeUrl = Base64.getDecoder().decode(rd.getBytes());
+                    String uri = buildQueries(new String(homeUrl), "_refresh", refreshToken);
+                    return Response.temporaryRedirect(URI.create(uri)).build();
+                } else {
+                    log.error("missing the redirect url");
+                }
             }
         } catch (Exception e) {
             // TODO Auto-generated catch block
