@@ -3,7 +3,6 @@ package com.oath.gemini.merchant.shopify;
 import static com.oath.gemini.merchant.ClosableHttpClient.buildQueries;
 import com.oath.gemini.merchant.AppConfiguration;
 import com.oath.gemini.merchant.ClosableHttpClient;
-import com.oath.gemini.merchant.shopify.data.ScriptTagArrayData;
 import com.oath.gemini.merchant.shopify.data.ScriptTagData;
 import com.oath.gemini.merchant.shopify.data.ShopifyAccessToken;
 import com.oath.gemini.merchant.shopify.data.ShopifyTokenRequest;
@@ -163,13 +162,14 @@ public class OnboardResource {
      */
     private Tag injectScriptTag(String shop, String authCode) throws Exception {
         ShopifyClientService ps = new ShopifyClientService(shop, authCode);
-new ProductListingBuilder(ps).archetype();
+        new ProductListingBuilder(ps).archetype();
+
         // Do nothing if a given script has been inserted already
-        ScriptTagArrayData tags = ps.get(ScriptTagArrayData.class, ShopifyEndpointEnum.SHOPIFY_SCRIPT_TAG_ALL);
+        Tag[] tags = ps.get(Tag[].class, ShopifyEndpointEnum.SHOPIFY_SCRIPT_TAG_ALL);
         String javascriptFile = config.getString("DOT_PIXEL");
 
-        if (tags != null && tags.getTags() != null) {
-            for (Tag t : tags.getTags()) {
+        if (tags != null) {
+            for (Tag t : tags) {
                 if (javascriptFile.equalsIgnoreCase(t.getSrc())) {
                     return t;
                 }

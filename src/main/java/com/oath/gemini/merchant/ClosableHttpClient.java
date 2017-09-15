@@ -116,12 +116,33 @@ public class ClosableHttpClient extends HttpClient implements Closeable, AutoClo
             propName = rootName.value();
         }
 
-        Map<String, String> wrapped = mapper.readValue(responseBody, Map.class);
+        Map<String, ?> wrapped = mapper.readValue(responseBody, Map.class);
+        Object rawResponse = null;
+
+        if (wrapped != null) {
+            rawResponse = wrapped.get(propName);
+
+            if (rawResponse != null) {
+                if (!(rawResponse instanceof List<?> || rawResponse instanceof Object[])) {
+                    log.warn("the property for '{}' is not an array");
+                    rawResponse = null;
+                }
+            }
+            if (rawResponse == null) {
+                for (Object value : wrapped.values()) {
+                    if (value instanceof List<?> || value instanceof Object[]) {
+                        if (rawResponse != null) {
+                            log.error("no array property for '{}', and there are multiple array properties", propName);
+                            break;
+                        }
+                        rawResponse = value;
+                    }
+                }
+            }
+        }
+
         Object[] result = null;
-
-        if (wrapped != null && wrapped.containsKey(propName)) {
-            Object rawResponse = wrapped.get(propName);
-
+        if (rawResponse != null) {
             if (rawResponse instanceof List<?>) {
                 List<?> rawObjectList = (List<?>) rawResponse;
                 result = (Object[]) Array.newInstance(memberClass, rawObjectList.size());

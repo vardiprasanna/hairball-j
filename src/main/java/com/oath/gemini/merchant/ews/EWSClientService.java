@@ -169,24 +169,11 @@ public class EWSClientService {
             request.header(HttpHeader.CONTENT_TYPE, "application/json");
             request.header(HttpHeader.AUTHORIZATION, "Bearer " + tokens.getAccessToken());
             Map<String, String> res = httpClient.send(Map.class);
+            T[] ewsObjects = (T[]) httpClient.send(Array.newInstance(responseType, 0).getClass());
 
             // Convert a raw response to a list of T objects
             if (res != null && res.get("response") != null) {
                 ObjectMapper mapper = new ObjectMapper();
-                Object rawResponse = res.get("response");
-                T[] ewsObjects = null;
-
-                if (rawResponse instanceof List<?>) {
-                    List<?> rawObjectList = (List<?>) rawResponse;
-                    ewsObjects = (T[]) (Array.newInstance(responseType, rawObjectList.size()));
-
-                    for (int i = 0; i < rawObjectList.size(); i++) {
-                        ewsObjects[i] = mapper.convertValue(rawObjectList.get(i), responseType);
-                    }
-                } else {
-                    ewsObjects = (T[]) (Array.newInstance(responseType, 1));
-                    ewsObjects[0] = mapper.convertValue(rawResponse, responseType);
-                }
 
                 response = mapper.convertValue(res, EWSResponseData.class);
                 response.setObjects(ewsObjects);

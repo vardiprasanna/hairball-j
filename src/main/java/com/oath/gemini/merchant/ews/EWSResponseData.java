@@ -1,5 +1,6 @@
 package com.oath.gemini.merchant.ews;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.oath.gemini.merchant.HttpStatus;
 import java.util.Arrays;
@@ -13,7 +14,9 @@ import lombok.Setter;
 public class EWSResponseData<T> extends HttpStatus {
     private String errors;
     private String timestamp;
-    private T[] objects;
+    
+    @JsonIgnore
+    private T[] objects; // will be loaded separately
 
     public T get(int index) {
         return objects[index];
