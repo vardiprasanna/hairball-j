@@ -38,7 +38,7 @@ public class ProductListing {
      * </pre>
      */
     public static void fetch(ShopifyClientService svc) throws Exception {
-        String raw = svc.get(ShopifyEndpointEnum.PROD_FEED);
+        String raw = svc.get(ShopifyEndpointEnum.SHOPIFY_PROD_FEED);
 
         try (ByteArrayInputStream reader = new ByteArrayInputStream(raw.getBytes())) {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();

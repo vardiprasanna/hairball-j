@@ -42,8 +42,10 @@ import lombok.extern.slf4j.Slf4j;
 @Resource
 @Path("shopify")
 public class OnboardResource {
+    private Configuration config = AppConfiguration.getConfig();
+
     // TODO: we will use database to persist refresh tokens
-    public static Map<String, String> merchantTokenStorage = new HashMap<>();
+    private static Map<String, String> merchantTokenStorage = new HashMap<>();
 
     /**
      * The user reaches here when he initiates the installation of our app in Shopify admin console
@@ -106,7 +108,7 @@ public class OnboardResource {
             return Response.serverError().build();
         }
 
-        String target = "http://localhost:3000/";
+        String target = config.getString("URL_CONFIGURATION");
 
         if (StringUtils.isBlank(_refresh) || StringUtils.isBlank(_mc)) {
             // TODO: need to persist a shopper's token
@@ -121,7 +123,8 @@ public class OnboardResource {
                 String rd = req.getRequestURL().append('?').append(req.getQueryString()).toString();
 
                 rd = buildQueries(rd, "_mc", tokens.getAccessToken());
-                target = buildQueries("http://localhost:4080/oauth/signon", "_rd", Base64.getEncoder().encodeToString(rd.getBytes()));
+                target = config.getString("URL_OAUTH2_YAHOO");
+                target = buildQueries(target, "_rd", Base64.getEncoder().encodeToString(rd.getBytes()));
             }
         }
 
@@ -152,18 +155,17 @@ public class OnboardResource {
         reqestBody.setClientId(OauthHelper.API_KEY);
         reqestBody.setClientSecret(OauthHelper.SECRETE_KEY);
         reqestBody.setCode(authCode);
-        return ps.post(ShopifyAccessToken.class, reqestBody, ShopifyEndpointEnum.URL_FETCH_TOKEN);
+        return ps.post(ShopifyAccessToken.class, reqestBody, ShopifyEndpointEnum.SHOPIFY_FETCH_TOKEN);
     }
 
     /**
      * @see https://help.shopify.com/api/reference/scripttag
      */
-    private static Tag injectScriptTag(String shop, String authCode) throws Exception {
+    private Tag injectScriptTag(String shop, String authCode) throws Exception {
         ShopifyClientService ps = new ShopifyClientService(shop, authCode);
-        Configuration config = AppConfiguration.getConfig();
-
+new ProductListingBuilder(ps).archetype();
         // Do nothing if a given script has been inserted already
-        ScriptTagArrayData tags = ps.get(ScriptTagArrayData.class, ShopifyEndpointEnum.URL_SCRIPT_TAG_ALL);
+        ScriptTagArrayData tags = ps.get(ScriptTagArrayData.class, ShopifyEndpointEnum.SHOPIFY_SCRIPT_TAG_ALL);
         String javascriptFile = config.getString("DOT_PIXEL");
 
         if (tags != null && tags.getTags() != null) {
@@ -177,7 +179,7 @@ public class OnboardResource {
         // Insert a new javascript file
         ScriptTagData tag = new ScriptTagData();
         tag.setSrc(javascriptFile);
-        ps.post(String.class, tag, ShopifyEndpointEnum.URL_WRITE_SCRIPT_TAG);
+        ps.post(String.class, tag, ShopifyEndpointEnum.SHOPIFY_SCRIPT_TAG);
 
         return tag;
     }
@@ -205,8 +207,7 @@ public class OnboardResource {
      * 
      * @throws MalformedURLException
      */
-    private static URI buildScopeRequestUrl(String shop, String redirectUrl) throws MalformedURLException {
-        Configuration config = AppConfiguration.getConfig();
+    private URI buildScopeRequestUrl(String shop, String redirectUrl) throws MalformedURLException {
         HashMap<String, String> params = new HashMap<>();
 
         params.put("client_id", OauthHelper.API_KEY);
@@ -214,7 +215,7 @@ public class OnboardResource {
         params.put("redirect_uri", redirectUrl);
         params.put("state", Long.toString(System.nanoTime()));
 
-        String path = ClosableHttpClient.replacePositionedParams(ShopifyEndpointEnum.URL_REQUEST_ACCESS.toString(), shop);
+        String path = ClosableHttpClient.replacePositionedParams(ShopifyEndpointEnum.SHOPIFY_REQUEST_ACCESS.toString(), shop);
         path = ClosableHttpClient.buildQueries(path, params);
         return URI.create(path);
     }

@@ -1,10 +1,13 @@
 package com.oath.gemini.merchant;
 
+import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import java.io.Closeable;
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.ws.rs.core.UriBuilder;
@@ -75,14 +78,20 @@ public class ClosableHttpClient extends HttpClient implements Closeable, AutoClo
     public <T> T send(Class<T> responseType) throws Exception {
         ContentResponse response = request.send();
         String responseBody = response.getContentAsString();
+        T result = null;
 
         // Process a response
         if (response.getStatus() >= 200 && response.getStatus() < 300) {
             if (!String.class.isAssignableFrom(responseType)) {
                 ObjectMapper mapper = new ObjectMapper();
-                return mapper.readValue(responseBody, responseType);
+
+                if (responseType.isArray()) {
+                    result = (T) convertToArray(mapper, responseType, responseBody);
+                } else {
+                    result = mapper.readValue(responseBody, responseType);
+                }
             } else {
-                return (T) responseBody;
+                result = (T) responseBody;
             }
         } else {
             log.error("received an unexpected status code=" + response.getStatus());
@@ -91,10 +100,49 @@ public class ClosableHttpClient extends HttpClient implements Closeable, AutoClo
                 HttpStatus error = (HttpStatus) responseType.newInstance();
                 error.setStatus(response.getStatus());
                 error.setMessage(responseBody);
-                return (T) error;
+                result = (T) error;
             }
         }
-        return null;
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Object[] convertToArray(ObjectMapper mapper, Class<?> responseType, String responseBody) throws Exception {
+        Class<?> memberClass = responseType.getComponentType();
+        JsonRootName rootName = memberClass.getAnnotation(JsonRootName.class);
+        String propName = memberClass.getSimpleName();
+
+        if (rootName != null) {
+            propName = rootName.value();
+        }
+
+        Map<String, String> wrapped = mapper.readValue(responseBody, Map.class);
+        Object[] result = null;
+
+        if (wrapped != null && wrapped.containsKey(propName)) {
+            Object rawResponse = wrapped.get(propName);
+
+            if (rawResponse instanceof List<?>) {
+                List<?> rawObjectList = (List<?>) rawResponse;
+                result = (Object[]) Array.newInstance(memberClass, rawObjectList.size());
+
+                for (int i = 0; i < rawObjectList.size(); i++) {
+                    result[i] = mapper.convertValue(rawObjectList.get(i), memberClass);
+                }
+            } else if (rawResponse instanceof Object[]) {
+                Object[] rawObjectList = (Object[]) rawResponse;
+                result = (Object[]) Array.newInstance(memberClass, rawObjectList.length);
+
+                for (int i = 0; i < rawObjectList.length; i++) {
+                    result[i] = mapper.convertValue(rawObjectList[i], memberClass);
+                }
+            } else {
+                result = (Object[]) Array.newInstance(responseType, 1);
+                result[0] = mapper.convertValue(rawResponse, memberClass);
+            }
+        }
+
+        return result;
     }
 
     @Override
