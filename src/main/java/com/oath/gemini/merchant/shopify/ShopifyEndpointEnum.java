@@ -10,6 +10,10 @@ public enum ShopifyEndpointEnum {
     SHOPIFY_PROD_COUNT("products/count.json"),
 
     SHOPIFY_PROD_ALL("products.json"),
+    
+    SHOPIFY_PROD_IMAGES("products/${0}/images.json"),
+    
+    SHOPIFY_PROD_VARIANTS("products/${0}/variants.json"),
 
     SHOPIFY_SCRIPT_TAG("script_tags.json"),
 
@@ -23,7 +27,7 @@ public enum ShopifyEndpointEnum {
     private String url = "";
 
     ShopifyEndpointEnum(String subpath) {
-        this("https://${0}/admin/", subpath);
+        this("https://${shop}/admin/", subpath);
     }
 
     ShopifyEndpointEnum(String path, String subpath) {

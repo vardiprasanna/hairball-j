@@ -34,4 +34,10 @@ public class ShopifyProductData {
 
     @JsonProperty("vendor")
     private String brand;
+
+    @JsonIgnore
+    private ShopifyProductImageData[] images;
+
+    @JsonIgnore
+    private ShopifyProductVariantData[] variants;
 }

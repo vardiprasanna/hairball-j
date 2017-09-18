@@ -33,8 +33,8 @@ public class ProductRecordData {
      * Link to an image of the product. The image provided will be mapped to these formats for native ads: large 627x627px
      * and HQ 1200x627px.
      */
-    @JsonProperty(value = "image_link", required = true)
-    private String imageLink;
+    @JsonProperty(required = true)
+    private String image_link;
 
     /**
      * Landing page of the merchant when the ad is clicked.
@@ -51,13 +51,13 @@ public class ProductRecordData {
      * out of stock products are not eligible for serving and may be removed from the system after 3 months
      */
     @JsonProperty(required = true)
-    private ProductConstant.Availability availability;
+    private ProductConstant.Availability availability = ProductConstant.Availability.IN_STOCK;
 
     /**
      * The condition of the product. Accepted values are new, refurbished, or used.
      */
     @JsonProperty(required = true)
-    private ProductConstant.ConditionEnum condition;
+    private ProductConstant.ConditionEnum condition = ProductConstant.ConditionEnum.NEW;
 
     /**
      * The cost of the product and currency. Currency should be specified as the ISO 4217 currency code e.g. 9.99 USD. This
@@ -81,14 +81,12 @@ public class ProductRecordData {
     /**
      * Comma separated multiple (max 10) additional image urls can be provided.
      */
-    @JsonProperty("additional_image_link")
-    private String xtraImageLinks; // max 2000
+    private String additional_image_link; // max 2000
 
     /**
      * The age group the product is meant for. Accepted values are newborn, infant, toddler, kids, and adult.
      */
-    @JsonProperty("age_group")
-    private ProductConstant.AgeGroup ageGroup;
+    private ProductConstant.AgeGroup age_group;
 
     /**
      * The color of the product.
@@ -98,8 +96,7 @@ public class ProductRecordData {
     /**
      * The expiration date of the product. An expired product is not eligible for serving.
      */
-    @JsonProperty("expiration_date")
-    private String expirationDate; // ISO‑8601 (YYYY‑MM‑DD)
+    private String expiration_date; // ISO‑8601 (YYYY‑MM‑DD)
 
     /**
      * Acceptable values are male, female, and unisex
@@ -109,14 +106,12 @@ public class ProductRecordData {
     /**
      * Similar products can share same item group id
      */
-    @JsonProperty("item_group_id")
-    private String itemGroupId;
+    private String item_group_id;
 
     /**
      * Predefined values from Google’s product taxonomy. For example, Apparel & Accessories > Clothing > Dresses.
      */
-    @JsonProperty("google_product_category")
-    private String googleProductCategory; // max 250
+    private String google_product_category; // max 250
 
     /**
      * Material or fabric of the product.
@@ -132,45 +127,35 @@ public class ProductRecordData {
      * The retailer-defined category of the product as a string. Examples : TSV format: Home & Garden > Kitchen & Dining >
      * Appliances > Refrigerators
      */
-    @JsonProperty("product_type")
-    private String productType; // max 750
+    private String product_type; // max 750
 
     /**
      * The discounted price if the product is on sale. Currency should be specified as the ISO 4217 currency code. Specified
      * as 9.99 USD
      */
-    @JsonProperty("sale_price")
-    private String salePrice; // max 750
+    private String sale_price; // max 750
 
     /**
      * The start and end date/time of the sale, separated by a slash. e.g., 2014-11-01T12:00-0300/2014-12-01T00:00-0300
      */
-    @JsonProperty("sale_price_effective_date")
-    private String salePriceDffectiveDate; // ISO‑8601 (YYYY‑MM‑DD)
+    private String sale_price_effective_date; // ISO‑8601 (YYYY‑MM‑DD)
 
     private String shipping;
 
-    @JsonProperty("shipping_weight")
-    private String shippingWeight;
+    private String shipping_weight;
 
-    @JsonProperty("shipping_size")
-    private String shippingSize;
+    private String shipping_size;
 
     /**
      * Can contain additional information about the item
      */
-    @JsonProperty("custom_label_0")
-    private String customLabel0; // max 100
+    private String custom_label_0; // max 100
 
-    @JsonProperty("custom_label_1")
-    private String customLabel1; // max 100
+    private String custom_label_1; // max 100
 
-    @JsonProperty("custom_label_2")
-    private String customLabel2; // max 100
+    private String custom_label_2; // max 100
 
-    @JsonProperty("custom_label_3")
-    private String customLabel3; // max 100
+    private String custom_label_3; // max 100
 
-    @JsonProperty("custom_label_4")
-    private String customLabel4; // max 100
+    private String custom_label_4; // max 100
 }

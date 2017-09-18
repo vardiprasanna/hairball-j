@@ -215,7 +215,7 @@ public class OnboardResource {
         params.put("redirect_uri", redirectUrl);
         params.put("state", Long.toString(System.nanoTime()));
 
-        String path = ClosableHttpClient.replacePositionedParams(ShopifyEndpointEnum.SHOPIFY_REQUEST_ACCESS.toString(), shop);
+        String path = ShopifyEndpointEnum.SHOPIFY_REQUEST_ACCESS.toString().replace("${shop}", shop);
         path = ClosableHttpClient.buildQueries(path, params);
         return URI.create(path);
     }

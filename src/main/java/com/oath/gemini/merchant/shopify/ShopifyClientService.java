@@ -15,10 +15,8 @@ public class ShopifyClientService {
     private String shop;
 
     /**
-     * @param shop
-     *            e.g., dpa-bridge.myshopify.com
-     * @param accessToken
-     *            either an access token or an authorized code. The later is used only to fetch its access token
+     * @param shop e.g., dpa-bridge.myshopify.com
+     * @param accessToken either an access token or an authorized code. The later is used only to fetch its access token
      */
     public ShopifyClientService(String shop, String accessToken) {
         this.shop = shop;
@@ -35,9 +33,10 @@ public class ShopifyClientService {
         return get(String.class, path);
     }
 
-    public <T> T get(Class<T> responseType, Enum<?> path) throws Exception {
+    public <T> T get(Class<T> responseType, Enum<?> path, Object... macros) throws Exception {
         try (ClosableHttpClient httpClient = new ClosableHttpClient()) {
-            Request request = httpClient.newGET(path.toString(), shop);
+            String shopifyPath = path.toString().replace("${shop}", shop);
+            Request request = httpClient.newGET(shopifyPath, macros);
             headers(request);
             return httpClient.send(responseType);
         }
@@ -45,7 +44,8 @@ public class ShopifyClientService {
 
     public <T> T post(Class<T> responseType, Object requestBody, Enum<?> path) throws Exception {
         try (ClosableHttpClient httpClient = new ClosableHttpClient()) {
-            Request request = httpClient.newPOST(path.toString(), requestBody, shop);
+            String shopifyPath = path.toString().replace("${shop}", shop);
+            Request request = httpClient.newPOST(shopifyPath, requestBody);
             headers(request);
             return httpClient.send(responseType);
         }

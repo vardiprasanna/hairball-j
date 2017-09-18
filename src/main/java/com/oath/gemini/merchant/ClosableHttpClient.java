@@ -206,7 +206,7 @@ public class ClosableHttpClient extends HttpClient implements Closeable, AutoClo
         return path;
     }
 
-    public static String replacePositionedParams(String path, Object... macros) {
+    private static String replacePositionedParams(String path, Object... macros) {
         String tgt = path;
 
         if (tgt != null && macros != null) {
