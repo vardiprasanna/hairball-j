@@ -16,9 +16,24 @@ import lombok.extern.slf4j.Slf4j;
 public class EWSClientService {
     private final static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
     private String refreshToken;
+    private Long advertiserId;
 
     public EWSClientService(String refreshToken) {
         this.refreshToken = refreshToken;
+    }
+
+    public synchronized long getAdvertiserId() throws Exception {
+        if (advertiserId == null) {
+            EWSResponseData<AdvertiserData> advResponse = get(AdvertiserData.class, EWSEndpointEnum.ADVERTISER);
+            if (EWSResponseData.isEmpty(advResponse)) {
+                log.error("Null advertiser. Eorros: " + advResponse.getErrors());
+                throw new RuntimeException("No advertiser found");
+            }
+
+            AdvertiserData advData = advResponse.get(0);
+            advertiserId = advData.getId();
+        }
+        return advertiserId;
     }
 
     /**

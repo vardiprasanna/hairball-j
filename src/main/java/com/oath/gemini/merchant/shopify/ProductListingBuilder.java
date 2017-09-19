@@ -1,6 +1,12 @@
 package com.oath.gemini.merchant.shopify;
 
+import com.oath.gemini.merchant.ClosableFTPClient;
+import com.oath.gemini.merchant.ews.EWSClientService;
+import com.oath.gemini.merchant.ews.EWSEndpointEnum;
+import com.oath.gemini.merchant.ews.EWSResponseData;
 import com.oath.gemini.merchant.feed.ProductConstant;
+import com.oath.gemini.merchant.feed.ProductConstant.FeedTypeEnum;
+import com.oath.gemini.merchant.feed.ProductFeedData;
 import com.oath.gemini.merchant.feed.ProductRecordData;
 import com.oath.gemini.merchant.shopify.data.ShopifyProductData;
 import com.oath.gemini.merchant.shopify.data.ShopifyProductImageData;
@@ -20,9 +26,11 @@ public class ProductListingBuilder {
             "mpn" };
 
     private ShopifyClientService svc;
+    private EWSClientService ews;
 
-    public ProductListingBuilder(ShopifyClientService svc) {
+    public ProductListingBuilder(ShopifyClientService svc, EWSClientService ews) {
         this.svc = svc;
+        this.ews = ews;
     }
 
     /**
@@ -75,6 +83,24 @@ public class ProductListingBuilder {
                 log.error("Failed to generate a shopify product feed", e);
                 throw e;
             }
+        }
+
+        try (ClosableFTPClient ftpClient = new ClosableFTPClient()) {
+            ftpClient.copyTo("shopify-test.csv", "/shopify/dpa-bridge.csv");
+        }
+
+        ProductFeedData feedData = new ProductFeedData();
+
+        feedData.setAdvertiserId(ews.getAdvertiserId());
+        feedData.setUserName(ClosableFTPClient.username);
+        feedData.setPassword(ClosableFTPClient.password);
+        feedData.setFeedType(FeedTypeEnum.DPA_ONE_TIME);
+        feedData.setFileName("shopify-test.csv");
+        feedData.setFeedUrl(ClosableFTPClient.host);
+
+        EWSResponseData<String> response = ews.create(String.class, feedData, EWSEndpointEnum.PRODUCT_FEED);
+        if (response != null) {
+            System.out.println("response=" + response);
         }
     }
 

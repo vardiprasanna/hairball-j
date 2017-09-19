@@ -3,6 +3,7 @@ package com.oath.gemini.merchant.shopify;
 import static com.oath.gemini.merchant.ClosableHttpClient.buildQueries;
 import com.oath.gemini.merchant.AppConfiguration;
 import com.oath.gemini.merchant.ClosableHttpClient;
+import com.oath.gemini.merchant.ews.EWSClientService;
 import com.oath.gemini.merchant.shopify.data.ScriptTagData;
 import com.oath.gemini.merchant.shopify.data.ShopifyAccessToken;
 import com.oath.gemini.merchant.shopify.data.ShopifyTokenRequest;
@@ -125,6 +126,10 @@ public class OnboardResource {
                 target = config.getString("URL_OAUTH2_YAHOO");
                 target = buildQueries(target, "_rd", Base64.getEncoder().encodeToString(rd.getBytes()));
             }
+        } else {
+            ShopifyClientService ps = new ShopifyClientService(shop, _mc);
+            EWSClientService ews = new EWSClientService(_refresh);
+            new ProductListingBuilder(ps, ews).archetype();
         }
 
         if ("denied".equalsIgnoreCase(_refresh)) {
@@ -162,7 +167,6 @@ public class OnboardResource {
      */
     private Tag injectScriptTag(String shop, String authCode) throws Exception {
         ShopifyClientService ps = new ShopifyClientService(shop, authCode);
-        new ProductListingBuilder(ps).archetype();
 
         // Do nothing if a given script has been inserted already
         Tag[] tags = ps.get(Tag[].class, ShopifyEndpointEnum.SHOPIFY_SCRIPT_TAG_ALL);
