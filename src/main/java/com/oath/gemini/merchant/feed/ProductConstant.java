@@ -31,4 +31,12 @@ public class ProductConstant {
     public enum Gender {
         male, female, unisex;
     }
+
+    public enum FeedFrequencyEnum {
+        DAILY, WEEKLY, MONTHLY;
+    }
+
+    public enum FeedTypeEnum {
+        DPA_ONE_TIME, DPA_RECURRING;
+    }
 }
