@@ -10,7 +10,7 @@ import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.configuration.Configuration;
 
-public class OauthHelper {
+public class ShopifyOauthHelper {
     public final static String SECRETE_KEY;
     public final static String API_KEY;
 
@@ -30,7 +30,7 @@ public class OauthHelper {
         return Hex.encodeHexString(hmacBytes);
     }
 
-    private OauthHelper() {
+    private ShopifyOauthHelper() {
     }
 
     private final static SecretKeySpec keySpec;

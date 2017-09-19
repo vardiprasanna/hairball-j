@@ -40,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 @Singleton
 @Resource
 @Path("shopify")
-public class OnboardResource {
+public class ShopifyOnboardResource {
     private Configuration config = AppConfiguration.getConfig();
 
     // TODO: we will use database to persist refresh tokens
@@ -64,7 +64,7 @@ public class OnboardResource {
     public Response install(@Context UriInfo info, @QueryParam("hmac") String hmac, @QueryParam("shop") String shop,
             @QueryParam("timestamp") String ts) throws MalformedURLException, URISyntaxException {
         try {
-            String counterHmac = OauthHelper.generateHMac("shop=" + shop, "timestamp=" + ts);
+            String counterHmac = ShopifyOauthHelper.generateHMac("shop=" + shop, "timestamp=" + ts);
             if (!hmac.equals(counterHmac)) {
                 return Response.status(Status.UNAUTHORIZED).build();
             }
@@ -98,7 +98,7 @@ public class OnboardResource {
             @DefaultValue("") @QueryParam("_refresh") String _refresh, @DefaultValue("") @QueryParam("_mc") String _mc) throws Exception {
 
         try {
-            String counterHmac = OauthHelper.generateHMac("code=" + code, "shop=" + shop, "state=" + state, "timestamp=" + ts);
+            String counterHmac = ShopifyOauthHelper.generateHMac("code=" + code, "shop=" + shop, "state=" + state, "timestamp=" + ts);
             if (!hmac.equals(counterHmac)) {
                 return Response.status(Status.UNAUTHORIZED).build();
             }
@@ -155,8 +155,8 @@ public class OnboardResource {
         ShopifyTokenRequestData reqestBody = new ShopifyTokenRequestData();
 
         // Prepare request POST content
-        reqestBody.setClientId(OauthHelper.API_KEY);
-        reqestBody.setClientSecret(OauthHelper.SECRETE_KEY);
+        reqestBody.setClientId(ShopifyOauthHelper.API_KEY);
+        reqestBody.setClientSecret(ShopifyOauthHelper.SECRETE_KEY);
         reqestBody.setCode(authCode);
         return ps.post(ShopifyAccessToken.class, reqestBody, ShopifyEndpointEnum.SHOPIFY_FETCH_TOKEN);
     }
@@ -213,7 +213,7 @@ public class OnboardResource {
     private URI buildScopeRequestUrl(String shop, String redirectUrl) throws MalformedURLException {
         HashMap<String, String> params = new HashMap<>();
 
-        params.put("client_id", OauthHelper.API_KEY);
+        params.put("client_id", ShopifyOauthHelper.API_KEY);
         params.put("scope", config.getString("SHOPIFY_ACCESS_SCOPES"));
         params.put("redirect_uri", redirectUrl);
         params.put("state", Long.toString(System.nanoTime()));

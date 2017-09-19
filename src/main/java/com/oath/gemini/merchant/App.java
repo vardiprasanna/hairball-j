@@ -24,7 +24,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.hibernate.SessionFactory;
 import com.oath.gemini.merchant.ews.EWSAuthentication;
-import com.oath.gemini.merchant.shopify.OnboardResource;
+import com.oath.gemini.merchant.shopify.ShopifyOnboardResource;
 import com.oath.gemini.merchant.shopify.PixelResourceHandler;
 
 public class App extends ResourceConfig {
@@ -52,7 +52,7 @@ public class App extends ResourceConfig {
 
     protected void setFields(Configuration cfg, final SessionFactory sessions, final SessionFactory localSessions) {
         super.register(EWSAuthentication.class);
-        super.register(OnboardResource.class);
+        super.register(ShopifyOnboardResource.class);
     }
 
     public static App getInstance() {
