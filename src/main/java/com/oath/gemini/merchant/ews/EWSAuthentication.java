@@ -30,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;;
 @Singleton
 @Path("")
 public class EWSAuthentication extends ResourceConfig {
-    // Either an installed-app or a web-app
+    // Either a Yahoo's installed-app or a web-app
     private static String requestAuth;
     private static String requestTokenBody;
     private static String refreshTokenBody;
@@ -146,9 +146,8 @@ public class EWSAuthentication extends ResourceConfig {
             // Redirect user to a campaign setup page
             if (tokens != null) {
                 refreshToken = tokens.getRefreshToken();
-                new EWSClientService(refreshToken).archetype();
-
                 String rd = (String) req.getSession().getAttribute("_rd");
+
                 if (StringUtils.isNotBlank(rd)) {
                     byte[] homeUrl = Base64.getDecoder().decode(rd.getBytes());
                     String uri = buildQueries(new String(homeUrl), "_refresh", refreshToken);
