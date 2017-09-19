@@ -8,7 +8,6 @@ import com.oath.gemini.merchant.shopify.data.ShopifyScriptTagData;
 import com.oath.gemini.merchant.shopify.data.ShopifyAccessToken;
 import com.oath.gemini.merchant.shopify.data.ShopifyTokenRequestData;
 import com.oath.gemini.merchant.shopify.data.Tag;
-import com.oath.gemini.merchant.shopify.util.OauthHelper;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;

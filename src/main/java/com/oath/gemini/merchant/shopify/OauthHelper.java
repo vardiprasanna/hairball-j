@@ -1,4 +1,4 @@
-package com.oath.gemini.merchant.shopify.util;
+package com.oath.gemini.merchant.shopify;
 
 import com.oath.gemini.merchant.AppConfiguration;
 import java.nio.charset.StandardCharsets;
