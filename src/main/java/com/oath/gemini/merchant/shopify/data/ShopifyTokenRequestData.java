@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter @Setter
-public class ShopifyTokenRequest {
+public class ShopifyTokenRequestData {
     // The API Key for the app (see the credentials section of this guide).
     @JsonProperty("client_id")
     String clientId;

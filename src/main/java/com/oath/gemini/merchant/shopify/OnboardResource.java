@@ -4,9 +4,9 @@ import static com.oath.gemini.merchant.ClosableHttpClient.buildQueries;
 import com.oath.gemini.merchant.AppConfiguration;
 import com.oath.gemini.merchant.ClosableHttpClient;
 import com.oath.gemini.merchant.ews.EWSClientService;
-import com.oath.gemini.merchant.shopify.data.ScriptTagData;
+import com.oath.gemini.merchant.shopify.data.ShopifyScriptTagData;
 import com.oath.gemini.merchant.shopify.data.ShopifyAccessToken;
-import com.oath.gemini.merchant.shopify.data.ShopifyTokenRequest;
+import com.oath.gemini.merchant.shopify.data.ShopifyTokenRequestData;
 import com.oath.gemini.merchant.shopify.data.Tag;
 import com.oath.gemini.merchant.shopify.util.OauthHelper;
 import java.net.MalformedURLException;
@@ -153,7 +153,7 @@ public class OnboardResource {
      */
     private static ShopifyAccessToken fetchAuthToken(String shop, String authCode) throws Exception {
         ShopifyClientService ps = new ShopifyClientService(shop, authCode);
-        ShopifyTokenRequest reqestBody = new ShopifyTokenRequest();
+        ShopifyTokenRequestData reqestBody = new ShopifyTokenRequestData();
 
         // Prepare request POST content
         reqestBody.setClientId(OauthHelper.API_KEY);
@@ -181,7 +181,7 @@ public class OnboardResource {
         }
 
         // Insert a new javascript file
-        ScriptTagData tag = new ScriptTagData();
+        ShopifyScriptTagData tag = new ShopifyScriptTagData();
         tag.setSrc(javascriptFile);
         ps.post(String.class, tag, ShopifyEndpointEnum.SHOPIFY_SCRIPT_TAG);
 

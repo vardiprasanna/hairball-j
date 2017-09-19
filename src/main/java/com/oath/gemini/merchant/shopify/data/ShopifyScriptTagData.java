@@ -7,5 +7,5 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeName("script_tag")
 @JsonTypeInfo(include = JsonTypeInfo.As.WRAPPER_OBJECT, use = JsonTypeInfo.Id.NAME, visible = false)
-public class ScriptTagData extends Tag {
+public class ShopifyScriptTagData extends Tag {
 }
