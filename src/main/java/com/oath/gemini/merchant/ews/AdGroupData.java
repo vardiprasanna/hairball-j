@@ -3,6 +3,7 @@ package com.oath.gemini.merchant.ews;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRootName;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,6 +12,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
+@JsonRootName("response")
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AdGroupData {
@@ -53,7 +55,7 @@ public class AdGroupData {
      * Note that bids should fulfill a budget-to-bid ratio of 50:1 for Native campaigns and 1:1 for Search campaigns.
      */
     @JsonProperty(required = true)
-    private MultiBids bidSet = new MultiBids();
+    private BidSetArrayData bidSet = new BidSetArrayData();
 
     private EWSConstant.AdvancedGeoPosEnum advancedGeoPos;
     private EWSConstant.AdvancedGeoNegEnum advancedGeoNeg;
@@ -80,9 +82,3 @@ public class AdGroupData {
     private Float ecpaGoal;
 }
 
-@Getter
-@Setter
-class MultiBids {
-    @JsonProperty(required = true)
-    private BidSetData[] bids;
-}
