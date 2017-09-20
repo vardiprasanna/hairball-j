@@ -4,6 +4,7 @@ import com.oath.gemini.merchant.ClosableFTPClient;
 import com.oath.gemini.merchant.ews.EWSClientService;
 import com.oath.gemini.merchant.ews.EWSEndpointEnum;
 import com.oath.gemini.merchant.ews.EWSResponseData;
+import com.oath.gemini.merchant.feed.Archetype;
 import com.oath.gemini.merchant.feed.ProductConstant;
 import com.oath.gemini.merchant.feed.ProductConstant.FeedTypeEnum;
 import com.oath.gemini.merchant.feed.ProductFeedData;
@@ -13,6 +14,8 @@ import com.oath.gemini.merchant.shopify.data.ShopifyProductImageData;
 import com.oath.gemini.merchant.shopify.data.ShopifyProductVariantData;
 import java.io.FileWriter;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import lombok.extern.slf4j.Slf4j;
@@ -38,8 +41,9 @@ public class ProductListingBuilder {
      * 
      * TODO: check whether the shop's feed has ever been produced
      */
-    public void archetype() throws Exception {
+    public ProductFeedData upload() throws Exception {
         ShopifyProductData[] products = svc.get(ShopifyProductData[].class, ShopifyEndpointEnum.SHOPIFY_PROD_ALL);
+        List<ProductRecordData> geminiProducts = new ArrayList<>();
 
         if (products != null) {
             CSVFormat csvFileFormat = CSVFormat.DEFAULT.withRecordSeparator("\n");
@@ -78,6 +82,7 @@ public class ProductListingBuilder {
 
                     // Output one product
                     csvFilePrinter.printRecord(toRecordArray(geminiProduct));
+                    geminiProducts.add(geminiProduct);
                 }
             } catch (Exception e) {
                 log.error("Failed to generate a shopify product feed", e);
@@ -90,18 +95,21 @@ public class ProductListingBuilder {
         }
 
         ProductFeedData feedData = new ProductFeedData();
+        Archetype archeType = new Archetype(ews);
 
-        feedData.setAdvertiserId(ews.getAdvertiserId());
+        feedData.setAdvertiserId(archeType.getAdvertiserId());
         feedData.setUserName(ClosableFTPClient.username);
         feedData.setPassword(ClosableFTPClient.password);
         feedData.setFeedType(FeedTypeEnum.DPA_ONE_TIME);
         feedData.setFileName("shopify-test.csv");
         feedData.setFeedUrl(ClosableFTPClient.host);
 
-        EWSResponseData<String> response = ews.create(String.class, feedData, EWSEndpointEnum.PRODUCT_FEED);
-        if (response != null) {
-            System.out.println("response=" + response);
+        EWSResponseData<ProductFeedData> response = ews.create(ProductFeedData.class, feedData, EWSEndpointEnum.PRODUCT_FEED);
+        if (response != null && response.isOk()) {
+            archeType.create(geminiProducts);
+            return response.getObjects()[0];
         }
+        return null;
     }
 
     private static <T> boolean isEmpty(T[] array) {

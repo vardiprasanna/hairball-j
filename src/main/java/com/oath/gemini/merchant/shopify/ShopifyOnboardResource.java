@@ -128,7 +128,7 @@ public class ShopifyOnboardResource {
         } else {
             ShopifyClientService ps = new ShopifyClientService(shop, _mc);
             EWSClientService ews = new EWSClientService(_refresh);
-            new ProductListingBuilder(ps, ews).archetype();
+            new ProductListingBuilder(ps, ews).upload();
         }
 
         if ("denied".equalsIgnoreCase(_refresh)) {
