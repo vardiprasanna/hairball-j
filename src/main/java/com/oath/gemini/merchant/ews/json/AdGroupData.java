@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
-import com.oath.gemini.merchant.ews.EWSConstant;
 import com.oath.gemini.merchant.ews.EWSConstant.AdvancedGeoNegEnum;
 import com.oath.gemini.merchant.ews.EWSConstant.AdvancedGeoPosEnum;
 import com.oath.gemini.merchant.ews.EWSConstant.BiddingStrategyEnum;
@@ -34,7 +33,7 @@ public class AdGroupData {
     private String adGroupName;
 
     @JsonProperty(required = true)
-    private EWSConstant.StatusEnum status;
+    private StatusEnum status;
 
     /**
      * The id of the associate product set.
@@ -62,8 +61,8 @@ public class AdGroupData {
     @JsonProperty(required = true)
     private BidSetArrayData bidSet = new BidSetArrayData();
 
-    private EWSConstant.AdvancedGeoPosEnum advancedGeoPos;
-    private EWSConstant.AdvancedGeoNegEnum advancedGeoNeg;
+    private AdvancedGeoPosEnum advancedGeoPos;
+    private AdvancedGeoNegEnum advancedGeoNeg;
 
     /**
      * Applies only to native campaigns with either VISIT_WEB or INSTALL_APP objectives. Available values:
@@ -76,7 +75,7 @@ public class AdGroupData {
      * DEFAULT - the default bidding strategy, meaning Gemini will optimize per your selected price type (deliver clicks for
      * CPC ads groups, impressions for CPM ads). See an example in the Create a new ad group section.
      */
-    private EWSConstant.BiddingStrategyEnum biddingStrategy;
+    private BiddingStrategyEnum biddingStrategy;
 
     /**
      * This is the value you place on the conversion. Refer to Data Dictionary to look up currency by type. Note that

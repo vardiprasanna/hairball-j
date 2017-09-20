@@ -3,7 +3,6 @@ package com.oath.gemini.merchant.ews.json;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.oath.gemini.merchant.ews.EWSConstant;
 import com.oath.gemini.merchant.ews.EWSConstant.EditorialStatusEnum;
 import com.oath.gemini.merchant.ews.EWSConstant.StatusEnum;
 import lombok.Getter;
@@ -33,7 +32,7 @@ public class AdData {
     private String adGroupName;
 
     @JsonProperty(required=true)
-    private EWSConstant.StatusEnum status;
+    private StatusEnum status;
 
     /**
      * This is an optional field that allows you to name ads for your internal purposes. This value is not part of the
@@ -104,7 +103,7 @@ public class AdData {
      * The editorialStatus field is reserved for read-only system editorial review transitions. Note that this field is
      * read-only for Adds (creates) and Updates.
      */
-    private EWSConstant.EditorialStatusEnum editorialStatus;
+    private EditorialStatusEnum editorialStatus;
 
     /**
      * The title for the ad. Maximum limit is 50 characters. string Required Optional

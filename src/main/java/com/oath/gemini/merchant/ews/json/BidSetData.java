@@ -3,7 +3,6 @@ package com.oath.gemini.merchant.ews.json;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.oath.gemini.merchant.ews.EWSConstant;
 import com.oath.gemini.merchant.ews.EWSConstant.ChannelEnum;
 import com.oath.gemini.merchant.ews.EWSConstant.PriceTypeEnum;
 import lombok.Getter;
@@ -24,13 +23,13 @@ public class BidSetData {
      * NATIVE - for native ads in native content streams.
      */
     @JsonProperty(required = true)
-    private EWSConstant.ChannelEnum channel;
+    private ChannelEnum channel;
 
     /**
      * CPC, CPM, CPV, etc
      */
     @JsonProperty(required = true)
-    private EWSConstant.PriceTypeEnum priceType;
+    private PriceTypeEnum priceType;
 
     /**
      * The bid amount. Refer to Data Dictionary to look up currency by type.
