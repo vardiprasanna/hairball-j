@@ -31,16 +31,8 @@ public class ClosableHttpClient extends HttpClient implements Closeable, AutoClo
         super.start();
     }
 
-    public Request newGET(String url, Map<String, String> queries, Object... macros) throws Exception {
-        return newRequest(HttpMethod.GET, url, null, queries, macros);
-    }
-
     public Request newGET(String url, Object... macros) throws Exception {
         return newRequest(HttpMethod.GET, url, null, null, macros);
-    }
-
-    public Request newPOST(String url, Object content, Map<String, String> queries, Object... macros) throws Exception {
-        return newRequest(HttpMethod.POST, url, content, queries, macros);
     }
 
     public Request newPOST(String url, Object content, Object... macros) throws Exception {

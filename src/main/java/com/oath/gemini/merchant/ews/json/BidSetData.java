@@ -1,8 +1,11 @@
-package com.oath.gemini.merchant.ews;
+package com.oath.gemini.merchant.ews.json;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.oath.gemini.merchant.ews.EWSConstant;
+import com.oath.gemini.merchant.ews.EWSConstant.ChannelEnum;
+import com.oath.gemini.merchant.ews.EWSConstant.PriceTypeEnum;
 import lombok.Getter;
 import lombok.Setter;
 

@@ -1,13 +1,15 @@
-package com.oath.gemini.merchant.feed;
+package com.oath.gemini.merchant;
 
-import com.oath.gemini.merchant.ews.AdGroupData;
-import com.oath.gemini.merchant.ews.AdvertiserData;
-import com.oath.gemini.merchant.ews.BidSetData;
-import com.oath.gemini.merchant.ews.CampaignData;
 import com.oath.gemini.merchant.ews.EWSClientService;
 import com.oath.gemini.merchant.ews.EWSConstant;
 import com.oath.gemini.merchant.ews.EWSEndpointEnum;
 import com.oath.gemini.merchant.ews.EWSResponseData;
+import com.oath.gemini.merchant.ews.json.AdGroupData;
+import com.oath.gemini.merchant.ews.json.AdvertiserData;
+import com.oath.gemini.merchant.ews.json.BidSetData;
+import com.oath.gemini.merchant.ews.json.CampaignData;
+import com.oath.gemini.merchant.ews.json.ProductRecordData;
+import com.oath.gemini.merchant.ews.json.ProductSetData;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;

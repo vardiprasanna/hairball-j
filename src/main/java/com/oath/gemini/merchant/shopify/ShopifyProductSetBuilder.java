@@ -1,17 +1,17 @@
 package com.oath.gemini.merchant.shopify;
 
+import com.oath.gemini.merchant.Archetype;
 import com.oath.gemini.merchant.ClosableFTPClient;
 import com.oath.gemini.merchant.ews.EWSClientService;
+import com.oath.gemini.merchant.ews.EWSConstant.PrdAvailabilityEnum;
+import com.oath.gemini.merchant.ews.EWSConstant.PrdFeedTypeEnum;
 import com.oath.gemini.merchant.ews.EWSEndpointEnum;
 import com.oath.gemini.merchant.ews.EWSResponseData;
-import com.oath.gemini.merchant.feed.Archetype;
-import com.oath.gemini.merchant.feed.ProductConstant;
-import com.oath.gemini.merchant.feed.ProductConstant.FeedTypeEnum;
-import com.oath.gemini.merchant.feed.ProductFeedData;
-import com.oath.gemini.merchant.feed.ProductRecordData;
-import com.oath.gemini.merchant.shopify.data.ShopifyProductData;
-import com.oath.gemini.merchant.shopify.data.ShopifyProductImageData;
-import com.oath.gemini.merchant.shopify.data.ShopifyProductVariantData;
+import com.oath.gemini.merchant.ews.json.ProductFeedData;
+import com.oath.gemini.merchant.ews.json.ProductRecordData;
+import com.oath.gemini.merchant.shopify.json.ShopifyProductData;
+import com.oath.gemini.merchant.shopify.json.ShopifyProductImageData;
+import com.oath.gemini.merchant.shopify.json.ShopifyProductVariantData;
 import java.io.FileWriter;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -24,14 +24,14 @@ import lombok.extern.slf4j.Slf4j;
  * Build a product listing from calling Shopify prouduct services
  */
 @Slf4j
-public class ProductListingBuilder {
+public class ShopifyProductSetBuilder {
     private static final Object[] CSV_HEADER = { "id", "title", "description", "image_link", "link", "availability", "condition", "price",
             "mpn" };
 
     private ShopifyClientService svc;
     private EWSClientService ews;
 
-    public ProductListingBuilder(ShopifyClientService svc, EWSClientService ews) {
+    public ShopifyProductSetBuilder(ShopifyClientService svc, EWSClientService ews) {
         this.svc = svc;
         this.ews = ews;
     }
@@ -75,7 +75,7 @@ public class ProductListingBuilder {
                     geminiProduct.setDescription(p.getDescription());
                     geminiProduct.setImage_link(images[0].getSrc());
                     geminiProduct.setLink(svc.getShop());
-                    geminiProduct.setAvailability(ProductConstant.Availability.IN_STOCK);
+                    geminiProduct.setAvailability(PrdAvailabilityEnum.IN_STOCK);
                     geminiProduct.setPrice(Float.toString(variants[0].getPrice()));
                     geminiProduct.setMpn(variants[0].getSku());
                     geminiProduct.setGtin(variants[0].getBarcode());
@@ -100,7 +100,7 @@ public class ProductListingBuilder {
         feedData.setAdvertiserId(archeType.getAdvertiserId());
         feedData.setUserName(ClosableFTPClient.username);
         feedData.setPassword(ClosableFTPClient.password);
-        feedData.setFeedType(FeedTypeEnum.DPA_ONE_TIME);
+        feedData.setFeedType(PrdFeedTypeEnum.DPA_ONE_TIME);
         feedData.setFileName("shopify-test.csv");
         feedData.setFeedUrl(ClosableFTPClient.host);
 

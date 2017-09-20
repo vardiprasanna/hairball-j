@@ -1,6 +1,6 @@
 package com.oath.gemini.merchant.shopify;
 
-import com.oath.gemini.merchant.feed.ProductRecordData;
+import com.oath.gemini.merchant.ews.json.ProductRecordData;
 import java.io.ByteArrayInputStream;
 import java.util.Date;
 import javax.xml.parsers.DocumentBuilder;
@@ -16,7 +16,7 @@ import org.w3c.dom.NodeList;
  * Fetch and parse a raw feed in W3 ATOM schema. Unfortunately, the feed itself does not contain all information offered
  * through Shopify product services.
  */
-public class ProductListing {
+public class ShopifyProductListingFile {
     /**
      * Example:
      * 

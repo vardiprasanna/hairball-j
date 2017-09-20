@@ -1,9 +1,14 @@
-package com.oath.gemini.merchant.ews;
+package com.oath.gemini.merchant.ews.json;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
+import com.oath.gemini.merchant.ews.EWSConstant;
+import com.oath.gemini.merchant.ews.EWSConstant.AdvancedGeoNegEnum;
+import com.oath.gemini.merchant.ews.EWSConstant.AdvancedGeoPosEnum;
+import com.oath.gemini.merchant.ews.EWSConstant.BiddingStrategyEnum;
+import com.oath.gemini.merchant.ews.EWSConstant.StatusEnum;
 import lombok.Getter;
 import lombok.Setter;
 

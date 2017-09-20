@@ -1,8 +1,14 @@
-package com.oath.gemini.merchant.ews;
+package com.oath.gemini.merchant.ews.json;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.oath.gemini.merchant.ews.EWSConstant.AdvancedGeoNegEnum;
+import com.oath.gemini.merchant.ews.EWSConstant.AdvancedGeoPosEnum;
+import com.oath.gemini.merchant.ews.EWSConstant.ChannelEnum;
+import com.oath.gemini.merchant.ews.EWSConstant.ObjectiveEnum;
+import com.oath.gemini.merchant.ews.EWSConstant.StatusEnum;
+import com.oath.gemini.merchant.ews.EWSConstant.SubChannelEnum;
 import java.math.BigDecimal;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,7 +34,7 @@ public class CampaignData {
      * start and end dates at the ad group level in order to activate it.
      */
     @JsonProperty(required=true)
-    private EWSConstant.StatusEnum status;
+    private StatusEnum status;
 
     /**
      * The read-only effective status of the campaign based on the direct campaign status, accounts funds, campaign budget,
@@ -71,7 +77,7 @@ public class CampaignData {
      * will be SEARCH_AND_NATIVE. Please also note that for your ads to actually serve on the channels you have set, you
      * will also need to set a bid for this channel.
      */
-    private EWSConstant.ChannelEnum channel;
+    private ChannelEnum channel;
 
     /**
      * The supply channel on which the campaign will run. The sub channel is only applicable when channel is SEARCH. The
@@ -79,7 +85,7 @@ public class CampaignData {
      * 
      * SRN_AND_SEARCH SRN_ONLY DEFAULT - to remove
      */
-    private EWSConstant.SubChannelEnum subChannel;
+    private SubChannelEnum subChannel;
 
     /**
      * Bid modifiers allow you to increase or decrease your campaign bids. Allowed value: 0.1 to 2.
@@ -109,7 +115,7 @@ public class CampaignData {
      * REENGAGE_APP - Use this objective if your goal is to generate app re-engagements. This objective supports the CPC
      * pricing type and NATIVE campaigns only. For more details, see the create a re-engage app campaign section.
      */
-    private EWSConstant.ObjectiveEnum objective;
+    private ObjectiveEnum objective;
 
     /**
      * Applies only to SEARCH campaigns. Determines whether your campaign will run on the Yahoo partner network. This field
@@ -147,13 +153,13 @@ public class CampaignData {
      * locations. LOCATION_OF_PRESENCE means reaching only people physically in the targeted location, and
      * LOCATION_OF_INTEREST means targeting only people who have expressed interest in the location.
      */
-    private EWSConstant.AdvancedGeoPosEnum advancedGeoPos;
+    private AdvancedGeoPosEnum advancedGeoPos;
 
     /**
      * Applies only to SEARCH campaigns. Similar to advancedGeoPos but applies only to locations you exclude. Valid values
      * are DEFAULT (the default) and LOCATION_OF_PRESENCE.
      */
-    private EWSConstant.AdvancedGeoNegEnum advancedGeoNeg;
+    private AdvancedGeoNegEnum advancedGeoNeg;
 
     /**
      * The conversion rule IDs to associate to this campaign. Must be valid IDs of conversion rules created in an account.

@@ -1,4 +1,4 @@
-package com.oath.gemini.merchant.ews;
+package com.oath.gemini.merchant.ews.json;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;

@@ -1,11 +1,11 @@
-package com.oath.gemini.merchant.feed;
+package com.oath.gemini.merchant.ews.json;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.oath.gemini.merchant.ews.EWSConstant.StatusEnum;
-import com.oath.gemini.merchant.feed.ProductConstant.FeedFrequencyEnum;
-import com.oath.gemini.merchant.feed.ProductConstant.FeedTypeEnum;
+import com.oath.gemini.merchant.ews.EWSConstant.PrdFeedFrequencyEnum;
+import com.oath.gemini.merchant.ews.EWSConstant.PrdFeedTypeEnum;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -24,7 +24,7 @@ public class ProductFeedData {
     private StatusEnum status = StatusEnum.ACTIVE;
 
     @JsonProperty(required = true)
-    private FeedTypeEnum feedType;
+    private PrdFeedTypeEnum feedType;
 
     @JsonProperty(required = true)
     private String userName;
@@ -44,7 +44,7 @@ public class ProductFeedData {
     @Getter
     @Setter
     static class ScheduleInfo {
-        private FeedFrequencyEnum feedFrequency;
+        private PrdFeedFrequencyEnum feedFrequency;
         private String dayOfMonth;
         private String dayOfWeek;
         private String hourMinute;

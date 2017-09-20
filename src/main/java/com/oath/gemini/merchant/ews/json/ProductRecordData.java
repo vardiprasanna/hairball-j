@@ -1,7 +1,10 @@
-package com.oath.gemini.merchant.feed;
+package com.oath.gemini.merchant.ews.json;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.oath.gemini.merchant.ews.EWSConstant.PrdAgeGroupEnum;
+import com.oath.gemini.merchant.ews.EWSConstant.PrdAvailabilityEnum;
+import com.oath.gemini.merchant.ews.EWSConstant.PrdConditionEnum;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -51,13 +54,13 @@ public class ProductRecordData {
      * out of stock products are not eligible for serving and may be removed from the system after 3 months
      */
     @JsonProperty(required = true)
-    private ProductConstant.Availability availability = ProductConstant.Availability.IN_STOCK;
+    private PrdAvailabilityEnum availability = PrdAvailabilityEnum.IN_STOCK;
 
     /**
      * The condition of the product. Accepted values are new, refurbished, or used.
      */
     @JsonProperty(required = true)
-    private ProductConstant.ConditionEnum condition = ProductConstant.ConditionEnum.NEW;
+    private PrdConditionEnum condition = PrdConditionEnum.NEW;
 
     /**
      * The cost of the product and currency. Currency should be specified as the ISO 4217 currency code e.g. 9.99 USD. This
@@ -86,7 +89,7 @@ public class ProductRecordData {
     /**
      * The age group the product is meant for. Accepted values are newborn, infant, toddler, kids, and adult.
      */
-    private ProductConstant.AgeGroup age_group;
+    private PrdAgeGroupEnum age_group;
 
     /**
      * The color of the product.

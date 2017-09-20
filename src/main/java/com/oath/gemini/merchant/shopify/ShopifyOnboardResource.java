@@ -4,10 +4,10 @@ import static com.oath.gemini.merchant.ClosableHttpClient.buildQueries;
 import com.oath.gemini.merchant.AppConfiguration;
 import com.oath.gemini.merchant.ClosableHttpClient;
 import com.oath.gemini.merchant.ews.EWSClientService;
-import com.oath.gemini.merchant.shopify.data.ShopifyScriptTagData;
-import com.oath.gemini.merchant.shopify.data.ShopifyAccessToken;
-import com.oath.gemini.merchant.shopify.data.ShopifyTokenRequestData;
-import com.oath.gemini.merchant.shopify.data.Tag;
+import com.oath.gemini.merchant.shopify.json.ShopifyAccessToken;
+import com.oath.gemini.merchant.shopify.json.ShopifyScriptTagData;
+import com.oath.gemini.merchant.shopify.json.ShopifyTokenRequestData;
+import com.oath.gemini.merchant.shopify.json.Tag;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -128,7 +128,7 @@ public class ShopifyOnboardResource {
         } else {
             ShopifyClientService ps = new ShopifyClientService(shop, _mc);
             EWSClientService ews = new EWSClientService(_refresh);
-            new ProductListingBuilder(ps, ews).upload();
+            new ShopifyProductSetBuilder(ps, ews).upload();
         }
 
         if ("denied".equalsIgnoreCase(_refresh)) {

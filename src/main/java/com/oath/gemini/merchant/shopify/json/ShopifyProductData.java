@@ -1,10 +1,10 @@
-package com.oath.gemini.merchant.shopify.data;
+package com.oath.gemini.merchant.shopify.json;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
-import com.oath.gemini.merchant.feed.ProductConstant;
+import com.oath.gemini.merchant.ews.EWSConstant.PrdConditionEnum;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -27,7 +27,7 @@ public class ShopifyProductData {
     private String link;
 
     @JsonIgnore
-    private ProductConstant.ConditionEnum condition = ProductConstant.ConditionEnum.NEW;
+    private PrdConditionEnum condition = PrdConditionEnum.NEW;
 
     @JsonProperty("product_type")
     private String productType;

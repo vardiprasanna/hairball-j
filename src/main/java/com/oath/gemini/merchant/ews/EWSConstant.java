@@ -73,4 +73,46 @@ public class EWSConstant {
     public enum AdvancedGeoNegEnum {
         LOCATION_OF_PRESENCE, DEFAULT
     }
+
+    /////////////////////////////////////////////////////////////////
+    // Product and Feed specific ////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    public enum PrdAgeGroupEnum {
+        newborn, infant, toddler, kids, adult;
+    }
+
+    public enum PrdAvailabilityEnum {
+        IN_STOCK("in stock"), OUT_OF_STOCK("out of stock"), PREORDER("preorder"), AVAILABLE_FOR_ORDER("available for order");
+        private String value;
+
+        PrdAvailabilityEnum(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            return value;
+        }
+    }
+
+    public enum PrdConditionEnum {
+        NEW, REFURBISHED, USED;
+
+        @Override
+        public String toString() {
+            return name().toLowerCase();
+        }
+    }
+
+    public enum PrdGenderNum {
+        male, female, unisex;
+    }
+
+    public enum PrdFeedFrequencyEnum {
+        DAILY, WEEKLY, MONTHLY;
+    }
+
+    public enum PrdFeedTypeEnum {
+        DPA_ONE_TIME, DPA_RECURRING;
+    }
 }

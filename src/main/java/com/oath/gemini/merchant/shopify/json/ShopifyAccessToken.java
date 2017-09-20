@@ -1,4 +1,4 @@
-package com.oath.gemini.merchant.shopify.data;
+package com.oath.gemini.merchant.shopify.json;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
