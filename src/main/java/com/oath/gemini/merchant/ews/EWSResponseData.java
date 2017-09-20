@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.oath.gemini.merchant.HttpStatus;
 import java.util.Arrays;
 import java.util.stream.Stream;
+import org.apache.commons.lang3.StringUtils;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,7 +15,15 @@ import lombok.Setter;
 public class EWSResponseData<T> extends HttpStatus {
     private String errors;
     private String timestamp;
-    
+
+    @Override
+    public void setMessage(String msg) {
+        super.setMessage(msg);
+        if (StringUtils.isBlank(errors)) {
+            errors = msg;
+        }
+    }
+
     @JsonIgnore
     private T[] objects; // will be loaded separately
 
