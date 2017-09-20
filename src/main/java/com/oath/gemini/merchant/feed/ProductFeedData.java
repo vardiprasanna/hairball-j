@@ -14,6 +14,9 @@ import lombok.Setter;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ProductFeedData {
+    // It is returned after a feed is uploaded
+    private long id;
+
     @JsonProperty(required = true)
     private long advertiserId;
 
