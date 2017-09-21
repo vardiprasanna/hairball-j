@@ -1,27 +1,56 @@
+(function(w, d, t, r, u) {
+    w[u] = w[u] || [];
+    w[u].push({
+        'projectId': '10000',
+        'properties': {
+            'pixelId': '10038216'
+        }
+    });
+    var s = d.createElement(t);
+    s.src = r;
+    s.async = true;
+    s.onload = s.onreadystatechange = function() {
+        var y, rs = this.readyState,
+            c = w[u];
+        if (rs && rs != "complete" && rs != "loaded") {
+            return
+        }
+        try {
+            y = YAHOO.ywa.I13N.fireBeacon;
+            w[u] = [];
+            w[u].push = function(p) {
+                y([p])
+            };
+            y(c)
+        } catch (e) {}
+    };
+    var scr = d.getElementsByTagName(t)[0],
+        par = scr.parentNode;
+    par.insertBefore(s, scr)
+})(window, document, "script", "https://s.yimg.com/wi/ytc.js", "dotq");
+
 (function (b) {
     var _m = window.meta;
-
     if (window.ShopifyAnalytics && window.ShopifyAnalytics.meta) {
         _m = window.ShopifyAnalytics.meta;
     }
     if (_m && _m.product) {
-        alert(_m.product);
-    }
+        -- alert(_m.product.id);
 
-    var a = function (f) {
-        var d, g;
-        try {
-            d = new Image();
-            d.onerror = d.onload = function () {
-                d.onerror = d.onload = null;
-                d = null
-            };
-            d.src = f
-        } catch (g) {
-        }
-    }, c = b.createElement("iframe");
-    c.style.cssText = "height:0;width:0;frameborder:no;scrolling:no;sandbox:allow-scripts;display:none;";
-    c.src = "https://s.yimg.com/rq/sbox/bv2.html";
-    b.body.appendChild(c);
-    a("https://pr-bh.ybp.yahoo.com/fac-sync?cb=" + Math.random())
+	    window.dotq = window.dotq || [];
+	    if (window.dotq.push) {
+	    		var _evt = {
+	           'projectId': '10000',
+	           'properties': {
+	             'pixelId': '10038216',
+	             'qstrings': {
+	               'et': 'custom',
+	               'ea': 'ViewProduct',
+	               'product_id': _m.product.id
+	             }
+	           }
+	        }
+	        window.dotq.push(_evt);
+	    }
+	}
 })(document);

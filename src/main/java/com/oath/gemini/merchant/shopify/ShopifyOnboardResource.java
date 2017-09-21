@@ -107,7 +107,7 @@ public class ShopifyOnboardResource {
             return Response.serverError().build();
         }
 
-        String target = config.getString("URL_CONFIGURATION");
+        String target = config.getString("campaign.setting.url");
 
         if (StringUtils.isBlank(_refresh) || StringUtils.isBlank(_mc)) {
             // TODO: need to persist a shopper's token
@@ -122,7 +122,7 @@ public class ShopifyOnboardResource {
                 String rd = req.getRequestURL().append('?').append(req.getQueryString()).toString();
 
                 rd = buildQueries(rd, "_mc", tokens.getAccessToken());
-                target = config.getString("URL_OAUTH2_YAHOO");
+                target = config.getString("yahoo.oauth2.url");
                 target = buildQueries(target, "_rd", Base64.getEncoder().encodeToString(rd.getBytes()));
             }
         } else {
@@ -169,7 +169,7 @@ public class ShopifyOnboardResource {
 
         // Do nothing if a given script has been inserted already
         Tag[] tags = ps.get(Tag[].class, ShopifyEndpointEnum.SHOPIFY_SCRIPT_TAG_ALL);
-        String javascriptFile = config.getString("DOT_PIXEL");
+        String javascriptFile = config.getString("shopify.dot.pixel");
 
         if (tags != null) {
             for (Tag t : tags) {
@@ -214,7 +214,7 @@ public class ShopifyOnboardResource {
         HashMap<String, String> params = new HashMap<>();
 
         params.put("client_id", ShopifyOauthHelper.API_KEY);
-        params.put("scope", config.getString("SHOPIFY_ACCESS_SCOPES"));
+        params.put("scope", config.getString("shopify.access.scopes"));
         params.put("redirect_uri", redirectUrl);
         params.put("state", Long.toString(System.nanoTime()));
 

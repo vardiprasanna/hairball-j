@@ -39,8 +39,8 @@ public class ShopifyOauthHelper {
     static {
         try {
             Configuration config = AppConfiguration.getConfig();
-            API_KEY = config.getString("SHOPIFY_API_KEY");
-            SECRETE_KEY = config.getString("SHOPIFY_SECRETE_KEY");
+            API_KEY = config.getString("shopify.api.key");
+            SECRETE_KEY = config.getString("shopify.secrete.key");
 
             keySpec = new SecretKeySpec(SECRETE_KEY.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
             mac = Mac.getInstance("HmacSHA256");

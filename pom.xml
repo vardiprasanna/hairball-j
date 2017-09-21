@@ -241,4 +241,26 @@
             </resource>
         </resources>
     </build>
+    <profiles>
+        <profile>
+            <id>dev</id>
+            <activation>
+                <property>
+                    <name>!env</name>
+                </property>
+            </activation>
+            <properties>
+                <pom.ftp.username>hairball-dropbox</pom.ftp.username>
+                <pom.db.ykeykey></pom.db.ykeykey>
+                <pom.ftp.password>XQI081qh</pom.ftp.password>
+                <pom.ftp.host>dropbox.yahoo.com</pom.ftp.host>
+                <pom.ftp.connection.timeout>5000</pom.ftp.connection.timeout>
+                <pom.db.host>localhost</pom.db.host>
+                <pom.db.database>hsqldb</pom.db.database>
+                <pom.db.username>testing</pom.db.username>
+                <pom.db.password>testing</pom.db.password>
+                <pom.db.port></pom.db.port>
+            </properties>
+        </profile>
+    </profiles>
 </project>
