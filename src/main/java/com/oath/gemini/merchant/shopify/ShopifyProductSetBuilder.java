@@ -107,7 +107,7 @@ public class ShopifyProductSetBuilder {
         EWSResponseData<ProductFeedData> response = ews.create(ProductFeedData.class, feedData, EWSEndpointEnum.PRODUCT_FEED);
         if (response != null && response.isOk()) {
             archeType.create(geminiProducts);
-            return response.getObjects()[0];
+            return response.get(0);
         }
         return null;
     }
