@@ -1,6 +1,8 @@
 package com.oath.gemini.merchant.shopify;
 
 public enum ShopifyEndpointEnum {
+    SHOPIFY_SHOP_INFO("shop.json"),
+
     SHOPIFY_FETCH_TOKEN("oauth/access_token"),
 
     SHOPIFY_REQUEST_ACCESS("oauth/authorize"),
