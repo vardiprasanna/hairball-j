@@ -26,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ShopifyProductSetBuilder {
     private static final Object[] CSV_HEADER = { "id", "title", "description", "image_link", "link", "availability", "condition", "price",
-            "mpn" };
+            "gtin", "mpn", "brand", "product_type" };
 
     private ShopifyClientService svc;
     private EWSClientService ews;
@@ -79,6 +79,8 @@ public class ShopifyProductSetBuilder {
                     geminiProduct.setPrice(Float.toString(variants[0].getPrice()));
                     geminiProduct.setMpn(variants[0].getSku());
                     geminiProduct.setGtin(variants[0].getBarcode());
+                    geminiProduct.setBrand(p.getBrand());
+                    geminiProduct.setProduct_type(p.getProduct_type());
 
                     // Output one product
                     csvFilePrinter.printRecord(toRecordArray(geminiProduct));

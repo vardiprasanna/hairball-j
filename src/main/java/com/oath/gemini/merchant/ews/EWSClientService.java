@@ -53,7 +53,7 @@ public class EWSClientService {
     private <T> EWSResponseData<T> invoke(Class<T> responseType, Object requestBody, HttpMethod method, EWSEndpointEnum path,
             Object... params) throws Exception {
 
-        EWSAccessTokenData tokens = EWSAuthentication.getAccessTokenFromRefreshToken(refreshToken);
+        EWSAccessTokenData tokens = EWSAuthenticationResource.getAccessTokenFromRefreshToken(refreshToken);
         EWSResponseData<T> response = null;
 
         try (ClosableHttpClient httpClient = new ClosableHttpClient()) {

@@ -29,8 +29,7 @@ public class ShopifyProductData {
     @JsonIgnore
     private PrdConditionEnum condition = PrdConditionEnum.NEW;
 
-    @JsonProperty("product_type")
-    private String productType;
+    private String product_type;
 
     @JsonProperty("vendor")
     private String brand;
