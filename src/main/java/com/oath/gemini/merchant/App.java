@@ -3,7 +3,6 @@ package com.oath.gemini.merchant;
 import com.oath.gemini.merchant.ews.EWSAuthenticationResource;
 import com.oath.gemini.merchant.shopify.PixelResourceHandler;
 import com.oath.gemini.merchant.shopify.ShopifyOnboardResource;
-import com.yahoo.ads.ssp.api.HibernateConfig;
 import java.io.File;
 import java.io.IOException;
 import java.util.EnumSet;
