@@ -1,8 +1,13 @@
 package com.oath.gemini.merchant;
 
+import com.oath.gemini.merchant.ews.EWSAuthenticationResource;
+import com.oath.gemini.merchant.shopify.PixelResourceHandler;
+import com.oath.gemini.merchant.shopify.ShopifyOnboardResource;
+import com.yahoo.ads.ssp.api.HibernateConfig;
 import java.io.File;
 import java.io.IOException;
 import java.util.EnumSet;
+import java.util.Iterator;
 import javax.servlet.DispatcherType;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
@@ -23,9 +28,7 @@ import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.hibernate.SessionFactory;
-import com.oath.gemini.merchant.ews.EWSAuthentication;
-import com.oath.gemini.merchant.shopify.ShopifyOnboardResource;
-import com.oath.gemini.merchant.shopify.PixelResourceHandler;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 
 public class App extends ResourceConfig {
     public static final String KEYSTORE_PASSWORD = "secret";
@@ -50,16 +53,17 @@ public class App extends ResourceConfig {
         setFields(config, null, null);
     }
 
-    protected void setFields(Configuration cfg, final SessionFactory sessions, final SessionFactory localSessions) {
-        super.register(EWSAuthentication.class);
+    private void setFields(Configuration cfg, final SessionFactory sessions, final SessionFactory localSessions) {
+        super.register(EWSAuthenticationResource.class);
         super.register(ShopifyOnboardResource.class);
+        super.register(buildSessionFactory(cfg));
     }
 
     public static App getInstance() {
         return instance;
     }
 
-    public void initialize() throws IOException, Exception {
+    private void initialize() throws IOException, Exception {
         HttpConfiguration http_config = new HttpConfiguration();
         ServerConnector http = new ServerConnector(jetty, new HttpConnectionFactory(http_config));
 
@@ -77,7 +81,7 @@ public class App extends ResourceConfig {
 
         ServletContextHandler servletContextHandler = new ServletContextHandler(jetty, "/", ServletContextHandler.SESSIONS);
         servletContextHandler.addServlet(new ServletHolder(new ServletContainer(this)), "/API/V1/*");
-        servletContextHandler.addServlet(new ServletHolder(new ServletContainer(new EWSAuthentication(config))), "/oauth/*");
+        servletContextHandler.addServlet(new ServletHolder(new ServletContainer(new EWSAuthenticationResource(config))), "/oauth/*");
         servletContextHandler.addServlet(new ServletHolder(new ServletContainer(new PixelResourceHandler())), "/pixel/*");
 
         // Add the filter, and then use the provided FilterHolder to configure it
@@ -92,7 +96,25 @@ public class App extends ResourceConfig {
         jetty.setHandler(handlerCollection);
     }
 
-    protected void configureSSL(HttpConfiguration httpCfg) throws IOException {
+    private SessionFactory buildSessionFactory(Configuration cfg) {
+        org.hibernate.cfg.Configuration config = new org.hibernate.cfg.Configuration();
+
+        configureDB(cfg, config);
+        StandardServiceRegistryBuilder regbuilder = new StandardServiceRegistryBuilder().applySettings(config.getProperties());
+        return config.buildSessionFactory(regbuilder.build());
+    }
+
+    private void configureDB(Configuration cfg, org.hibernate.cfg.Configuration hcfg) {
+        for (Iterator<String> keys = cfg.getKeys("hibernate"); keys.hasNext();) {
+            String key = keys.next();
+            hcfg.setProperty(key, cfg.getString(key));
+        }
+        if (cfg.getBoolean("db.ykeykey")) {
+            // TODO: handle ykeykey
+        }
+    }
+
+    private void configureSSL(HttpConfiguration httpCfg) throws IOException {
         if (!config.getBoolean("ssl.enabled", false)) {
             return;
         }
