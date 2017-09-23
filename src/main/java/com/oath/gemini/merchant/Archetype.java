@@ -10,6 +10,7 @@ import com.oath.gemini.merchant.ews.json.BidSetData;
 import com.oath.gemini.merchant.ews.json.CampaignData;
 import com.oath.gemini.merchant.ews.json.ProductRecordData;
 import com.oath.gemini.merchant.ews.json.ProductSetData;
+import com.oath.gemini.merchant.shopify.ShopifyClientService;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -20,14 +21,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class Archetype {
     private final static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-    private EWSClientService svc;
+    private EWSClientService ews;
+    private String entityAutoGenName;
 
     @Getter
     private long advertiserId;
 
-    public Archetype(EWSClientService svc) throws Exception {
-        this.svc = svc;
-        EWSResponseData<AdvertiserData> advResponse = svc.get(AdvertiserData.class, EWSEndpointEnum.ADVERTISER);
+    public Archetype(ShopifyClientService svc, EWSClientService ews) throws Exception {
+        this.ews = ews;
+        EWSResponseData<AdvertiserData> advResponse = ews.get(AdvertiserData.class, EWSEndpointEnum.ADVERTISER);
 
         if (EWSResponseData.isEmpty(advResponse)) {
             log.error("Null advertiser. Eorros: " + advResponse.getErrors());
@@ -36,6 +38,7 @@ public class Archetype {
 
         AdvertiserData advData = advResponse.get(0);
         advertiserId = advData.getId();
+        entityAutoGenName = svc.getShopName() + "-autogen";
     }
 
     /**
@@ -61,12 +64,12 @@ public class Archetype {
     }
 
     private CampaignData newCampaign() throws Exception {
-        EWSResponseData<CampaignData> cmpResponse = svc.get(CampaignData.class, EWSEndpointEnum.CAMPAIGN_BY_ADVERTISER, advertiserId);
+        EWSResponseData<CampaignData> cmpResponse = ews.get(CampaignData.class, EWSEndpointEnum.CAMPAIGN_BY_ADVERTISER, advertiserId);
         CampaignData cmpData = null;
 
         if (EWSResponseData.isNotEmpty(cmpResponse)) {
             for (CampaignData c : cmpResponse.getObjects()) {
-                if (c.getCampaignName().contains("autogen-by-hairball")) {
+                if (c.getCampaignName().contains(entityAutoGenName)) {
                     cmpData = c;
                     break;
                 }
@@ -77,14 +80,14 @@ public class Archetype {
 
             cmp.setAdvertiserId(advertiserId);
             cmp.setStatus(EWSConstant.StatusEnum.ACTIVE);
-            cmp.setCampaignName("autogen-by-hairball");
+            cmp.setCampaignName(entityAutoGenName);
             cmp.setBudgetType("DAILY");
             cmp.setBudget(BigDecimal.valueOf(10L));
             cmp.setLanguage("en");
             cmp.setChannel(EWSConstant.ChannelEnum.NATIVE);
             cmp.setObjective(EWSConstant.ObjectiveEnum.VISIT_OFFER);
             cmp.setIsPartnerNetwork("TRUE");
-            cmpResponse = svc.create(CampaignData.class, cmp, EWSEndpointEnum.CAMPAIGN_OPS);
+            cmpResponse = ews.create(CampaignData.class, cmp, EWSEndpointEnum.CAMPAIGN_OPS);
             cmpData = cmpResponse.get(0);
         }
 
@@ -92,7 +95,7 @@ public class Archetype {
     }
 
     private AdGroupData newAdGroup(CampaignData cmp, ProductSetData pset) throws Exception {
-        EWSResponseData<AdGroupData> adGroupResponse = svc.get(AdGroupData.class, EWSEndpointEnum.ADGROUP_BY_CAMPAIGN, cmp.getId());
+        EWSResponseData<AdGroupData> adGroupResponse = ews.get(AdGroupData.class, EWSEndpointEnum.ADGROUP_BY_CAMPAIGN, cmp.getId());
 
         if (EWSResponseData.isEmpty(adGroupResponse)) {
             AdGroupData adGroupData = new AdGroupData();
@@ -107,10 +110,10 @@ public class Archetype {
             adGroupData.setEndDateStr(dateFormat.format(new Date()));
             adGroupData.setAdvertiserId(cmp.getAdvertiserId());
             adGroupData.setCampaignId(cmp.getId());
-            adGroupData.setAdGroupName("autogen-by-hairball");
+            adGroupData.setAdGroupName(entityAutoGenName);
             adGroupData.setProductSetId(pset.getId());
             adGroupData.getBidSet().setBids(new BidSetData[] { bidSetData });
-            adGroupResponse = svc.create(AdGroupData.class, adGroupData, EWSEndpointEnum.ADGROUP_OPS);
+            adGroupResponse = ews.create(AdGroupData.class, adGroupData, EWSEndpointEnum.ADGROUP_OPS);
         }
 
         return adGroupResponse.get(0);
@@ -120,7 +123,7 @@ public class Archetype {
     }
 
     private ProductSetData newProductSet() throws Exception {
-        EWSResponseData<ProductSetData> psetResponse = svc.get(ProductSetData.class, EWSEndpointEnum.PRODUCT_SET_BY_ADVERTISER,
+        EWSResponseData<ProductSetData> psetResponse = ews.get(ProductSetData.class, EWSEndpointEnum.PRODUCT_SET_BY_ADVERTISER,
                 advertiserId);
 
         if (EWSResponseData.isEmpty(psetResponse)) {
@@ -130,7 +133,7 @@ public class Archetype {
             pset.setAdvertiserId(advertiserId);
             pset.setStatus(EWSConstant.StatusEnum.ACTIVE);
             pset.setFilter(filter);
-            psetResponse = svc.create(ProductSetData.class, pset, EWSEndpointEnum.PRODUCT_SET_OPS);
+            psetResponse = ews.create(ProductSetData.class, pset, EWSEndpointEnum.PRODUCT_SET_OPS);
         }
         return psetResponse.get(0);
     }

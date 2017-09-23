@@ -30,10 +30,16 @@ public class ShopifyProductSetBuilder {
 
     private ShopifyClientService svc;
     private EWSClientService ews;
+    private String localFile;
+    private String remoteFile;
 
     public ShopifyProductSetBuilder(ShopifyClientService svc, EWSClientService ews) {
         this.svc = svc;
         this.ews = ews;
+
+        String baseName = svc.getShopName();
+        localFile = baseName + ".csv";
+        remoteFile = "/shopify/" + baseName + ".csv";
     }
 
     /**
@@ -48,7 +54,7 @@ public class ShopifyProductSetBuilder {
         if (products != null) {
             CSVFormat csvFileFormat = CSVFormat.DEFAULT.withRecordSeparator("\n");
 
-            try (FileWriter csvWriter = new FileWriter("shopify-test.csv", false);
+            try (FileWriter csvWriter = new FileWriter(localFile, false);
                     CSVPrinter csvFilePrinter = new CSVPrinter(csvWriter, csvFileFormat)) {
 
                 // Create CSV file header
@@ -93,17 +99,17 @@ public class ShopifyProductSetBuilder {
         }
 
         try (ClosableFTPClient ftpClient = new ClosableFTPClient()) {
-            ftpClient.copyTo("shopify-test.csv", "/shopify/dpa-bridge.csv");
+            ftpClient.copyTo("shopify-test.csv", remoteFile);
         }
 
         ProductFeedData feedData = new ProductFeedData();
-        Archetype archeType = new Archetype(ews);
+        Archetype archeType = new Archetype(svc, ews);
 
         feedData.setAdvertiserId(archeType.getAdvertiserId());
         feedData.setUserName(ClosableFTPClient.username);
         feedData.setPassword(ClosableFTPClient.password);
         feedData.setFeedType(PrdFeedTypeEnum.DPA_ONE_TIME);
-        feedData.setFileName("shopify-test.csv");
+        feedData.setFileName(remoteFile);
         feedData.setFeedUrl(ClosableFTPClient.host);
 
         EWSResponseData<ProductFeedData> response = ews.create(ProductFeedData.class, feedData, EWSEndpointEnum.PRODUCT_FEED);

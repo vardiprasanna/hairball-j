@@ -13,6 +13,7 @@ import lombok.Setter;
 public class ShopifyClientService {
     private String accessToken;
     private String shop;
+    private String shopName;
 
     /**
      * @param shop e.g., dpa-bridge.myshopify.com
@@ -21,6 +22,9 @@ public class ShopifyClientService {
     public ShopifyClientService(String shop, String accessToken) {
         this.shop = shop;
         this.accessToken = accessToken;
+
+        int dot = shop.indexOf('.');
+        shopName = dot >= 0 ? shop.substring(0, dot) : shop;
     }
 
     public Request headers(Request request) {
