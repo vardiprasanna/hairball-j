@@ -99,7 +99,7 @@ public class ShopifyProductSetBuilder {
         }
 
         try (ClosableFTPClient ftpClient = new ClosableFTPClient()) {
-            ftpClient.copyTo("shopify-test.csv", remoteFile);
+            ftpClient.copyTo(localFile, remoteFile);
         }
 
         ProductFeedData feedData = new ProductFeedData();

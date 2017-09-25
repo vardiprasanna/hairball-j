@@ -6,6 +6,7 @@ import com.oath.gemini.merchant.ClosableHttpClient;
 import com.oath.gemini.merchant.ews.EWSClientService;
 import com.oath.gemini.merchant.shopify.json.ShopifyAccessToken;
 import com.oath.gemini.merchant.shopify.json.ShopifyScriptTagData;
+import com.oath.gemini.merchant.shopify.json.ShopifyShopData;
 import com.oath.gemini.merchant.shopify.json.ShopifyTokenRequestData;
 import com.oath.gemini.merchant.shopify.json.Tag;
 import java.net.MalformedURLException;
@@ -125,16 +126,15 @@ public class ShopifyOnboardResource {
                 target = config.getString("yahoo.oauth2.url");
                 target = buildQueries(target, "_rd", Base64.getEncoder().encodeToString(rd.getBytes()));
             }
-        } else {
-            ShopifyClientService ps = new ShopifyClientService(shop, _mc);
-            EWSClientService ews = new EWSClientService(_refresh);
-            new ShopifyProductSetBuilder(ps, ews).upload();
-        }
-
-        if ("denied".equalsIgnoreCase(_refresh)) {
+        } else if ("denied".equalsIgnoreCase(_refresh)) {
             // TODO: handle a denied-access case
         } else if (!merchantTokenStorage.containsKey(_mc)) {
             merchantTokenStorage.put(_mc, _refresh);
+
+            ShopifyClientService ps = new ShopifyClientService(shop, _mc);
+            ShopifyShopData d = ps.get(ShopifyShopData.class, ShopifyEndpointEnum.SHOPIFY_SHOP_INFO);
+            EWSClientService ews = new EWSClientService(_refresh);
+            new ShopifyProductSetBuilder(ps, ews).upload();
         }
 
         return Response.temporaryRedirect(URI.create(target)).build();

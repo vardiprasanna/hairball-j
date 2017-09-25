@@ -55,7 +55,7 @@ public class App extends ResourceConfig {
     private void setFields(Configuration cfg, final SessionFactory sessions, final SessionFactory localSessions) {
         super.register(EWSAuthenticationResource.class);
         super.register(ShopifyOnboardResource.class);
-        super.register(buildSessionFactory(cfg));
+        // super.register(buildSessionFactory(cfg));
     }
 
     public static App getInstance() {
