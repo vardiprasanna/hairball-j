@@ -56,9 +56,6 @@ public class ShopifyOnboardResource {
      * @return redirect to Shopify for asking the grant of the access scopes <br/>
      *         A sample URL initiated by this app is: <br/>
      *         https://dpa-bridge.myshopify.com/admin/oauth/authorize?client_id=62928398fafea63bad905e52e8410079&scope=read_orders&redirect_uri=http://localhost:4080/API/V1/shopify/home&state=32087351187222&grant_options[]=tong,chen
-     * 
-     * @throws MalformedURLException
-     * @throws URISyntaxException
      */
     @GET
     @Path("welcome")
@@ -98,6 +95,7 @@ public class ShopifyOnboardResource {
             @QueryParam("timestamp") String ts, @QueryParam("code") String code, @QueryParam("state") String state,
             @DefaultValue("") @QueryParam("_refresh") String _refresh, @DefaultValue("") @QueryParam("_mc") String _mc) throws Exception {
 
+        // Verify the signature of the call
         try {
             String counterHmac = ShopifyOauthHelper.generateHMac("code=" + code, "shop=" + shop, "state=" + state, "timestamp=" + ts);
             if (!hmac.equals(counterHmac)) {
@@ -108,8 +106,8 @@ public class ShopifyOnboardResource {
             return Response.serverError().build();
         }
 
+        // Ask for the access scopes if our app has not been installed yet
         String target = config.getString("campaign.setting.url");
-
         if (StringUtils.isBlank(_refresh) || StringUtils.isBlank(_mc)) {
             // TODO: need to persist a shopper's token
             ShopifyAccessToken tokens = fetchAuthToken(shop, code);
