@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd">
+
+    <changeSet id="1" author="tong">
+        <createTable tableName="store_sys">
+            <column name="id" type="int(10) unsigned" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="description" type="varchar(255)">
+            </column>
+            <column name="domain" type="varchar(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="cr_date" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="upd_date" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="2" author="tong">
+        <createTable tableName="store_acct">
+            <column name="id" type="int(10)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="store_sys_id" type="int(10)">
+                <constraints foreignKeyName="store_acct_store_sys_id_fkey" references="store_sys(id)" nullable="false"/>
+            </column>
+            <column name="store_access_token" type="varchar(255)">
+                <constraints nullable="true" unique="true"/>
+            </column>
+            <column name="yahoo_access_token" type="varchar(255)">
+                <constraints nullable="true" unique="true"/>
+            </column>
+            <column name="store_native_acct_id" type="varchar(255)">
+                <constraints nullable="true" unique="true"/>
+            </column>
+            <column name="gemini_native_acct_id" type="int(10)">
+                <constraints nullable="true" unique="true"/>
+            </column>
+            <column name="cr_date" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="upd_date" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="3" author="tong">
+        <createTable tableName="store_owner">
+            <column name="id" type="int(10)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="store_acct_id" type="int(10)">
+                <constraints foreignKeyName="store_owner_store_acct_id_fkey" references="store_acct(id)" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="email" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="domain" type="varchar(255)">
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="4" author="tong">
+        <createTable tableName="store_campaign">
+            <column name="id" type="int(10)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="store_acct_id" type="int(10)">
+                <constraints foreignKeyName="store_campaign_store_acct_id_fkey" references="store_acct(id)" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="adv_id" type="bigint(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="campaign_id" type="bigint(20)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="adgroup_id" type="bigint(20)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="pixel_id" type="int(10)">
+               <constraints nullable="false"/>
+            </column>
+            <column name="status" type="int(10)" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

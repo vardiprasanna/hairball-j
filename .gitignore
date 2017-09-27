@@ -1,1 +1,6 @@
 /target/
+/hsqldb.lck
+/hsqldb.log
+/hsqldb.properties
+/dpa-bridge.csv
+/josebose.csv
