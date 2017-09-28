@@ -35,8 +35,6 @@
         _m = window.ShopifyAnalytics.meta;
     }
     if (_m && _m.product) {
-        -- alert(_m.product.id);
-
 	    window.dotq = window.dotq || [];
 	    if (window.dotq.push) {
 	    		var _evt = {
@@ -46,10 +44,11 @@
 	             'qstrings': {
 	               'et': 'custom',
 	               'ea': 'ViewProduct',
-	               'product_id': _m.product.id
+	               'product_id': String(_m.product.id)
 	             }
 	           }
 	        }
+	        alert(JSON.stringify(_evt));
 	        window.dotq.push(_evt);
 	    }
 	}

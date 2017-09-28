@@ -8,9 +8,15 @@ public enum EWSEndpointEnum {
     ADGROUP_OPS("adgroup"), ADGROUP_BY_ID("adgroup/${0}"), ADGROUP_BY_CAMPAIGN("adgroup?campaignId=${0}"), ADGROUP_BY_ADVERTISER(
             "adgroup?advertiserId=${0}"),
 
-    PRODUCT_FEED("feed"), PRODUCT_FEED_STATUS("feed/status?feedId=${0}"), PRODUCT_SET_OPS("productset"), PRODUCT_SET_BY_ID(
-            "productset/${0}"), PRODUCT_SET_BY_ADVERTISER(
-                    "productset?advertiserId=${0}"), PRODUCT_SET_BY_ADGROUP("productset?adgroupId=${0}");
+    // https://developer.yahoo.com/gemini/guide/dynamic-product-ads/dpa-rules/
+    PRODUCT_RULE_OPS("dparule"),
+
+    // https://developer.yahoo.com/gemini/guide/dynamic-product-ads/operations-dpa/
+    PRODUCT_FEED("feed"), PRODUCT_FEED_STATUS("feed/status?feedId=${0}"),
+
+    // https://developer.yahoo.com/gemini/guide/dynamic-product-ads/dpa-product-sets/
+    PRODUCT_SET_OPS("productset"), PRODUCT_SET_BY_ID("productset/${0}"), PRODUCT_SET_BY_ADVERTISER(
+            "productset?advertiserId=${0}"), PRODUCT_SET_BY_ADGROUP("productset?adgroupId=${0}");
     private String url = "";
 
     EWSEndpointEnum(String subpath) {

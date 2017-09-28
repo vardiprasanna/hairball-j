@@ -108,7 +108,7 @@ public class ShopifyProductSetBuilder {
         feedData.setAdvertiserId(archeType.getAdvertiserId());
         feedData.setUserName(ClosableFTPClient.username);
         feedData.setPassword(ClosableFTPClient.password);
-        feedData.setFeedType(PrdFeedTypeEnum.DPA_ONE_TIME);
+        feedData.setFeedType(PrdFeedTypeEnum.DPA_RECURRING);
         feedData.setFileName(remoteFile);
         feedData.setFeedUrl(ClosableFTPClient.host);
 

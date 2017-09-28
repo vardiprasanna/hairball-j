@@ -9,6 +9,7 @@ import com.oath.gemini.merchant.ews.json.AdvertiserData;
 import com.oath.gemini.merchant.ews.json.BidSetData;
 import com.oath.gemini.merchant.ews.json.CampaignData;
 import com.oath.gemini.merchant.ews.json.ProductRecordData;
+import com.oath.gemini.merchant.ews.json.ProductRule;
 import com.oath.gemini.merchant.ews.json.ProductSetData;
 import com.oath.gemini.merchant.shopify.ShopifyClientService;
 import java.math.BigDecimal;
@@ -51,6 +52,9 @@ public class Archetype {
 
             // Initiate a product set
             ProductSetData pset = newProductSet();
+
+            // Initiate a product rule
+            newProductRule();
 
             // Initiate an ad group if does not exist
             AdGroupData adGroupData = newAdGroup(cmpData, pset);
@@ -128,12 +132,25 @@ public class Archetype {
 
         if (EWSResponseData.isEmpty(psetResponse)) {
             ProductSetData pset = new ProductSetData();
-            String filter = "{\"price\":{\"gt\":\"0.05\"}}";
+            String filter = "{\"price\":{\"gt\":\"0.05\"}}"; // TODO: hard-coded price
 
             pset.setAdvertiserId(advertiserId);
             pset.setStatus(EWSConstant.StatusEnum.ACTIVE);
             pset.setFilter(filter);
             psetResponse = ews.create(ProductSetData.class, pset, EWSEndpointEnum.PRODUCT_SET_OPS);
+        }
+        return psetResponse.get(0);
+    }
+
+    private ProductRule newProductRule() throws Exception {
+        EWSResponseData<ProductRule> psetResponse = ews.get(ProductRule.class, EWSEndpointEnum.PRODUCT_RULE_OPS, advertiserId);
+
+        if (EWSResponseData.isEmpty(psetResponse)) {
+            ProductRule rule = new ProductRule();
+
+            rule.setPixelId(10039241L); // TODO: a hard-coded pixel id
+            rule.setAdvertiserId(advertiserId);
+            psetResponse = ews.create(ProductRule.class, rule, EWSEndpointEnum.PRODUCT_RULE_OPS);
         }
         return psetResponse.get(0);
     }
