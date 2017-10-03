@@ -7,7 +7,7 @@ public class EWSConstant {
      * statuses table below for more details on this field.
      */
     public enum StatusEnum {
-        ACTIVE, PAUSED, DELETED, REJECTED
+        ACTIVE, PAUSED, DELETED, EXPIRED, REJECTED
     }
 
     /////////////////////////////////////////////////////////////////
