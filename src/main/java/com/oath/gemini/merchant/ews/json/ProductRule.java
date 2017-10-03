@@ -11,16 +11,16 @@ import lombok.Setter;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ProductRule {
-    @JsonProperty(value = "tagId", required = true)
     // The id of the Dot pixel placed on the DPA product page. Required
+    @JsonProperty(value = "tagId", required = true)
     private long pixelId;
 
     @JsonProperty(required = true)
     private long advertiserId;
 
     // Use this to populate the product id in the pixel code. If not specified, it defaults to the product_id. Optional
-    private String productIdExtractName;
+    private String productIdExtractName = "product_id";
 
     // Use this to extract the event action. If not specified, it defaults to the ea parameter.
-    private String eventActionExtractName;
+    private String eventActionExtractName = "ea";
 }
