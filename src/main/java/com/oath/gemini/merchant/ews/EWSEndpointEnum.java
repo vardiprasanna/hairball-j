@@ -12,7 +12,7 @@ public enum EWSEndpointEnum {
     PRODUCT_RULE_OPS("dparule"),
 
     // https://developer.yahoo.com/gemini/guide/dynamic-product-ads/operations-dpa/
-    PRODUCT_FEED("feed"), PRODUCT_FEED_STATUS("feed/status?feedId=${0}"),
+    PRODUCT_FEED("feed"), PRODUCT_FEED_STATUS("feed/status?feedId=${0}"), PRODUCT_FEED_BY_ADVERTISER("feed?advertiserId=${0}"),
 
     // https://developer.yahoo.com/gemini/guide/dynamic-product-ads/dpa-product-sets/
     PRODUCT_SET_OPS("productset"), PRODUCT_SET_BY_ID("productset/${0}"), PRODUCT_SET_BY_ADVERTISER(
