@@ -279,7 +279,7 @@
         <pom.ftp.username>hairball-dropbox</pom.ftp.username>
         <pom.db.ykeykey>false</pom.db.ykeykey>
         <pom.ftp.password>XQI081qh</pom.ftp.password>
-        <pom.ftp.host>ftp://dropbox.yahoo.com</pom.ftp.host>
+        <pom.ftp.host>dropbox.yahoo.com</pom.ftp.host>
         <pom.ftp.connection.timeout>5000</pom.ftp.connection.timeout>
         <pom.db.host>localhost</pom.db.host>
         <pom.db.name>db/dev</pom.db.name>
