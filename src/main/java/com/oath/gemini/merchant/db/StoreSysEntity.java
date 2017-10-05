@@ -14,8 +14,8 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "store_sys")
-public class StoreSysTO {
-    public StoreSysTO() {
+public class StoreSysEntity {
+    public StoreSysEntity() {
         updatedDate = createdDate = new Timestamp(System.currentTimeMillis());
     }
 

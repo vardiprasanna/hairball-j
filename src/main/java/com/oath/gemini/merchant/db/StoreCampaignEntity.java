@@ -10,8 +10,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "store_owner")
-public class StoreOwnerTO {
+@Table(name = "store_campaign")
+public class StoreCampaignEntity {
     @Id
     @Column(nullable = false, insertable = false, updatable = false)
     private int id;
@@ -22,7 +22,17 @@ public class StoreOwnerTO {
     @Column(nullable = false, unique = true, length = 255)
     private String name;
 
-    @Column(nullable = false)
-    private String email;
-    private String domain;
+    @Column(name = "adv_id", nullable = false)
+    private Long advId;
+
+    @Column(name = "campaign_id")
+    private Long campaignId;
+
+    @Column(name = "adgroup_id")
+    private Long adgroupId;
+
+    @Column(name = "pixel_id", nullable = false)
+    private int pixelId;
+
+    private int status;
 }

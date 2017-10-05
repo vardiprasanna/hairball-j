@@ -33,13 +33,13 @@ public class DatabaseService {
     }
 
     @SuppressWarnings("unchecked")
-    public StoreAcctTO findStoreAcctByAccessToken(String accessToken) {
+    public StoreAcctEntity findStoreAcctByAccessToken(String accessToken) {
         Session session = sessionFactory.openSession();
 
         try {
-            Criteria criteria = session.createCriteria(StoreAcctTO.class);
+            Criteria criteria = session.createCriteria(StoreAcctEntity.class);
             criteria.add(Restrictions.eq("storeAccessToken", accessToken));
-            List<StoreAcctTO> list = criteria.list();
+            List<StoreAcctEntity> list = criteria.list();
             return (list != null && list.size() == 1 ? list.get(0) : null);
 
         } finally {
@@ -50,13 +50,13 @@ public class DatabaseService {
     }
 
     @SuppressWarnings("unchecked")
-    public StoreSysTO findStoreSysByDoman(String domain) {
+    public StoreSysEntity findStoreSysByDoman(String domain) {
         Session session = sessionFactory.openSession();
 
         try {
-            Criteria criteria = session.createCriteria(StoreSysTO.class);
+            Criteria criteria = session.createCriteria(StoreSysEntity.class);
             criteria.add(Restrictions.eq("domain", domain));
-            List<StoreSysTO> list = criteria.list();
+            List<StoreSysEntity> list = criteria.list();
             return (list != null && list.size() == 1 ? list.get(0) : null);
 
         } finally {

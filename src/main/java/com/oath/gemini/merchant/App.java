@@ -1,9 +1,9 @@
 package com.oath.gemini.merchant;
 
-import com.oath.gemini.merchant.db.StoreAcctTO;
-import com.oath.gemini.merchant.db.StoreCampaignTO;
-import com.oath.gemini.merchant.db.StoreOwnerTO;
-import com.oath.gemini.merchant.db.StoreSysTO;
+import com.oath.gemini.merchant.db.StoreAcctEntity;
+import com.oath.gemini.merchant.db.StoreCampaignEntity;
+import com.oath.gemini.merchant.db.StoreOwnerEntity;
+import com.oath.gemini.merchant.db.StoreSysEntity;
 import com.oath.gemini.merchant.ews.EWSAuthenticationResource;
 import com.oath.gemini.merchant.shopify.PixelResourceHandler;
 import com.oath.gemini.merchant.shopify.ShopifyOnboardResource;
@@ -117,10 +117,10 @@ public class App extends ResourceConfig {
         if (cfg.getBoolean("db.ykeykey", false)) {
             // TODO: handle ykeykey
         }
-        hcfg.addAnnotatedClass(StoreAcctTO.class);
-        hcfg.addAnnotatedClass(StoreSysTO.class);
-        hcfg.addAnnotatedClass(StoreOwnerTO.class);
-        hcfg.addAnnotatedClass(StoreCampaignTO.class);
+        hcfg.addAnnotatedClass(StoreAcctEntity.class);
+        hcfg.addAnnotatedClass(StoreSysEntity.class);
+        hcfg.addAnnotatedClass(StoreOwnerEntity.class);
+        hcfg.addAnnotatedClass(StoreCampaignEntity.class);
     }
 
     private void configureSSL(HttpConfiguration httpCfg) throws IOException {

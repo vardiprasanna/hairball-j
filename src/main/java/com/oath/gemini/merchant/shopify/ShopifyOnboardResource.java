@@ -4,8 +4,8 @@ import static com.oath.gemini.merchant.ClosableHttpClient.buildQueries;
 import com.oath.gemini.merchant.AppConfiguration;
 import com.oath.gemini.merchant.ClosableHttpClient;
 import com.oath.gemini.merchant.db.DatabaseService;
-import com.oath.gemini.merchant.db.StoreAcctTO;
-import com.oath.gemini.merchant.db.StoreSysTO;
+import com.oath.gemini.merchant.db.StoreAcctEntity;
+import com.oath.gemini.merchant.db.StoreSysEntity;
 import com.oath.gemini.merchant.ews.EWSClientService;
 import com.oath.gemini.merchant.shopify.json.ShopifyAccessToken;
 import com.oath.gemini.merchant.shopify.json.ShopifyScriptTagData;
@@ -124,7 +124,7 @@ public class ShopifyOnboardResource {
                 return Response.status(Status.BAD_REQUEST).build();
             }
             
-            StoreAcctTO storeAcct = databaseService.findStoreAcctByAccessToken(tokens.getAccessToken());
+            StoreAcctEntity storeAcct = databaseService.findStoreAcctByAccessToken(tokens.getAccessToken());
 
             if (merchantTokenStorage.containsKey(tokens.getAccessToken())) {
                 _mc = tokens.getAccessToken();
@@ -155,11 +155,11 @@ public class ShopifyOnboardResource {
     /**
      * The registration of Shopify as an e-commerce system if it has never been done before
      */
-    private StoreSysTO registerStoreSystemIfRequired() {
-        StoreSysTO storeSys = databaseService.findStoreSysByDoman("www.shopify.com");
+    private StoreSysEntity registerStoreSystemIfRequired() {
+        StoreSysEntity storeSys = databaseService.findStoreSysByDoman("www.shopify.com");
 
         if (storeSys == null) {
-            storeSys = new StoreSysTO();
+            storeSys = new StoreSysEntity();
             storeSys.setDomain("www.shopify.com");
             storeSys.setDescription("shopify e-commerce system");
             storeSys.setName("shopify");
@@ -171,11 +171,11 @@ public class ShopifyOnboardResource {
 
     private void registerStoreAccountIfRequired(ShopifyClientService ps, EWSClientService ews) throws Exception {
         ShopifyShopData shop = ps.get(ShopifyShopData.class, ShopifyEndpointEnum.SHOPIFY_SHOP_INFO);
-        StoreSysTO storeSysTO = registerStoreSystemIfRequired();
-        StoreAcctTO storeAcct = databaseService.findStoreAcctByAccessToken(ps.getAccessToken());
+        StoreSysEntity storeSysTO = registerStoreSystemIfRequired();
+        StoreAcctEntity storeAcct = databaseService.findStoreAcctByAccessToken(ps.getAccessToken());
 
         if (storeAcct == null) {
-            storeAcct = new StoreAcctTO();
+            storeAcct = new StoreAcctEntity();
             storeAcct.setStoreAccessToken(ps.getAccessToken());
             storeAcct.setYahooAccessToken(ews.getRefreshToken());
             storeAcct.setStoreSysId(storeSysTO.getId());
