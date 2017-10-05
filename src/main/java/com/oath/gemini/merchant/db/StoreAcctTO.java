@@ -13,6 +13,10 @@ import lombok.Setter;
 @Entity
 @Table(name = "store_acct")
 public class StoreAcctTO {
+    public StoreAcctTO() {
+        updatedDate = createdDate = new Timestamp(System.currentTimeMillis());
+    }
+
     @Id
     @Column(nullable = false, insertable = false, updatable = false)
     private int id;

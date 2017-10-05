@@ -8,7 +8,9 @@ import java.util.Map;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpMethod;
+import lombok.Getter;
 
+@Getter
 public class EWSClientService {
     private String refreshToken;
 

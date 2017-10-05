@@ -3,6 +3,9 @@ package com.oath.gemini.merchant.shopify;
 import static com.oath.gemini.merchant.ClosableHttpClient.buildQueries;
 import com.oath.gemini.merchant.AppConfiguration;
 import com.oath.gemini.merchant.ClosableHttpClient;
+import com.oath.gemini.merchant.db.DatabaseService;
+import com.oath.gemini.merchant.db.StoreAcctTO;
+import com.oath.gemini.merchant.db.StoreSysTO;
 import com.oath.gemini.merchant.ews.EWSClientService;
 import com.oath.gemini.merchant.shopify.json.ShopifyAccessToken;
 import com.oath.gemini.merchant.shopify.json.ShopifyScriptTagData;
@@ -16,6 +19,7 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Resource;
+import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DefaultValue;
@@ -42,6 +46,9 @@ import lombok.extern.slf4j.Slf4j;
 @Resource
 @Path("shopify")
 public class ShopifyOnboardResource {
+    @Inject
+    DatabaseService databaseService;
+
     private Configuration config = AppConfiguration.getConfig();
 
     // TODO: we will use database to persist refresh tokens
@@ -109,8 +116,15 @@ public class ShopifyOnboardResource {
         // Ask for the access scopes if our app has not been installed yet
         String target = config.getString("campaign.setting.url");
         if (StringUtils.isBlank(_refresh) || StringUtils.isBlank(_mc)) {
-            // TODO: need to persist a shopper's token
             ShopifyAccessToken tokens = fetchAuthToken(shop, code);
+
+            if (tokens == null || StringUtils.isBlank(tokens.getAccessToken())) {
+                // The shopify code may have expired when user clicks the Browser's Back button to re-play an earlier on-boarding
+                log.error("a shopify code '{}' likely has expired", code);
+                return Response.status(Status.BAD_REQUEST).build();
+            }
+            
+            StoreAcctTO storeAcct = databaseService.findStoreAcctByAccessToken(tokens.getAccessToken());
 
             if (merchantTokenStorage.containsKey(tokens.getAccessToken())) {
                 _mc = tokens.getAccessToken();
@@ -130,12 +144,47 @@ public class ShopifyOnboardResource {
             merchantTokenStorage.put(_mc, _refresh);
 
             ShopifyClientService ps = new ShopifyClientService(shop, _mc);
-            ShopifyShopData d = ps.get(ShopifyShopData.class, ShopifyEndpointEnum.SHOPIFY_SHOP_INFO);
             EWSClientService ews = new EWSClientService(_refresh);
-            new ShopifyProductSetBuilder(ps, ews).upload();
+            registerStoreAccountIfRequired(ps, ews);
+            new ShopifyProductSetBuilder(ps, ews).uploadOnce();
         }
 
         return Response.temporaryRedirect(URI.create(target)).build();
+    }
+
+    /**
+     * The registration of Shopify as an e-commerce system if it has never been done before
+     */
+    private StoreSysTO registerStoreSystemIfRequired() {
+        StoreSysTO storeSys = databaseService.findStoreSysByDoman("www.shopify.com");
+
+        if (storeSys == null) {
+            storeSys = new StoreSysTO();
+            storeSys.setDomain("www.shopify.com");
+            storeSys.setDescription("shopify e-commerce system");
+            storeSys.setName("shopify");
+            databaseService.save(storeSys);
+            storeSys = databaseService.findStoreSysByDoman("www.shopify.com");
+        }
+        return storeSys;
+    }
+
+    private void registerStoreAccountIfRequired(ShopifyClientService ps, EWSClientService ews) throws Exception {
+        ShopifyShopData shop = ps.get(ShopifyShopData.class, ShopifyEndpointEnum.SHOPIFY_SHOP_INFO);
+        StoreSysTO storeSysTO = registerStoreSystemIfRequired();
+        StoreAcctTO storeAcct = databaseService.findStoreAcctByAccessToken(ps.getAccessToken());
+
+        if (storeAcct == null) {
+            storeAcct = new StoreAcctTO();
+            storeAcct.setStoreAccessToken(ps.getAccessToken());
+            storeAcct.setYahooAccessToken(ews.getRefreshToken());
+            storeAcct.setStoreSysId(storeSysTO.getId());
+            storeAcct.setStoreNativeAcctId(Long.toString(shop.getId()));
+            databaseService.save(storeAcct);
+        } else if (!StringUtils.equals(ps.getAccessToken(), storeAcct.getStoreAccessToken())
+                || !StringUtils.equals(ews.getRefreshToken(), storeAcct.getYahooAccessToken())) {
+            // TODO update
+        }
     }
 
     /**
