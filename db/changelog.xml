@@ -6,7 +6,7 @@
 
     <changeSet id="1" author="tong">
         <createTable tableName="store_sys">
-            <column name="id" type="int(10) unsigned" autoIncrement="true">
+            <column name="id" type="int(10) unsigned" autoIncrement="true" startWith="1">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="name" type="varchar(255)">
@@ -17,17 +17,17 @@
             <column name="domain" type="varchar(255)">
                 <constraints nullable="false" unique="true"/>
             </column>
-            <column name="cr_date" type="datetime">
+            <column name="cr_date" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
-            <column name="upd_date" type="datetime">
+            <column name="upd_date" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
         </createTable>
     </changeSet>
     <changeSet id="2" author="tong">
         <createTable tableName="store_acct">
-            <column name="id" type="int(10)">
+            <column name="id" type="int(10) unsigned" autoIncrement="true" startWith="1">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="store_sys_id" type="int(10)">
@@ -45,17 +45,17 @@
             <column name="gemini_native_acct_id" type="int(10)">
                 <constraints nullable="true" unique="true"/>
             </column>
-            <column name="cr_date" type="datetime">
+            <column name="cr_date" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
-            <column name="upd_date" type="datetime">
+            <column name="upd_date" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
         </createTable>
     </changeSet>
     <changeSet id="3" author="tong">
         <createTable tableName="store_owner">
-            <column name="id" type="int(10)">
+            <column name="id" type="int(10) unsigned" autoIncrement="true" startWith="1">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="store_acct_id" type="int(10)">
@@ -73,7 +73,7 @@
     </changeSet>
     <changeSet id="4" author="tong">
         <createTable tableName="store_campaign">
-            <column name="id" type="int(10)">
+            <column name="id" type="int(10) unsigned" autoIncrement="true" startWith="1">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="store_acct_id" type="int(10)">
