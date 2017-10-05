@@ -8,14 +8,12 @@ import com.oath.gemini.merchant.ews.json.AdGroupData;
 import com.oath.gemini.merchant.ews.json.AdvertiserData;
 import com.oath.gemini.merchant.ews.json.BidSetData;
 import com.oath.gemini.merchant.ews.json.CampaignData;
-import com.oath.gemini.merchant.ews.json.ProductRecordData;
 import com.oath.gemini.merchant.ews.json.ProductRule;
 import com.oath.gemini.merchant.ews.json.ProductSetData;
 import com.oath.gemini.merchant.shopify.ShopifyClientService;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,7 +43,7 @@ public class Archetype {
     /**
      * Initialize a new campaign
      */
-    public void create(List<ProductRecordData> products) {
+    public void create() {
         try {
             // Initiate a campaign if a specific one does not exist
             CampaignData cmpData = newCampaign();
@@ -143,15 +141,23 @@ public class Archetype {
     }
 
     private ProductRule newProductRule() throws Exception {
-        EWSResponseData<ProductRule> psetResponse = ews.get(ProductRule.class, EWSEndpointEnum.PRODUCT_RULE_OPS, advertiserId);
+        try {
+            EWSResponseData<ProductRule> psetResponse = null;
 
-        if (EWSResponseData.isEmpty(psetResponse)) {
-            ProductRule rule = new ProductRule();
+            try {
+                ProductRule[] rule = { new ProductRule() };
 
-            rule.setPixelId(10039241L); // TODO: a hard-coded pixel id
-            rule.setAdvertiserId(advertiserId);
-            psetResponse = ews.create(ProductRule.class, rule, EWSEndpointEnum.PRODUCT_RULE_OPS);
+                rule[0].setPixelId(10039241L); // TODO: a hard-coded pixel id
+                rule[0].setAdvertiserId(advertiserId);
+                psetResponse = ews.create(ProductRule.class, rule, EWSEndpointEnum.PRODUCT_RULE_OPS);
+            } catch (Exception e) {
+                return null;
+            }
+
+            return psetResponse.get(0);
+        } catch (Exception e) {
+
         }
-        return psetResponse.get(0);
+        return null;
     }
 }

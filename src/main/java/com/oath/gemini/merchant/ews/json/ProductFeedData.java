@@ -29,7 +29,7 @@ public class ProductFeedData {
     @JsonProperty(required = true)
     private String userName;
 
-    @JsonProperty(required = true)
+    // required during creation
     private String password;
 
     @JsonProperty(required = true)

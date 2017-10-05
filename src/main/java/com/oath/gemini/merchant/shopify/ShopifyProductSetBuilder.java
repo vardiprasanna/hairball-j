@@ -43,9 +43,22 @@ public class ShopifyProductSetBuilder {
     }
 
     /**
+     * Upload a feed only if no feed exists
+     */
+    public ProductFeedData uploadOnce() throws Exception {
+        Archetype archeType = new Archetype(svc, ews);
+        EWSResponseData<ProductFeedData> response;
+
+        response = ews.get(ProductFeedData.class, EWSEndpointEnum.PRODUCT_FEED_BY_ADVERTISER, archeType.getAdvertiserId());
+        if (response != null && response.isOk()) {
+            archeType.create();
+            return response.get(0);
+        }
+        return null; // upload();
+    }
+
+    /**
      * Produce a Gemini product feed if it has never been done before for this shopper
-     * 
-     * TODO: check whether the shop's feed has ever been produced
      */
     public ProductFeedData upload() throws Exception {
         ShopifyProductData[] products = svc.get(ShopifyProductData[].class, ShopifyEndpointEnum.SHOPIFY_PROD_ALL);
@@ -110,11 +123,11 @@ public class ShopifyProductSetBuilder {
         feedData.setPassword(ClosableFTPClient.password);
         feedData.setFeedType(PrdFeedTypeEnum.DPA_RECURRING);
         feedData.setFileName(remoteFile);
-        feedData.setFeedUrl(ClosableFTPClient.host);
+        feedData.setFeedUrl("ftp://" + ClosableFTPClient.host);
 
         EWSResponseData<ProductFeedData> response = ews.create(ProductFeedData.class, feedData, EWSEndpointEnum.PRODUCT_FEED);
         if (response != null && response.isOk()) {
-            archeType.create(geminiProducts);
+            archeType.create();
             return response.get(0);
         }
         return null;
