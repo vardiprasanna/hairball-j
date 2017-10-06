@@ -1,5 +1,6 @@
 package com.oath.gemini.merchant;
 
+import com.oath.gemini.merchant.db.StoreCampaignEntity;
 import com.oath.gemini.merchant.ews.EWSClientService;
 import com.oath.gemini.merchant.ews.EWSConstant;
 import com.oath.gemini.merchant.ews.EWSEndpointEnum;
@@ -43,26 +44,30 @@ public class Archetype {
     /**
      * Initialize a new campaign
      */
-    public void create() {
-        try {
-            // Initiate a campaign if a specific one does not exist
-            CampaignData cmpData = newCampaign();
+    public StoreCampaignEntity create() throws Exception {
+        // Initiate a campaign if a specific one does not exist
+        CampaignData cmpData = newCampaign();
 
-            // Initiate a product set
-            ProductSetData pset = newProductSet();
+        // Initiate a product set
+        ProductSetData pset = newProductSet();
 
-            // Initiate a product rule
-            newProductRule();
+        // Initiate a product rule
+        newProductRule();
 
-            // Initiate an ad group if does not exist
-            AdGroupData adGroupData = newAdGroup(cmpData, pset);
+        // Initiate an ad group if does not exist
+        AdGroupData adGroupData = newAdGroup(cmpData, pset);
 
-            // Initiate a product ad if does not exist
-            newAd(adGroupData);
+        // Initiate a product ad if does not exist
+        newAd(adGroupData);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        StoreCampaignEntity campaignEntity = new StoreCampaignEntity();
+
+        campaignEntity.setAdvId(cmpData.getAdvertiserId());
+        campaignEntity.setCampaignId(cmpData.getId());
+        campaignEntity.setName(cmpData.getCampaignName());
+        campaignEntity.setPixelId(10039241); // TODO
+        campaignEntity.setAdgroupId(adGroupData.getId());
+        return campaignEntity;
     }
 
     private CampaignData newCampaign() throws Exception {

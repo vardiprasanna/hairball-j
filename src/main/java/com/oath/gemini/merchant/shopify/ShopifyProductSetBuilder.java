@@ -2,6 +2,7 @@ package com.oath.gemini.merchant.shopify;
 
 import com.oath.gemini.merchant.Archetype;
 import com.oath.gemini.merchant.ClosableFTPClient;
+import com.oath.gemini.merchant.db.StoreCampaignEntity;
 import com.oath.gemini.merchant.ews.EWSClientService;
 import com.oath.gemini.merchant.ews.EWSConstant.PrdAvailabilityEnum;
 import com.oath.gemini.merchant.ews.EWSConstant.PrdFeedTypeEnum;
@@ -43,80 +44,82 @@ public class ShopifyProductSetBuilder {
     }
 
     /**
-     * Upload a feed only if no feed exists
-     */
-    public ProductFeedData uploadOnce() throws Exception {
-        Archetype archeType = new Archetype(svc, ews);
-        EWSResponseData<ProductFeedData> response;
-
-        response = ews.get(ProductFeedData.class, EWSEndpointEnum.PRODUCT_FEED_BY_ADVERTISER, archeType.getAdvertiserId());
-        if (response != null && response.isOk()) {
-            archeType.create();
-            return response.get(0);
-        }
-        return null; // upload();
-    }
-
-    /**
      * Produce a Gemini product feed if it has never been done before for this shopper
+     * 
+     * @param reload - true if force to reload the Shopify's prouducts and then make it to the FTP server
      */
-    public ProductFeedData upload() throws Exception {
-        ShopifyProductData[] products = svc.get(ShopifyProductData[].class, ShopifyEndpointEnum.SHOPIFY_PROD_ALL);
-        List<ProductRecordData> geminiProducts = new ArrayList<>();
+    public StoreCampaignEntity upload(boolean reload) throws Exception {
+        // Download products from Shopify and then upload the result to FTP server for Gemini
+        try (ClosableFTPClient ftpClient = new ClosableFTPClient()) {
+            if (reload || !ftpClient.exits(remoteFile)) {
+                ShopifyProductData[] products = svc.get(ShopifyProductData[].class, ShopifyEndpointEnum.SHOPIFY_PROD_ALL);
+                List<ProductRecordData> geminiProducts = new ArrayList<>();
 
-        if (products != null) {
-            CSVFormat csvFileFormat = CSVFormat.DEFAULT.withRecordSeparator("\n");
+                if (products != null) {
+                    CSVFormat csvFileFormat = CSVFormat.DEFAULT.withRecordSeparator("\n");
 
-            try (FileWriter csvWriter = new FileWriter(localFile, false);
-                    CSVPrinter csvFilePrinter = new CSVPrinter(csvWriter, csvFileFormat)) {
+                    try (FileWriter csvWriter = new FileWriter(localFile, false);
+                            CSVPrinter csvFilePrinter = new CSVPrinter(csvWriter, csvFileFormat)) {
 
-                // Create CSV file header
-                csvFilePrinter.printRecord(CSV_HEADER);
+                        // Create CSV file header
+                        csvFilePrinter.printRecord(CSV_HEADER);
 
-                ShopifyProductVariantData[] variants;
-                ShopifyProductImageData[] images;
-                ProductRecordData geminiProduct = new ProductRecordData();
+                        ShopifyProductVariantData[] variants;
+                        ShopifyProductImageData[] images;
+                        ProductRecordData geminiProduct = new ProductRecordData();
 
-                for (ShopifyProductData p : products) {
-                    variants = svc.get(ShopifyProductVariantData[].class, ShopifyEndpointEnum.SHOPIFY_PROD_VARIANTS, p.getId());
-                    images = svc.get(ShopifyProductImageData[].class, ShopifyEndpointEnum.SHOPIFY_PROD_IMAGES, p.getId());
+                        for (ShopifyProductData p : products) {
+                            variants = svc.get(ShopifyProductVariantData[].class, ShopifyEndpointEnum.SHOPIFY_PROD_VARIANTS, p.getId());
+                            images = svc.get(ShopifyProductImageData[].class, ShopifyEndpointEnum.SHOPIFY_PROD_IMAGES, p.getId());
 
-                    if (isEmpty(variants) || isEmpty(variants)) {
-                        log.warn("shopify product {} is missing variant and/or images", p.getId());
-                        continue;
+                            if (isEmpty(variants) || isEmpty(variants)) {
+                                log.warn("shopify product {} is missing variant and/or images", p.getId());
+                                continue;
+                            }
+
+                            p.setVariants(variants);
+                            p.setImages(images);
+
+                            geminiProduct.setId(p.getId());
+                            geminiProduct.setTitle(p.getTitle());
+                            geminiProduct.setDescription(p.getDescription());
+                            geminiProduct.setImage_link(images[0].getSrc());
+                            geminiProduct.setLink(svc.getShop());
+                            geminiProduct.setAvailability(PrdAvailabilityEnum.IN_STOCK);
+                            geminiProduct.setPrice(Float.toString(variants[0].getPrice()));
+                            geminiProduct.setMpn(variants[0].getSku());
+                            geminiProduct.setGtin(variants[0].getBarcode());
+                            geminiProduct.setBrand(p.getBrand());
+                            geminiProduct.setProduct_type(p.getProduct_type());
+
+                            // Output one product
+                            csvFilePrinter.printRecord(toRecordArray(geminiProduct));
+                            geminiProducts.add(geminiProduct);
+                        }
+                    } catch (Exception e) {
+                        log.error("Failed to generate a shopify product feed", e);
+                        throw e;
                     }
-
-                    p.setVariants(variants);
-                    p.setImages(images);
-
-                    geminiProduct.setId(p.getId());
-                    geminiProduct.setTitle(p.getTitle());
-                    geminiProduct.setDescription(p.getDescription());
-                    geminiProduct.setImage_link(images[0].getSrc());
-                    geminiProduct.setLink(svc.getShop());
-                    geminiProduct.setAvailability(PrdAvailabilityEnum.IN_STOCK);
-                    geminiProduct.setPrice(Float.toString(variants[0].getPrice()));
-                    geminiProduct.setMpn(variants[0].getSku());
-                    geminiProduct.setGtin(variants[0].getBarcode());
-                    geminiProduct.setBrand(p.getBrand());
-                    geminiProduct.setProduct_type(p.getProduct_type());
-
-                    // Output one product
-                    csvFilePrinter.printRecord(toRecordArray(geminiProduct));
-                    geminiProducts.add(geminiProduct);
                 }
-            } catch (Exception e) {
-                log.error("Failed to generate a shopify product feed", e);
-                throw e;
+
+                // Copy a local file to FTP server
+                ftpClient.copyTo(localFile, remoteFile);
             }
         }
 
-        try (ClosableFTPClient ftpClient = new ClosableFTPClient()) {
-            ftpClient.copyTo(localFile, remoteFile);
+        Archetype archeType = new Archetype(svc, ews);
+        EWSResponseData<ProductFeedData> response;
+
+        // Check whether Gemini already knows the FTP connection of this product feed
+        response = ews.get(ProductFeedData.class, EWSEndpointEnum.PRODUCT_FEED_BY_ADVERTISER, archeType.getAdvertiserId());
+        if (response != null && response.isOk()) {
+            StoreCampaignEntity cmpEntity = archeType.create();
+            cmpEntity.setProductFeedId(response.get(0).getId());
+            return cmpEntity;
         }
 
+        // Let Gemini know how to access this product feed
         ProductFeedData feedData = new ProductFeedData();
-        Archetype archeType = new Archetype(svc, ews);
 
         feedData.setAdvertiserId(archeType.getAdvertiserId());
         feedData.setUserName(ClosableFTPClient.username);
@@ -125,12 +128,13 @@ public class ShopifyProductSetBuilder {
         feedData.setFileName(remoteFile);
         feedData.setFeedUrl("ftp://" + ClosableFTPClient.host);
 
-        EWSResponseData<ProductFeedData> response = ews.create(ProductFeedData.class, feedData, EWSEndpointEnum.PRODUCT_FEED);
+        response = ews.create(ProductFeedData.class, feedData, EWSEndpointEnum.PRODUCT_FEED);
         if (response != null && response.isOk()) {
-            archeType.create();
-            return response.get(0);
+            StoreCampaignEntity cmpEntity = archeType.create();
+            cmpEntity.setProductFeedId(response.get(0).getId());
+            return cmpEntity;
         }
-        return null;
+        throw new RuntimeException("Failed to instantiate a product feed, and/or a campaign");
     }
 
     private static <T> boolean isEmpty(T[] array) {

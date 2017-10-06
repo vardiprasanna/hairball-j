@@ -98,6 +98,40 @@ public class EWSAuthenticationResource extends ResourceConfig {
     }
 
     /**
+     * Oauth server redirects to here along with the user's authorization code
+     */
+    @GET
+    @Path("approval")
+    public Response approve(@Context HttpServletRequest req, @DefaultValue("") @QueryParam("code") String code) {
+        if (StringUtils.isEmpty(code)) {
+            // TODO: indicate that the user denies our access request
+            return Response.ok(dump(req)).build();
+        }
+
+        try {
+            EWSAccessTokenData tokens = getAccessTokenFromAuthCode(code);
+
+            // Redirect user to a campaign setup page
+            if (tokens != null) {
+                refreshToken = tokens.getRefreshToken();
+                String rd = (String) req.getSession().getAttribute("_rd");
+
+                if (StringUtils.isNotBlank(rd)) {
+                    byte[] homeUrl = Base64.getDecoder().decode(rd.getBytes());
+                    String uri = buildQueries(new String(homeUrl), "_refresh", refreshToken);
+                    return Response.temporaryRedirect(URI.create(uri)).build();
+                } else {
+                    log.error("missing the redirect url");
+                }
+            }
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return Response.ok(dump(req)).build();
+    }
+
+    /**
      * Get an access token from an authorization code
      */
     public static EWSAccessTokenData getAccessTokenFromAuthCode(String authCode) throws Exception {
@@ -129,38 +163,6 @@ public class EWSAuthenticationResource extends ResourceConfig {
             response = httpClient.send(EWSAccessTokenData.class);
         }
         return response;
-    }
-
-    /**
-     * Oauth server redirects to here along with the user's authorization code
-     */
-    @GET
-    @Path("approval")
-    public Response approve(@Context HttpServletRequest req, @DefaultValue("") @QueryParam("code") String code) {
-        if (StringUtils.isEmpty(code)) {
-            // TODO: indicate that the user denies our access request
-        }
-        try {
-            EWSAccessTokenData tokens = getAccessTokenFromAuthCode(code);
-
-            // Redirect user to a campaign setup page
-            if (tokens != null) {
-                refreshToken = tokens.getRefreshToken();
-                String rd = (String) req.getSession().getAttribute("_rd");
-
-                if (StringUtils.isNotBlank(rd)) {
-                    byte[] homeUrl = Base64.getDecoder().decode(rd.getBytes());
-                    String uri = buildQueries(new String(homeUrl), "_refresh", refreshToken);
-                    return Response.temporaryRedirect(URI.create(uri)).build();
-                } else {
-                    log.error("missing the redirect url");
-                }
-            }
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        return Response.ok(dump(req)).build();
     }
 
     private static String dump(HttpServletRequest req) {

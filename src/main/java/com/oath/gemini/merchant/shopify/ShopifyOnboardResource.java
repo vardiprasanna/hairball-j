@@ -1,10 +1,10 @@
 package com.oath.gemini.merchant.shopify;
 
 import static com.oath.gemini.merchant.ClosableHttpClient.buildQueries;
-import com.oath.gemini.merchant.AppConfiguration;
 import com.oath.gemini.merchant.ClosableHttpClient;
 import com.oath.gemini.merchant.db.DatabaseService;
 import com.oath.gemini.merchant.db.StoreAcctEntity;
+import com.oath.gemini.merchant.db.StoreCampaignEntity;
 import com.oath.gemini.merchant.db.StoreSysEntity;
 import com.oath.gemini.merchant.ews.EWSClientService;
 import com.oath.gemini.merchant.shopify.json.ShopifyAccessToken;
@@ -15,6 +15,7 @@ import com.oath.gemini.merchant.shopify.json.Tag;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.sql.Timestamp;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,6 +31,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
+import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -49,13 +52,11 @@ public class ShopifyOnboardResource {
     @Inject
     DatabaseService databaseService;
 
-    private Configuration config = AppConfiguration.getConfig();
-
-    // TODO: we will use database to persist refresh tokens
-    private static Map<String, String> merchantTokenStorage = new HashMap<>();
+    @Inject
+    private Configuration config;
 
     /**
-     * The user reaches here when he initiates the installation of our app in Shopify admin console
+     * The user reaches here when he either initiates the installation of our app or clicks the app in Shopify admin console
      * 
      * A sample URL initiated from Shopify is: <br/>
      * http://localhost:4080/API/V1/shopify/welcome?hmac=b63bcb2732d8d9a7b1cfa1624afdc92f36d456c32c0903de221978862626f8cb&shop=dpa-bridge.myshopify.com&timestamp=1503618688"
@@ -88,7 +89,7 @@ public class ShopifyOnboardResource {
     }
 
     /**
-     * The user lands here when he either grants our access or clicks our app link in his admin console. <br/>
+     * The user is redirected to here when he either grants us the access of his Shopify data. <br/>
      * 
      * A sample URL initiated from Shopify is: <br/>
      * http://localhost:4080/API/V1/shopify/home?code=22805a9745d6f27ea0b989818670976c&hmac=9b1d163afc0ea825e121505920d2f223cd90f89f98e027f6c21cb70d5a5fe2ce&shop=dpa-bridge.myshopify.com&timestamp=1503786189
@@ -113,8 +114,12 @@ public class ShopifyOnboardResource {
             return Response.serverError().build();
         }
 
+        // If user denies our access of his Shopify data, we do nothing
+        if ("denied".equalsIgnoreCase(_refresh)) {
+            return Response.ok().build();
+        }
+
         // Ask for the access scopes if our app has not been installed yet
-        String target = config.getString("campaign.setting.url");
         if (StringUtils.isBlank(_refresh) || StringUtils.isBlank(_mc)) {
             ShopifyAccessToken tokens = fetchAuthToken(shop, code);
 
@@ -123,37 +128,44 @@ public class ShopifyOnboardResource {
                 log.error("a shopify code '{}' likely has expired", code);
                 return Response.status(Status.BAD_REQUEST).build();
             }
-            
+
+            // If Shopify's shop account does not exist, we certainly do not have his Yahoo's Refresh Token, and therefore asks him
+            // to go through Yahoo's OAuth flow
             StoreAcctEntity storeAcct = databaseService.findStoreAcctByAccessToken(tokens.getAccessToken());
 
-            if (merchantTokenStorage.containsKey(tokens.getAccessToken())) {
-                _mc = tokens.getAccessToken();
+            if (storeAcct != null) {
+                _mc = storeAcct.getStoreAccessToken();
+                _refresh = storeAcct.getYahooAccessToken();
             } else {
                 injectScriptTag(shop, tokens.getAccessToken());
 
-                // Redirect to the OAuth2 handler for user's Gemini access. Will will be redirected to here when OAuth2 done
+                // Redirect to Yahoo OAuth2 handler for user's Gemini access. Will will be redirected to here when OAuth2 done
                 String rd = req.getRequestURL().append('?').append(req.getQueryString()).toString();
+                String target = config.getString("yahoo.oauth2.url");
 
                 rd = buildQueries(rd, "_mc", tokens.getAccessToken());
-                target = config.getString("yahoo.oauth2.url");
                 target = buildQueries(target, "_rd", Base64.getEncoder().encodeToString(rd.getBytes()));
+                return Response.temporaryRedirect(URI.create(target)).build();
             }
-        } else if ("denied".equalsIgnoreCase(_refresh)) {
-            // TODO: handle a denied-access case
-        } else if (!merchantTokenStorage.containsKey(_mc)) {
-            merchantTokenStorage.put(_mc, _refresh);
-
-            ShopifyClientService ps = new ShopifyClientService(shop, _mc);
-            EWSClientService ews = new EWSClientService(_refresh);
-            registerStoreAccountIfRequired(ps, ews);
-            new ShopifyProductSetBuilder(ps, ews).uploadOnce();
         }
 
+        // By now, we have both Shopify and Yahoo access tokens. Let's persist this info locally
+        ShopifyClientService ps = new ShopifyClientService(shop, _mc);
+        EWSClientService ews = new EWSClientService(_refresh);
+        StoreAcctEntity storeAcctEntity = registerStoreAccountIfRequired(ps, ews);
+        StoreCampaignEntity storeCmpEntity = new ShopifyProductSetBuilder(ps, ews).upload(false);
+
+        // By now, we have configured a DPA campaign and its product feed on Gemini site. Let's persist this info locally
+        storeCmpEntity.setStoreAcctId(storeAcctEntity.getId());
+        registerStoreCampainIfRequired(ps, ews, storeCmpEntity);
+
+        // All done. Take a user to this application's campaign configuration page such as budget, price, date range, etc
+        String target = config.getString("campaign.setting.url");
         return Response.temporaryRedirect(URI.create(target)).build();
     }
 
     /**
-     * The registration of Shopify as an e-commerce system if it has never been done before
+     * To register Shopify as an e-commerce system if it has never been done before
      */
     private StoreSysEntity registerStoreSystemIfRequired() {
         StoreSysEntity storeSys = databaseService.findStoreSysByDoman("www.shopify.com");
@@ -169,21 +181,72 @@ public class ShopifyOnboardResource {
         return storeSys;
     }
 
-    private void registerStoreAccountIfRequired(ShopifyClientService ps, EWSClientService ews) throws Exception {
+    /**
+     * To register a Shopify's shop, which typically happens when the shop installs our application.
+     */
+    private StoreAcctEntity registerStoreAccountIfRequired(ShopifyClientService ps, EWSClientService ews) throws Exception {
         ShopifyShopData shop = ps.get(ShopifyShopData.class, ShopifyEndpointEnum.SHOPIFY_SHOP_INFO);
-        StoreSysEntity storeSysTO = registerStoreSystemIfRequired();
+        StoreSysEntity storeSysEntity = registerStoreSystemIfRequired();
         StoreAcctEntity storeAcct = databaseService.findStoreAcctByAccessToken(ps.getAccessToken());
 
         if (storeAcct == null) {
             storeAcct = new StoreAcctEntity();
+            storeAcct.setName(shop.getName());
+            storeAcct.setDomain(shop.getDomain());
+            storeAcct.setEmail(shop.getEmail());
             storeAcct.setStoreAccessToken(ps.getAccessToken());
             storeAcct.setYahooAccessToken(ews.getRefreshToken());
-            storeAcct.setStoreSysId(storeSysTO.getId());
+            storeAcct.setStoreSysId(storeSysEntity.getId());
             storeAcct.setStoreNativeAcctId(Long.toString(shop.getId()));
             databaseService.save(storeAcct);
-        } else if (!StringUtils.equals(ps.getAccessToken(), storeAcct.getStoreAccessToken())
-                || !StringUtils.equals(ews.getRefreshToken(), storeAcct.getYahooAccessToken())) {
-            // TODO update
+        } else {
+            boolean isChanged = false;
+
+            if (!StringUtils.equals(ps.getAccessToken(), storeAcct.getStoreAccessToken())
+                    || !StringUtils.equals(ews.getRefreshToken(), storeAcct.getYahooAccessToken())) {
+
+                storeAcct.setStoreAccessToken(ps.getAccessToken());
+                storeAcct.setYahooAccessToken(ews.getRefreshToken());
+                storeAcct.setUpdatedDate(new Timestamp(System.currentTimeMillis()));
+                isChanged = true;
+            }
+            if (!StringUtils.equals(shop.getEmail(), storeAcct.getEmail()) || !StringUtils.equals(shop.getName(), storeAcct.getName())
+                    || !StringUtils.equals(shop.getDomain(), storeAcct.getDomain())) {
+                storeAcct.setName(shop.getName());
+                storeAcct.setDomain(shop.getDomain());
+                storeAcct.setEmail(shop.getEmail());
+                isChanged = true;
+            }
+            if (isChanged) {
+                databaseService.save(storeAcct);
+            }
+        }
+
+        return storeAcct;
+    }
+
+    /**
+     * To register campaign info if we haven't done so; otherwise update an existing entity
+     */
+    private void registerStoreCampainIfRequired(ShopifyClientService ps, EWSClientService ews, StoreCampaignEntity cmpEntity)
+            throws Exception {
+        StoreCampaignEntity storedEntity = databaseService.findStoreCampaignById(cmpEntity.getCampaignId());
+
+        if (storedEntity != null) {
+            cmpEntity.setId(storedEntity.getId());
+            Map<String, ?> src = PropertyUtils.describe(cmpEntity);
+            Map<String, ?> dst = PropertyUtils.describe(cmpEntity);
+
+            if (!src.equals(dst)) {
+                for (Map.Entry<String, ?> e : dst.entrySet()) {
+                    if (e.getValue() != null && !e.getKey().equals("class")) {
+                        PropertyUtils.setProperty(storedEntity, e.getKey(), e.getValue());
+                    }
+                }
+                databaseService.save(storedEntity);
+            }
+        } else {
+            databaseService.save(cmpEntity);
         }
     }
 
@@ -194,8 +257,6 @@ public class ShopifyOnboardResource {
      * client_id - The API Key for the app (see the credentials section of this guide). <br/>
      * client_secret - The Secret Key for the app (see the credentials section of this guide). <br/>
      * code - The authorization code provided in the redirect described above. <br/>
-     * 
-     * @throws Exception
      */
     private static ShopifyAccessToken fetchAuthToken(String shop, String authCode) throws Exception {
         ShopifyClientService ps = new ShopifyClientService(shop, authCode);
@@ -254,8 +315,6 @@ public class ShopifyOnboardResource {
      * 
      * {option} - (Optional) substitute this with the value per-user if you would like to use the online access mode for API
      * requests. Leave this parameter blank (or omit it) for offline access mode (default).
-     * 
-     * @throws MalformedURLException
      */
     private URI buildScopeRequestUrl(String shop, String redirectUrl) throws MalformedURLException {
         HashMap<String, String> params = new HashMap<>();

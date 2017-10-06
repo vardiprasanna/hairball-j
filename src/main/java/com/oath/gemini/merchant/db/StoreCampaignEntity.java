@@ -2,6 +2,8 @@ package com.oath.gemini.merchant.db;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import lombok.Getter;
@@ -12,6 +14,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "store_campaign")
 public class StoreCampaignEntity {
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     @Column(nullable = false, insertable = false, updatable = false)
     private int id;
@@ -30,6 +33,9 @@ public class StoreCampaignEntity {
 
     @Column(name = "adgroup_id")
     private Long adgroupId;
+
+    @Column(name = "product_feed_id")
+    private Long productFeedId;
 
     @Column(name = "pixel_id", nullable = false)
     private int pixelId;

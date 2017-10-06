@@ -30,6 +30,15 @@
             <column name="id" type="int(10) unsigned" autoIncrement="true" startWith="1">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="email" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="domain" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
             <column name="store_sys_id" type="int(10)">
                 <constraints foreignKeyName="store_acct_store_sys_id_fkey" references="store_sys(id)" nullable="false"/>
             </column>
@@ -89,6 +98,9 @@
                 <constraints nullable="true"/>
             </column>
             <column name="adgroup_id" type="bigint(20)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="product_feed_id" type="bigint(20)">
                 <constraints nullable="true"/>
             </column>
             <column name="pixel_id" type="int(10)">

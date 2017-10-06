@@ -41,6 +41,12 @@
       <version>1.9</version>
     </dependency>
     <dependency>
+      <!-- http://commons.apache.org/proper/commons-beanutils/ -->
+      <groupId>commons-beanutils</groupId>
+      <artifactId>commons-beanutils</artifactId>
+      <version>1.9.3</version>
+    </dependency>
+    <dependency>
       <!-- http://commons.apache.org/io/ -->
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
