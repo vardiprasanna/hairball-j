@@ -32,7 +32,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 import org.apache.commons.beanutils.PropertyUtils;
-import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -264,7 +263,7 @@ public class ShopifyOnboardResource {
 
         // Prepare request POST content
         reqestBody.setClientId(ShopifyOauthHelper.API_KEY);
-        reqestBody.setClientSecret(ShopifyOauthHelper.SECRETE_KEY);
+        reqestBody.setClientSecret(ShopifyOauthHelper.SECRET_KEY);
         reqestBody.setCode(authCode);
         return ps.post(ShopifyAccessToken.class, reqestBody, ShopifyEndpointEnum.SHOPIFY_FETCH_TOKEN);
     }

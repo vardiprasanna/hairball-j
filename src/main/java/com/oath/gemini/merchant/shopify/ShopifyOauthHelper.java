@@ -11,7 +11,7 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.configuration.Configuration;
 
 public class ShopifyOauthHelper {
-    public final static String SECRETE_KEY;
+    public final static String SECRET_KEY;
     public final static String API_KEY;
 
     public static String generateHMac(String... pairs) throws NoSuchAlgorithmException, InvalidKeyException, DecoderException {
@@ -40,9 +40,9 @@ public class ShopifyOauthHelper {
         try {
             Configuration config = AppConfiguration.getConfig();
             API_KEY = config.getString("shopify.api.key");
-            SECRETE_KEY = config.getString("shopify.secrete.key");
+            SECRET_KEY = config.getString("shopify.secret.key");
 
-            keySpec = new SecretKeySpec(SECRETE_KEY.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+            keySpec = new SecretKeySpec(SECRET_KEY.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
             mac = Mac.getInstance("HmacSHA256");
             mac.init(keySpec);
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
