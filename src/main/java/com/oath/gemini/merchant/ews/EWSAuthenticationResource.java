@@ -4,7 +4,6 @@ import static com.oath.gemini.merchant.ClosableHttpClient.buildQueries;
 import com.oath.gemini.merchant.ClosableHttpClient;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URLEncoder;
 import java.util.Base64;
 import java.util.Enumeration;
 import javax.inject.Singleton;
@@ -30,61 +29,16 @@ import lombok.extern.slf4j.Slf4j;;
 @Singleton
 @Path("")
 public class EWSAuthenticationResource extends ResourceConfig {
-    // Either a Yahoo's installed-app or a web-app
-    private static String requestAuth;
-    private static String requestTokenBody;
-    private static String refreshTokenBody;
-    private static String refreshToken;
-
-    private static String SECRET_ID;
-    private static String CLIENT_ID;
-    private static String OAUTH_BASE64;
+    private static Configuration config;
+    private static String refreshBaseOAuth;
 
     public EWSAuthenticationResource(Configuration config) {
         register(this);
+        EWSAuthenticationResource.config = config;
 
-        try {
-            init(0);
-        } catch (UnsupportedEncodingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Switch an oauth application between two modes: 1 - use an installed-app; 0 - use a web-app
-     * 
-     * @throws UnsupportedEncodingException
-     */
-    @GET
-    @Path("debug")
-    public void init(@DefaultValue("1") @QueryParam("app") int type) throws UnsupportedEncodingException {
-        String redirectUrl;
-        boolean isRemoteAuth = (type == 0);
-
-        if (isRemoteAuth) {
-            // Web-application - "remote-hyperloop"
-            redirectUrl = URLEncoder.encode("http://hairball.herokuapp.com/", "UTF-8");
-            refreshToken = "AIN4sVkOwLPwTC69vuoRPQavAa3BTV_y.do2eeZ4qLLDlEDl";
-            SECRET_ID = "0b596571b0ba8eba179cfa91551a19e40379c8a8";
-            CLIENT_ID = "dj0yJmk9NEJVRHRaRnpWa09SJmQ9WVdrOVREQktiREUzTjJrbWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmeD1iYQ--";
-        } else {
-            // Installed application - "test-shopify"
-            redirectUrl = "oob";
-            refreshToken = "AIN4sVkOwLPwTC69vuoRPQavAa3BTV_y.do2eeZ4qLLDlEDl";
-            SECRET_ID = "e1b910f04b4ac795f126cba1881116b8e7281f81";
-            CLIENT_ID = "dj0yJmk9R1J3U1NPMjYxSE1ZJmQ9WVdrOVdWSXlNbGhRTlRJbWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmeD1iNQ--";
-        }
-        OAUTH_BASE64 = "Basic " + Base64.getEncoder().encodeToString((CLIENT_ID + ":" + SECRET_ID).getBytes());
-
-        StringBuilder buf = new StringBuilder();
-        buf.append("https://api.login.yahoo.com/oauth2/request_auth?response_type=code&language=en-us");
-        buf.append("&client_id=").append(CLIENT_ID);
-        buf.append("&redirect_uri=").append(redirectUrl);
-
-        requestAuth = buf.toString();
-        requestTokenBody = "grant_type=authorization_code&code=${code}&redirect_uri=" + redirectUrl;
-        refreshTokenBody = "grant_type=refresh_token&refresh_token=${refresh_token}&redirect_uri=" + redirectUrl;
+        // Yahoo web-application - "hairball" (see https://developer.yahoo.com/apps)
+        refreshBaseOAuth = config.getString("y.oauth.token.basic");
+        refreshBaseOAuth = "Basic " + Base64.getEncoder().encodeToString(refreshBaseOAuth.getBytes());
     }
 
     /**
@@ -93,6 +47,8 @@ public class EWSAuthenticationResource extends ResourceConfig {
     @GET
     @Path("signon")
     public Response signOn(@Context HttpServletRequest req, @QueryParam("_rd") String rd) throws UnsupportedEncodingException {
+        String requestAuth = config.getString("y.oauth.auth.request.url");
+
         req.getSession().setAttribute("_rd", rd);
         return Response.temporaryRedirect(URI.create(requestAuth)).build();
     }
@@ -113,7 +69,7 @@ public class EWSAuthenticationResource extends ResourceConfig {
 
             // Redirect user to a campaign setup page
             if (tokens != null) {
-                refreshToken = tokens.getRefreshToken();
+                String refreshToken = tokens.getRefreshToken();
                 String rd = (String) req.getSession().getAttribute("_rd");
 
                 if (StringUtils.isNotBlank(rd)) {
@@ -135,6 +91,7 @@ public class EWSAuthenticationResource extends ResourceConfig {
      * Get an access token from an authorization code
      */
     public static EWSAccessTokenData getAccessTokenFromAuthCode(String authCode) throws Exception {
+        String requestTokenBody = config.getString("y.oauth.token.request.by.auth.code");
         String bodyContent = requestTokenBody.replace("${code}", authCode);
         return getAccessToken(bodyContent);
     }
@@ -143,6 +100,7 @@ public class EWSAuthenticationResource extends ResourceConfig {
      * Get an access token from a fresh token
      */
     public static EWSAccessTokenData getAccessTokenFromRefreshToken(String refreshToken) throws Exception {
+        String refreshTokenBody = config.getString("y.oauth.token.request.by.refresh.token");
         String bodyContent = refreshTokenBody.replace("${refresh_token}", refreshToken);
         return getAccessToken(bodyContent);
     }
@@ -155,11 +113,11 @@ public class EWSAuthenticationResource extends ResourceConfig {
 
         try (ClosableHttpClient httpClient = new ClosableHttpClient()) {
             // Issue a POST request
-            Request request = httpClient.newPOST("https://api.login.yahoo.com/oauth2/get_token", bodyContent);
+            Request request = httpClient.newPOST(config.getString("y.oauth.token.request.url"), bodyContent);
 
             // Prepare headers
             request.header(HttpHeader.CONTENT_TYPE, "application/x-www-form-urlencoded");
-            request.header(HttpHeader.AUTHORIZATION, OAUTH_BASE64);
+            request.header(HttpHeader.AUTHORIZATION, refreshBaseOAuth);
             response = httpClient.send(EWSAccessTokenData.class);
         }
         return response;
