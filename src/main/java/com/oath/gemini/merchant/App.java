@@ -35,9 +35,6 @@ import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 
 public class App extends ResourceConfig {
     public static final String KEYSTORE_PASSWORD = "secret";
-    public static final int DEFAULT_HTTP_PORT = 4080;
-    public static final int DEFAULT_HTTPS_PORT = 4443;
-
     private final Configuration config;
     private final Server jetty = new Server();
     private final static App instance;
@@ -72,7 +69,7 @@ public class App extends ResourceConfig {
         HttpConfiguration http_config = new HttpConfiguration();
         ServerConnector http = new ServerConnector(jetty, new HttpConnectionFactory(http_config));
 
-        int port = config.getInt("port", DEFAULT_HTTP_PORT);
+        int port = config.getInt("port");
         http.setPort(port);
         http.open();
 
@@ -137,7 +134,7 @@ public class App extends ResourceConfig {
             throw new RuntimeException("Keystore not readable");
         }
 
-        int port = config.getInt("ssl.port", DEFAULT_HTTPS_PORT);
+        int port = config.getInt("ssl.port");
         httpCfg.setSecureScheme("https");
         httpCfg.setSecurePort(port);
 

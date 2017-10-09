@@ -41,6 +41,12 @@ public class EWSAuthenticationResource extends ResourceConfig {
         refreshBaseOAuth = "Basic " + Base64.getEncoder().encodeToString(refreshBaseOAuth.getBytes());
     }
 
+    @GET
+    @Path("status")
+    public Response status() {
+        return Response.ok("echo").build();
+    }
+
     /**
      * Request the user's authorization
      */
