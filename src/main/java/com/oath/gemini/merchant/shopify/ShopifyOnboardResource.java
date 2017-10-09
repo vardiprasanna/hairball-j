@@ -164,6 +164,29 @@ public class ShopifyOnboardResource {
     }
 
     /**
+     * The user is redirected to here when he grands/denies this app's access of Gemini EWS
+     */
+    @GET
+    @Path("ews")
+    public Response ews(@Context HttpServletRequest req, @DefaultValue("") @QueryParam("_refresh") String _refresh,
+            @DefaultValue("") @QueryParam("_mc") String _mc) throws Exception {
+
+        // By now, we have both Shopify and Yahoo access tokens. Let's persist this info locally
+        ShopifyClientService ps = new ShopifyClientService("TODO", _mc); // TODO new ShopifyClientService(shop, _mc);
+        EWSClientService ews = new EWSClientService(_refresh);
+        StoreAcctEntity storeAcctEntity = registerStoreAccountIfRequired(ps, ews);
+        StoreCampaignEntity storeCmpEntity = new ShopifyProductSetBuilder(ps, ews).upload(false);
+
+        // By now, we have configured a DPA campaign and its product feed on Gemini site. Let's persist this info locally
+        storeCmpEntity.setStoreAcctId(storeAcctEntity.getId());
+        registerStoreCampainIfRequired(ps, ews, storeCmpEntity);
+
+        // All done. Take a user to this application's campaign configuration page such as budget, price, date range, etc
+        String target = config.getString("campaign.setting.url");
+        return Response.temporaryRedirect(URI.create(target)).build();
+    }
+
+    /**
      * To register Shopify as an e-commerce system if it has never been done before
      */
     private StoreSysEntity registerStoreSystemIfRequired() {
