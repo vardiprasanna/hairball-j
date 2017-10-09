@@ -65,16 +65,16 @@ public class App extends ResourceConfig {
         return instance;
     }
 
-    private void initialize() throws IOException, Exception {
+    private void initialize(int localPort) throws IOException, Exception {
         HttpConfiguration http_config = new HttpConfiguration();
         ServerConnector http = new ServerConnector(jetty, new HttpConnectionFactory(http_config));
 
-        int port = config.getInt("port");
+        int port = localPort > 0 ? localPort : config.getInt("port");
         http.setPort(port);
         http.open();
 
         jetty.addConnector(http);
-//        configureSSL(http_config);
+        // configureSSL(http_config);
         HandlerCollection handlerCollection = new HandlerCollection();
 
         // handles js, css, and html resources
@@ -184,8 +184,18 @@ public class App extends ResourceConfig {
     }
 
     public static void main(String[] args) throws Exception {
+        int port = -1;
+
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].endsWith("-port") && (i < args.length - 1)) {
+                port = Integer.parseInt(args[i + 1]);
+                System.err.println("overriding port=" + port);
+                break;
+            }
+        }
+
         App app = getInstance();
-        app.initialize();
+        app.initialize(port);
         app.start();
     }
 }
