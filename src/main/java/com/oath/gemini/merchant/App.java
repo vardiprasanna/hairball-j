@@ -74,7 +74,7 @@ public class App extends ResourceConfig {
         http.open();
 
         jetty.addConnector(http);
-        configureSSL(http_config);
+//        configureSSL(http_config);
         HandlerCollection handlerCollection = new HandlerCollection();
 
         // handles js, css, and html resources

@@ -274,7 +274,7 @@
       </dependencies>
       <properties>
         <pom.port>80</pom.port>
-        <pom.ssl.port>443</pom.ssl.port>
+        <pom.ssl.port>4443</pom.ssl.port>
         <pom.ssl.enabled>true</pom.ssl.enabled>
         <pom.ssl.keystore>jetty.keystore</pom.ssl.keystore>
         <pom.ftp.username>hairball-dropbox</pom.ftp.username>
