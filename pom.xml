@@ -17,6 +17,23 @@
     <jersey.version>2.25.1</jersey.version>
     <junit.version>3.8.1</junit.version>
     <slf4j.version>1.7.6</slf4j.version>
+
+    <!-- application.properties -->
+    <pom.ssl.enabled>true</pom.ssl.enabled>
+    <pom.ssl.keystore>jetty.keystore</pom.ssl.keystore>
+    <pom.ftp.username>hairball-dropbox</pom.ftp.username>
+    <pom.ftp.password>XQI081qh</pom.ftp.password>
+    <pom.ftp.host>dropbox.yahoo.com</pom.ftp.host>
+    <pom.ftp.connection.timeout>5000</pom.ftp.connection.timeout>
+    <pom.db.ykeykey>false</pom.db.ykeykey>
+    <pom.db.host>localhost</pom.db.host>
+    <pom.db.name>db/dev</pom.db.name>
+    <pom.db.username>SA</pom.db.username>
+    <pom.db.password></pom.db.password>
+    <pom.db.port></pom.db.port>
+    <pom.hibernate.connection.driver_class>org.hsqldb.jdbc.JDBCDriver</pom.hibernate.connection.driver_class>
+    <pom.hibernate.connection.url>jdbc:hsqldb:file:${pom.db.name};create=true</pom.hibernate.connection.url>
+    <pom.hibernate.dialect>org.hibernate.dialect.HSQLDialect</pom.hibernate.dialect>
   </properties>
   <dependencies>
     <dependency>
@@ -259,7 +276,8 @@
   </build>
   <profiles>
     <profile>
-      <id>dev</id>
+      <!-- hairball-j -->
+      <id>prod</id>
       <activation>
         <property>
           <name>!env</name>
@@ -273,33 +291,34 @@
         </dependency>
       </dependencies>
       <properties>
-        <pom.port>4080</pom.port>
-        <pom.ssl.port>4443</pom.ssl.port>
-        <pom.ssl.enabled>true</pom.ssl.enabled>
-        <pom.ssl.keystore>jetty.keystore</pom.ssl.keystore>
-        <pom.ftp.username>hairball-dropbox</pom.ftp.username>
-        <pom.db.ykeykey>false</pom.db.ykeykey>
-        <pom.ftp.password>XQI081qh</pom.ftp.password>
-        <pom.ftp.host>dropbox.yahoo.com</pom.ftp.host>
-        <pom.ftp.connection.timeout>5000</pom.ftp.connection.timeout>
-        <pom.db.host>localhost</pom.db.host>
-        <pom.db.name>db/dev</pom.db.name>
-        <pom.db.username>SA</pom.db.username>
-        <pom.db.password></pom.db.password>
-        <pom.db.port></pom.db.port>
-        <pom.hibernate.connection.driver_class>org.hsqldb.jdbc.JDBCDriver</pom.hibernate.connection.driver_class>
-        <pom.hibernate.connection.url>jdbc:hsqldb:file:${pom.db.name};create=true</pom.hibernate.connection.url>
-        <pom.hibernate.dialect>org.hibernate.dialect.HSQLDialect</pom.hibernate.dialect>
+        <pom.port>80</pom.port>
+        <pom.ssl.port>443</pom.ssl.port>
+        <pom.app.root.url>http://hairball-j.herokuapp.com</pom.app.root.url>
+        <pom.y.oauth.secret.id>be993f12ec0859c1ae70152f933bd9e0e185ae1b</pom.y.oauth.secret.id>
+        <pom.y.oauth.client.id>dj0yJmk9Vm01WTdJd01vS3ZSJmQ9WVdrOU1sZGhNbWxtTldNbWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmeD1iMw--</pom.y.oauth.client.id>
       </properties>
     </profile>
     <profile>
-      <id>prod</id>
+      <id>dev</id>
       <activation>
         <property>
+          <!-- hairball -->
           <name>env</name>
         </property>
       </activation>
+      <dependencies>
+        <dependency>
+          <groupId>org.hsqldb</groupId>
+          <artifactId>hsqldb</artifactId>
+          <version>2.4.0</version>
+        </dependency>
+      </dependencies>
       <properties>
+        <pom.port>4080</pom.port>
+        <pom.ssl.port>4443</pom.ssl.port>
+        <pom.app.root.url>http://hairball.herokuapp.com</pom.app.root.url>
+        <pom.y.oauth.secret.id>0b596571b0ba8eba179cfa91551a19e40379c8a8</pom.y.oauth.secret.id>
+        <pom.y.oauth.client.id>dj0yJmk9NEJVRHRaRnpWa09SJmQ9WVdrOVREQktiREUzTjJrbWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmeD1iYQ--</pom.y.oauth.client.id>
       </properties>
     </profile>
   </profiles>

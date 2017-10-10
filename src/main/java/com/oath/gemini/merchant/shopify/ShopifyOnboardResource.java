@@ -1,11 +1,12 @@
 package com.oath.gemini.merchant.shopify;
 
-import static com.oath.gemini.merchant.ClosableHttpClient.buildQueries;
 import com.oath.gemini.merchant.ClosableHttpClient;
 import com.oath.gemini.merchant.db.DatabaseService;
 import com.oath.gemini.merchant.db.StoreAcctEntity;
 import com.oath.gemini.merchant.db.StoreCampaignEntity;
 import com.oath.gemini.merchant.db.StoreSysEntity;
+import com.oath.gemini.merchant.ews.EWSAccessTokenData;
+import com.oath.gemini.merchant.ews.EWSAuthenticationResource;
 import com.oath.gemini.merchant.ews.EWSClientService;
 import com.oath.gemini.merchant.shopify.json.ShopifyAccessToken;
 import com.oath.gemini.merchant.shopify.json.ShopifyScriptTagData;
@@ -15,8 +16,8 @@ import com.oath.gemini.merchant.shopify.json.Tag;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.sql.Timestamp;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Resource;
@@ -58,11 +59,11 @@ public class ShopifyOnboardResource {
      * The user reaches here when he either initiates the installation of our app or clicks the app in Shopify admin console
      * 
      * A sample URL initiated from Shopify is: <br/>
-     * http://localhost:4080/API/V1/shopify/welcome?hmac=b63bcb2732d8d9a7b1cfa1624afdc92f36d456c32c0903de221978862626f8cb&shop=dpa-bridge.myshopify.com&timestamp=1503618688"
+     * http://localhost:4080/g/shopify/welcome?hmac=b63bcb2732d8d9a7b1cfa1624afdc92f36d456c32c0903de221978862626f8cb&shop=dpa-bridge.myshopify.com&timestamp=1503618688"
      * 
      * @return redirect to Shopify for asking the grant of the access scopes <br/>
      *         A sample URL initiated by this app is: <br/>
-     *         https://dpa-bridge.myshopify.com/admin/oauth/authorize?client_id=62928398fafea63bad905e52e8410079&scope=read_orders&redirect_uri=http://localhost:4080/API/V1/shopify/home&state=32087351187222&grant_options[]=tong,chen
+     *         https://dpa-bridge.myshopify.com/admin/oauth/authorize?client_id=62928398fafea63bad905e52e8410079&scope=read_orders&redirect_uri=http://localhost:4080/g/shopify/home&state=32087351187222&grant_options[]=tong,chen
      */
     @GET
     @Path("welcome")
@@ -91,7 +92,7 @@ public class ShopifyOnboardResource {
      * The user is redirected to here when he either grants us the access of his Shopify data. <br/>
      * 
      * A sample URL initiated from Shopify is: <br/>
-     * http://localhost:4080/API/V1/shopify/home?code=22805a9745d6f27ea0b989818670976c&hmac=9b1d163afc0ea825e121505920d2f223cd90f89f98e027f6c21cb70d5a5fe2ce&shop=dpa-bridge.myshopify.com&timestamp=1503786189
+     * http://localhost:4080/g/shopify/home?code=22805a9745d6f27ea0b989818670976c&hmac=9b1d163afc0ea825e121505920d2f223cd90f89f98e027f6c21cb70d5a5fe2ce&shop=dpa-bridge.myshopify.com&timestamp=1503786189
      * 
      * @param _refresh is a Gemini's OAuth2 refresh token
      * @param _mc is a merchant access code
@@ -119,61 +120,73 @@ public class ShopifyOnboardResource {
         }
 
         // Ask for the access scopes if our app has not been installed yet
-        if (StringUtils.isBlank(_refresh) || StringUtils.isBlank(_mc)) {
-            ShopifyAccessToken tokens = fetchAuthToken(shop, code);
+        ShopifyAccessToken tokens = fetchAuthToken(shop, code);
 
-            if (tokens == null || StringUtils.isBlank(tokens.getAccessToken())) {
-                // The shopify code may have expired when user clicks the Browser's Back button to re-play an earlier on-boarding
-                log.error("a shopify code '{}' likely has expired", code);
-                return Response.status(Status.BAD_REQUEST).build();
-            }
-
-            // If Shopify's shop account does not exist, we certainly do not have his Yahoo's Refresh Token, and therefore asks him
-            // to go through Yahoo's OAuth flow
-            StoreAcctEntity storeAcct = databaseService.findStoreAcctByAccessToken(tokens.getAccessToken());
-
-            if (storeAcct != null) {
-                _mc = storeAcct.getStoreAccessToken();
-                _refresh = storeAcct.getYahooAccessToken();
-            } else {
-                injectScriptTag(shop, tokens.getAccessToken());
-
-                // Redirect to Yahoo OAuth2 handler for user's Gemini access. Will will be redirected to here when OAuth2 done
-                String rd = req.getRequestURL().append('?').append(req.getQueryString()).toString();
-                String target = config.getString("yahoo.oauth2.url");
-
-                rd = buildQueries(rd, "_mc", tokens.getAccessToken());
-                target = buildQueries(target, "_rd", Base64.getEncoder().encodeToString(rd.getBytes()));
-                return Response.temporaryRedirect(URI.create(target)).build();
-            }
+        if (tokens == null || StringUtils.isBlank(tokens.getAccessToken())) {
+            // The shopify code may have expired when user clicks the Browser's Back button to re-play an earlier on-boarding
+            log.error("a shopify code '{}' likely has expired", code);
+            return Response.status(Status.BAD_REQUEST).build();
         }
 
-        // By now, we have both Shopify and Yahoo access tokens. Let's persist this info locally
-        ShopifyClientService ps = new ShopifyClientService(shop, _mc);
-        EWSClientService ews = new EWSClientService(_refresh);
-        StoreAcctEntity storeAcctEntity = registerStoreAccountIfRequired(ps, ews);
-        StoreCampaignEntity storeCmpEntity = new ShopifyProductSetBuilder(ps, ews).upload(false);
+        // If Shopify's shop account does not exist, we certainly do not have his Yahoo's Refresh Token, and therefore asks him
+        // to go through Yahoo's OAuth flow
+        StoreAcctEntity storeAcct = databaseService.findStoreAcctByAccessToken(tokens.getAccessToken());
 
-        // By now, we have configured a DPA campaign and its product feed on Gemini site. Let's persist this info locally
-        storeCmpEntity.setStoreAcctId(storeAcctEntity.getId());
-        registerStoreCampainIfRequired(ps, ews, storeCmpEntity);
+        if (storeAcct != null) {
+            return config(shop, storeAcct.getYahooAccessToken(), storeAcct.getStoreAccessToken());
+        } else {
+            injectScriptTag(shop, tokens.getAccessToken());
 
-        // All done. Take a user to this application's campaign configuration page such as budget, price, date range, etc
-        String target = config.getString("campaign.setting.url");
-        return Response.temporaryRedirect(URI.create(target)).build();
-    }
+            // Redirect to Yahoo OAuth2 handler for user's Gemini access. Will will be redirected to here when OAuth2 done
+            String requestAuth = config.getString("y.oauth.auth.request.url");
+            
+            /**
+            String rd = config.getString("app.root.url") + "/g/shopify/ews";
+            */
+            String rd = config.getString("app.root.url");
+            rd = ClosableHttpClient.buildQueries(rd, "_mc", tokens.getAccessToken());
+            rd = ClosableHttpClient.buildQueries(rd, "shop", shop);
+
+            requestAuth = requestAuth.replace("${y.oauth.redirect}", URLEncoder.encode(rd, "UTF-8"));
+            return Response.temporaryRedirect(URI.create(requestAuth)).build();
+        }
+     }
 
     /**
-     * The user is redirected to here when he grands/denies this app's access of Gemini EWS
+     * The user is redirected to here when he grants/denies this app's access of his Gemini data
      */
     @GET
     @Path("ews")
-    public Response ews(@Context HttpServletRequest req, @DefaultValue("") @QueryParam("_refresh") String _refresh,
-            @DefaultValue("") @QueryParam("_mc") String _mc) throws Exception {
+    public Response approve(@Context HttpServletRequest req, @DefaultValue("") @QueryParam("code") String code,
+            @QueryParam("shop") String shop, @DefaultValue("") @QueryParam("_mc") String _mc) {
+        if (StringUtils.isEmpty(code)) {
+            // TODO: indicate that the user denies our access request
+            return Response.ok().build();
+        }
+
+        try {
+            EWSAccessTokenData tokens = EWSAuthenticationResource.getAccessTokenFromAuthCode(code);
+
+            // Redirect user to a campaign setup page
+            if (tokens != null) {
+                String refreshToken = tokens.getRefreshToken();
+                return config(shop, refreshToken, _mc);
+            }
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * Configure a shopper's campaign, product feed if necessary
+     */
+    private Response config(String shop, String gRefreshToken, String shopifyRefreshToken) throws Exception {
 
         // By now, we have both Shopify and Yahoo access tokens. Let's persist this info locally
-        ShopifyClientService ps = new ShopifyClientService("TODO", _mc); // TODO new ShopifyClientService(shop, _mc);
-        EWSClientService ews = new EWSClientService(_refresh);
+        ShopifyClientService ps = new ShopifyClientService(shop, shopifyRefreshToken);
+        EWSClientService ews = new EWSClientService(gRefreshToken);
         StoreAcctEntity storeAcctEntity = registerStoreAccountIfRequired(ps, ews);
         StoreCampaignEntity storeCmpEntity = new ShopifyProductSetBuilder(ps, ews).upload(false);
 

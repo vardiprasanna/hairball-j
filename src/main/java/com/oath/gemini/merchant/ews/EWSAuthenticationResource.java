@@ -4,6 +4,7 @@ import static com.oath.gemini.merchant.ClosableHttpClient.buildQueries;
 import com.oath.gemini.merchant.ClosableHttpClient;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.util.Base64;
 import java.util.Enumeration;
 import javax.inject.Singleton;
@@ -118,6 +119,9 @@ public class EWSAuthenticationResource extends ResourceConfig {
         EWSAccessTokenData response = null;
 
         try (ClosableHttpClient httpClient = new ClosableHttpClient()) {
+            String baseUrl = config.getString("app.root.url");
+            bodyContent = bodyContent.replace("${y.oauth.redirect}", URLEncoder.encode(baseUrl, "UTF-8"));
+
             // Issue a POST request
             Request request = httpClient.newPOST(config.getString("y.oauth.token.request.url"), bodyContent);
 
