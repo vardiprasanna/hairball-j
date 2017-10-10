@@ -73,8 +73,12 @@ public class App extends ResourceConfig {
         http.setPort(port);
         http.open();
 
+        // If SSL termination is set up, don't listen to SSL port
+        if (localPort <= 0) {
+            configureSSL(http_config);
+        }
+
         jetty.addConnector(http);
-        // configureSSL(http_config);
         HandlerCollection handlerCollection = new HandlerCollection();
 
         // handles js, css, and html resources
@@ -82,7 +86,7 @@ public class App extends ResourceConfig {
         handlerCollection.addHandler(UIResourceHandler);
 
         ServletContextHandler servletContextHandler = new ServletContextHandler(jetty, "/", ServletContextHandler.SESSIONS);
-        servletContextHandler.addServlet(new ServletHolder(new ServletContainer(this)), "/API/V1/*");
+        servletContextHandler.addServlet(new ServletHolder(new ServletContainer(this)), "/g/*");
         servletContextHandler.addServlet(new ServletHolder(new ServletContainer(new EWSAuthenticationResource(config))), "/oauth/*");
         servletContextHandler.addServlet(new ServletHolder(new ServletContainer(new PixelResourceHandler())), "/pixel/*");
 
@@ -186,10 +190,11 @@ public class App extends ResourceConfig {
     public static void main(String[] args) throws Exception {
         int port = -1;
 
+        // Heroku passes a local port via the command line option
         for (int i = 0; i < args.length; i++) {
             if (args[i].endsWith("-port") && (i < args.length - 1)) {
                 port = Integer.parseInt(args[i + 1]);
-                System.err.println("overriding port=" + port);
+                System.out.println("overriding port=" + port);
                 break;
             }
         }
