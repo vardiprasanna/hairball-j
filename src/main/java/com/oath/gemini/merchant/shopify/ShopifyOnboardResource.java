@@ -6,8 +6,11 @@ import com.oath.gemini.merchant.db.StoreAcctEntity;
 import com.oath.gemini.merchant.db.StoreCampaignEntity;
 import com.oath.gemini.merchant.db.StoreSysEntity;
 import com.oath.gemini.merchant.ews.EWSAccessTokenData;
-import com.oath.gemini.merchant.ews.EWSAuthenticationResource;
+import com.oath.gemini.merchant.ews.EWSAuthenticationService;
 import com.oath.gemini.merchant.ews.EWSClientService;
+import com.oath.gemini.merchant.ews.EWSEndpointEnum;
+import com.oath.gemini.merchant.ews.EWSResponseData;
+import com.oath.gemini.merchant.ews.json.AdvertiserData;
 import com.oath.gemini.merchant.shopify.json.ShopifyAccessToken;
 import com.oath.gemini.merchant.shopify.json.ShopifyScriptTagData;
 import com.oath.gemini.merchant.shopify.json.ShopifyShopData;
@@ -17,7 +20,6 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
-import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Resource;
@@ -51,6 +53,9 @@ import lombok.extern.slf4j.Slf4j;
 public class ShopifyOnboardResource {
     @Inject
     DatabaseService databaseService;
+
+    @Inject
+    EWSAuthenticationService ewsAuthService;
 
     @Inject
     private Configuration config;
@@ -133,16 +138,14 @@ public class ShopifyOnboardResource {
         StoreAcctEntity storeAcct = databaseService.findStoreAcctByAccessToken(tokens.getAccessToken());
 
         if (storeAcct != null) {
-            return config(shop, storeAcct.getYahooAccessToken(), storeAcct.getStoreAccessToken());
+            return setup(shop, storeAcct.getYahooAccessToken(), storeAcct.getStoreAccessToken());
         } else {
-            injectScriptTag(shop, tokens.getAccessToken());
-
             // Redirect to Yahoo OAuth2 handler for user's Gemini access. Will will be redirected to here when OAuth2 done
             String requestAuth = config.getString("y.oauth.auth.request.url");
-            
+
             /**
-            String rd = config.getString("app.root.url") + "/g/shopify/ews";
-            */
+             * String rd = config.getString("app.root.url") + "/g/shopify/ews";
+             */
             String rd = config.getString("app.root.url");
             rd = ClosableHttpClient.buildQueries(rd, "_mc", tokens.getAccessToken());
             rd = ClosableHttpClient.buildQueries(rd, "shop", shop);
@@ -150,7 +153,7 @@ public class ShopifyOnboardResource {
             requestAuth = requestAuth.replace("${y.oauth.redirect}", URLEncoder.encode(rd, "UTF-8"));
             return Response.temporaryRedirect(URI.create(requestAuth)).build();
         }
-     }
+    }
 
     /**
      * The user is redirected to here when he grants/denies this app's access of his Gemini data
@@ -165,12 +168,14 @@ public class ShopifyOnboardResource {
         }
 
         try {
-            EWSAccessTokenData tokens = EWSAuthenticationResource.getAccessTokenFromAuthCode(code);
+            EWSAccessTokenData tokens = ewsAuthService.getAccessTokenFromAuthCode(code);
 
             // Redirect user to a campaign setup page
-            if (tokens != null) {
+            if (tokens != null && tokens.getRefreshToken() != null) {
                 String refreshToken = tokens.getRefreshToken();
-                return config(shop, refreshToken, _mc);
+                return setup(shop, refreshToken, _mc);
+            } else {
+                log.error("invalid EWS authorization code, which could have expired");
             }
         } catch (Exception e) {
             // TODO Auto-generated catch block
@@ -182,13 +187,17 @@ public class ShopifyOnboardResource {
     /**
      * Configure a shopper's campaign, product feed if necessary
      */
-    private Response config(String shop, String gRefreshToken, String shopifyRefreshToken) throws Exception {
+    private Response setup(String shop, String gRefreshToken, String shopifyRefreshToken) throws Exception {
 
         // By now, we have both Shopify and Yahoo access tokens. Let's persist this info locally
         ShopifyClientService ps = new ShopifyClientService(shop, shopifyRefreshToken);
-        EWSClientService ews = new EWSClientService(gRefreshToken);
+        EWSAccessTokenData tokens = ewsAuthService.getAccessTokenFromRefreshToken(gRefreshToken);
+        EWSClientService ews = new EWSClientService(tokens);
         StoreAcctEntity storeAcctEntity = registerStoreAccountIfRequired(ps, ews);
         StoreCampaignEntity storeCmpEntity = new ShopifyProductSetBuilder(ps, ews).upload(false);
+
+        // Inject or modify a dot pixel to tracke user's product events
+        injectScriptTag(shop, storeAcctEntity);
 
         // By now, we have configured a DPA campaign and its product feed on Gemini site. Let's persist this info locally
         storeCmpEntity.setStoreAcctId(storeAcctEntity.getId());
@@ -222,42 +231,41 @@ public class ShopifyOnboardResource {
     private StoreAcctEntity registerStoreAccountIfRequired(ShopifyClientService ps, EWSClientService ews) throws Exception {
         ShopifyShopData shop = ps.get(ShopifyShopData.class, ShopifyEndpointEnum.SHOPIFY_SHOP_INFO);
         StoreSysEntity storeSysEntity = registerStoreSystemIfRequired();
-        StoreAcctEntity storeAcct = databaseService.findStoreAcctByAccessToken(ps.getAccessToken());
+        EWSResponseData<AdvertiserData> advResponse = ews.get(AdvertiserData.class, EWSEndpointEnum.ADVERTISER);
+        String refreshToken = ews.getTokens().getRefreshToken();
 
-        if (storeAcct == null) {
-            storeAcct = new StoreAcctEntity();
-            storeAcct.setName(shop.getName());
-            storeAcct.setDomain(shop.getDomain());
-            storeAcct.setEmail(shop.getEmail());
-            storeAcct.setStoreAccessToken(ps.getAccessToken());
-            storeAcct.setYahooAccessToken(ews.getRefreshToken());
-            storeAcct.setStoreSysId(storeSysEntity.getId());
-            storeAcct.setStoreNativeAcctId(Long.toString(shop.getId()));
-            databaseService.save(storeAcct);
+        // Check whether this shop already exists
+        StoreAcctEntity oldStoreAcct = new StoreAcctEntity();
+        oldStoreAcct.setName(shop.getName());
+        oldStoreAcct.setDomain(shop.getDomain());
+        oldStoreAcct.setStoreAccessToken(ps.getAccessToken());
+        oldStoreAcct.setYahooAccessToken(refreshToken);
+        oldStoreAcct.setStoreNativeAcctId(Long.toString(shop.getId()));
+        oldStoreAcct.setGeminiNativeAcctId((int) advResponse.get(0).getId());
+
+        // Insert or update this shop's account
+        StoreAcctEntity newStoreAcct = databaseService.findByAny(oldStoreAcct);
+        if (newStoreAcct == null) {
+            newStoreAcct = new StoreAcctEntity();
+            newStoreAcct.setName(shop.getName());
+            newStoreAcct.setDomain(shop.getDomain());
+            newStoreAcct.setEmail(shop.getEmail());
+            newStoreAcct.setStoreAccessToken(ps.getAccessToken());
+            newStoreAcct.setYahooAccessToken(refreshToken);
+            newStoreAcct.setStoreSysId(storeSysEntity.getId());
+            newStoreAcct.setStoreNativeAcctId(Long.toString(shop.getId()));
+            newStoreAcct.setGeminiNativeAcctId((int) advResponse.get(0).getId());
+            newStoreAcct.setPixelId(1234);
+            databaseService.save(newStoreAcct);
         } else {
-            boolean isChanged = false;
-
-            if (!StringUtils.equals(ps.getAccessToken(), storeAcct.getStoreAccessToken())
-                    || !StringUtils.equals(ews.getRefreshToken(), storeAcct.getYahooAccessToken())) {
-
-                storeAcct.setStoreAccessToken(ps.getAccessToken());
-                storeAcct.setYahooAccessToken(ews.getRefreshToken());
-                storeAcct.setUpdatedDate(new Timestamp(System.currentTimeMillis()));
-                isChanged = true;
-            }
-            if (!StringUtils.equals(shop.getEmail(), storeAcct.getEmail()) || !StringUtils.equals(shop.getName(), storeAcct.getName())
-                    || !StringUtils.equals(shop.getDomain(), storeAcct.getDomain())) {
-                storeAcct.setName(shop.getName());
-                storeAcct.setDomain(shop.getDomain());
-                storeAcct.setEmail(shop.getEmail());
-                isChanged = true;
-            }
-            if (isChanged) {
-                databaseService.save(storeAcct);
-            }
+            // Only the following fields can be modified
+            oldStoreAcct.setEmail(shop.getEmail());
+            oldStoreAcct.setStoreAccessToken(ps.getAccessToken());
+            oldStoreAcct.setYahooAccessToken(refreshToken);
+            databaseService.save(oldStoreAcct);
+            newStoreAcct = oldStoreAcct;
         }
-
-        return storeAcct;
+        return newStoreAcct;
     }
 
     /**
@@ -307,12 +315,13 @@ public class ShopifyOnboardResource {
     /**
      * @see https://help.shopify.com/api/reference/scripttag
      */
-    private Tag injectScriptTag(String shop, String authCode) throws Exception {
-        ShopifyClientService ps = new ShopifyClientService(shop, authCode);
+    private Tag injectScriptTag(String shop, StoreAcctEntity storeAcctEntity) throws Exception {
+        ShopifyClientService ps = new ShopifyClientService(shop, storeAcctEntity.getStoreAccessToken());
 
         // Do nothing if a given script has been inserted already
         Tag[] tags = ps.get(Tag[].class, ShopifyEndpointEnum.SHOPIFY_SCRIPT_TAG_ALL);
         String javascriptFile = config.getString("shopify.dot.pixel");
+        javascriptFile = ClosableHttpClient.buildQueries(javascriptFile, "_p", storeAcctEntity.getPixelId().toString());
 
         if (tags != null) {
             for (Tag t : tags) {

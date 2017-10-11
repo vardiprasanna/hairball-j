@@ -280,7 +280,7 @@
       <id>prod</id>
       <activation>
         <property>
-          <name>!env</name>
+          <name>env</name>
         </property>
       </activation>
       <dependencies>
@@ -303,7 +303,7 @@
       <activation>
         <property>
           <!-- hairball -->
-          <name>env</name>
+          <name>!env</name>
         </property>
       </activation>
       <dependencies>

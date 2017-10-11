@@ -65,8 +65,8 @@ public class Archetype {
         campaignEntity.setAdvId(cmpData.getAdvertiserId());
         campaignEntity.setCampaignId(cmpData.getId());
         campaignEntity.setName(cmpData.getCampaignName());
-        campaignEntity.setPixelId(10039241); // TODO
         campaignEntity.setAdgroupId(adGroupData.getId());
+        campaignEntity.setStatus(0);
         return campaignEntity;
     }
 

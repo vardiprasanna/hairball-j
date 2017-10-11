@@ -22,7 +22,7 @@ public class StoreAcctEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     @Column(nullable = false, insertable = false, updatable = false)
-    private int id;
+    private Integer id;
 
     @Column(nullable = false, unique = true, length = 255)
     private String name;
@@ -34,7 +34,7 @@ public class StoreAcctEntity {
     private String domain;
 
     @Column(name = "store_sys_id", nullable = false)
-    private int storeSysId;
+    private Integer storeSysId;
 
     @Column(name = "store_access_token", unique = true)
     private String storeAccessToken;
@@ -46,7 +46,10 @@ public class StoreAcctEntity {
     private String storeNativeAcctId;
 
     @Column(name = "gemini_native_acct_id", unique = true)
-    private int geminiNativeAcctId;
+    private Integer geminiNativeAcctId;
+
+    @Column(name = "pixel_id", nullable = false)
+    private Integer pixelId;
 
     @Column(name = "cr_date", nullable = false)
     private Timestamp createdDate;

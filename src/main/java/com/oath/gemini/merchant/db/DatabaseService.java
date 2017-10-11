@@ -1,6 +1,8 @@
 package com.oath.gemini.merchant.db;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.sql.Date;
 import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -8,6 +10,7 @@ import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 
 @Singleton
@@ -58,6 +61,40 @@ public class DatabaseService {
             criteria.add(Restrictions.eq("storeAccessToken", accessToken));
             List<StoreAcctEntity> list = criteria.list();
             return (list != null && list.size() == 1 ? list.get(0) : null);
+
+        } finally {
+            if (session != null) {
+                session.close();
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T findByAny(T entity) throws Exception {
+        Criterion criterion = null;
+        Field[] fields = entity.getClass().getDeclaredFields();
+
+        for (Field f : fields) {
+            if (!Date.class.isAssignableFrom(f.getType())) {
+                f.setAccessible(true);
+                Object value = f.get(entity);
+                String name = f.getName();
+
+                if (value != null) {
+                    Criterion c = Restrictions.eq(name, value);
+                    criterion = (criterion == null ? c : Restrictions.or(criterion, c));
+                }
+            }
+        }
+        if (criterion == null) {
+            return null;
+        }
+
+        Session session = sessionFactory.openSession();
+        try {
+            Criteria criteria = session.createCriteria(entity.getClass());
+            List<T> list = criteria.add(criterion).list();
+            return (!list.isEmpty() ? list.get(0) : null);
 
         } finally {
             if (session != null) {

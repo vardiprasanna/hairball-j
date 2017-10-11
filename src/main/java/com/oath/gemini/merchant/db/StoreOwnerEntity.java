@@ -17,10 +17,10 @@ public class StoreOwnerEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     @Column(nullable = false, insertable = false, updatable = false)
-    private int id;
+    private Integer id;
 
     @Column(name = "store_acct_id", nullable = false, updatable = false)
-    private int storeAcctId;
+    private Integer storeAcctId;
 
     @Column(nullable = false, unique = true, length = 255)
     private String name;

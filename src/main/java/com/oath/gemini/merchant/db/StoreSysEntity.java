@@ -22,7 +22,7 @@ public class StoreSysEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     @Column(nullable = false, insertable = false, updatable = false)
-    private int id;
+    private Integer id;
 
     @Column(nullable = false, unique = true, length = 255)
     private String name;

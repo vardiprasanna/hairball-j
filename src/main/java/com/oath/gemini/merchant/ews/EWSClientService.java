@@ -12,10 +12,10 @@ import lombok.Getter;
 
 @Getter
 public class EWSClientService {
-    private String refreshToken;
+    EWSAccessTokenData tokens;
 
-    public EWSClientService(String refreshToken) {
-        this.refreshToken = refreshToken;
+    public EWSClientService(EWSAccessTokenData tokens) {
+        this.tokens = tokens;
     }
 
     /**
@@ -55,7 +55,6 @@ public class EWSClientService {
     private <T> EWSResponseData<T> invoke(Class<T> responseType, Object requestBody, HttpMethod method, EWSEndpointEnum path,
             Object... params) throws Exception {
 
-        EWSAccessTokenData tokens = EWSAuthenticationResource.getAccessTokenFromRefreshToken(refreshToken);
         EWSResponseData<T> response = null;
 
         try (ClosableHttpClient httpClient = new ClosableHttpClient()) {

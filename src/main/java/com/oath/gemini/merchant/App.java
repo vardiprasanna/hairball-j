@@ -4,7 +4,6 @@ import com.oath.gemini.merchant.db.StoreAcctEntity;
 import com.oath.gemini.merchant.db.StoreCampaignEntity;
 import com.oath.gemini.merchant.db.StoreOwnerEntity;
 import com.oath.gemini.merchant.db.StoreSysEntity;
-import com.oath.gemini.merchant.ews.EWSAuthenticationResource;
 import com.oath.gemini.merchant.shopify.PixelResourceHandler;
 import com.oath.gemini.merchant.shopify.ShopifyOnboardResource;
 import java.io.File;
@@ -57,7 +56,6 @@ public class App extends ResourceConfig {
         SessionFactory sessions = buildSessionFactory(cfg);
 
         super.register(new AppBinder(sessions));
-        super.register(EWSAuthenticationResource.class);
         super.register(ShopifyOnboardResource.class);
     }
 
@@ -87,7 +85,6 @@ public class App extends ResourceConfig {
 
         ServletContextHandler servletContextHandler = new ServletContextHandler(jetty, "/", ServletContextHandler.SESSIONS);
         servletContextHandler.addServlet(new ServletHolder(new ServletContainer(this)), "/g/*");
-        servletContextHandler.addServlet(new ServletHolder(new ServletContainer(new EWSAuthenticationResource(config))), "/oauth/*");
         servletContextHandler.addServlet(new ServletHolder(new ServletContainer(new PixelResourceHandler())), "/pixel/*");
 
         // Add the filter, and then use the provided FilterHolder to configure it

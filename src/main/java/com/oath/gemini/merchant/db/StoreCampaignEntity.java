@@ -17,10 +17,10 @@ public class StoreCampaignEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     @Column(nullable = false, insertable = false, updatable = false)
-    private int id;
+    private Integer id;
 
     @Column(name = "store_acct_id", nullable = false, updatable = false)
-    private int storeAcctId;
+    private Integer storeAcctId;
 
     @Column(nullable = false, unique = true, length = 255)
     private String name;
@@ -37,8 +37,5 @@ public class StoreCampaignEntity {
     @Column(name = "product_feed_id")
     private Long productFeedId;
 
-    @Column(name = "pixel_id", nullable = false)
-    private int pixelId;
-
-    private int status;
+    private Integer status;
 }

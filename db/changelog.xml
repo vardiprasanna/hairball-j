@@ -54,6 +54,9 @@
             <column name="gemini_native_acct_id" type="int(10)">
                 <constraints nullable="true" unique="true"/>
             </column>
+            <column name="pixel_id" type="int(10)">
+               <constraints nullable="false"/>
+            </column>
             <column name="cr_date" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
@@ -103,12 +106,26 @@
             <column name="product_feed_id" type="bigint(20)">
                 <constraints nullable="true"/>
             </column>
-            <column name="pixel_id" type="int(10)">
-               <constraints nullable="false"/>
-            </column>
             <column name="status" type="int(10)" defaultValue="0">
                 <constraints nullable="false"/>
             </column>
         </createTable>
+    </changeSet>
+    <changeSet id="5" author="tong" failOnError="false">
+    	    <sql>
+    	        INSERT INTO store_sys VALUES(1, 'shopify','shopify e-commerce system','www.shopify.com', '2017-10-10', '2017-10-10')
+    	    </sql>
+    </changeSet>
+    <changeSet id="6" author="tong" failOnError="false">
+    	    <sql>
+    	        INSERT INTO store_acct (name, email, domain, store_sys_id, gemini_native_acct_id, pixel_id, cr_date, upd_date)
+    	           VALUES('dummy1', 'dummy1@email.com', 'dummy1.domain.com', 1, 1643580, 10038216, '2017-10-10', '2017-10-10')
+    	    </sql>
+    </changeSet>
+    <changeSet id="7" author="tong" failOnError="false">
+    	    <sql>
+    	        INSERT INTO store_acct (name, email, domain, store_sys_id, gemini_native_acct_id, pixel_id, cr_date, upd_date)
+    	           VALUES('dummy2', 'dummy2@email.com', 'dummy2.domain.com', 1, 1648887, 10039241, '2017-10-10', '2017-10-10')
+    	    </sql>
     </changeSet>
 </databaseChangeLog>
