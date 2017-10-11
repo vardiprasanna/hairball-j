@@ -35,6 +35,21 @@ public class DatabaseService {
         return id;
     }
 
+    public <T> void update(T o) {
+        Session session = sessionFactory.openSession();
+        Transaction tx;
+
+        try {
+            tx = session.beginTransaction();
+            session.update(o);
+            tx.commit();
+        } finally {
+            if (session != null) {
+                session.close();
+            }
+        }
+    }
+
     @SuppressWarnings("unchecked")
     public StoreCampaignEntity findStoreCampaignById(long id) {
         Session session = sessionFactory.openSession();
@@ -50,6 +65,21 @@ public class DatabaseService {
                 session.close();
             }
         }
+    }
+
+    public <T> T replaceIfDummy(T entity, String fieldName, String replacingBy) {
+        try {
+            Field field = entity.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            Object value = field.get(entity);
+
+            if ((value instanceof String) && ((String) value).contains("dummy")) {
+                field.set(entity, replacingBy);
+            }
+        } catch (Exception e) {
+            // ignored
+        }
+        return entity;
     }
 
     @SuppressWarnings("unchecked")

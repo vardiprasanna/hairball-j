@@ -6,7 +6,6 @@
   <artifactId>hairball</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
-
   <name>hairball-merchant</name>
   <url>http://maven.apache.org</url>
 
@@ -19,6 +18,8 @@
     <slf4j.version>1.7.6</slf4j.version>
 
     <!-- application.properties -->
+    <pom.port>4080</pom.port>
+    <pom.ssl.port>4443</pom.ssl.port>
     <pom.ssl.enabled>true</pom.ssl.enabled>
     <pom.ssl.keystore>jetty.keystore</pom.ssl.keystore>
     <pom.ftp.username>hairball-dropbox</pom.ftp.username>
@@ -291,9 +292,7 @@
         </dependency>
       </dependencies>
       <properties>
-        <pom.port>80</pom.port>
-        <pom.ssl.port>443</pom.ssl.port>
-        <pom.app.root.url>http://hairball-j.herokuapp.com</pom.app.root.url>
+        <pom.app.host>hairball-j.herokuapp.com</pom.app.host>
         <pom.y.oauth.secret.id>be993f12ec0859c1ae70152f933bd9e0e185ae1b</pom.y.oauth.secret.id>
         <pom.y.oauth.client.id>dj0yJmk9Vm01WTdJd01vS3ZSJmQ9WVdrOU1sZGhNbWxtTldNbWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmeD1iMw--</pom.y.oauth.client.id>
       </properties>
@@ -314,9 +313,7 @@
         </dependency>
       </dependencies>
       <properties>
-        <pom.port>4080</pom.port>
-        <pom.ssl.port>4443</pom.ssl.port>
-        <pom.app.root.url>http://hairball.herokuapp.com</pom.app.root.url>
+        <pom.app.host>hairball.herokuapp.com</pom.app.host>
         <pom.y.oauth.secret.id>0b596571b0ba8eba179cfa91551a19e40379c8a8</pom.y.oauth.secret.id>
         <pom.y.oauth.client.id>dj0yJmk9NEJVRHRaRnpWa09SJmQ9WVdrOVREQktiREUzTjJrbWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmeD1iYQ--</pom.y.oauth.client.id>
       </properties>

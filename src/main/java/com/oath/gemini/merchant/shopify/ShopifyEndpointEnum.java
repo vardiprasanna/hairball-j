@@ -21,7 +21,7 @@ public enum ShopifyEndpointEnum {
 
     SHOPIFY_SCRIPT_TAG_ALL("script_tags.json"),
 
-    SHOPIFY_SCRIPT_TAG_COUNT("script_tags/count.json"),
+    SHOPIFY_SCRIPT_TAG_OPS("script_tags/${0}.json"),
     
     SHOPIFY_PROD_LISTING("product_listings.json"),
 

@@ -18,11 +18,14 @@ public class EWSAuthenticationService {
     private Configuration config;
 
     /**
-     * Get an access token from an authorization code
+     * Get an access token from an authorization code <b>Node</b> the redirect url must match the url sent when to obtain
+     * the passing authorization code
      */
-    public EWSAccessTokenData getAccessTokenFromAuthCode(String authCode) throws Exception {
+    public EWSAccessTokenData getAccessTokenFromAuthCode(String authCode, String redirectUrl) throws Exception {
         String requestTokenBody = config.getString("y.oauth.token.request.by.auth.code");
         String bodyContent = requestTokenBody.replace("${code}", authCode);
+        bodyContent = bodyContent.replace("${y.oauth.redirect}", URLEncoder.encode(redirectUrl, "UTF-8"));
+
         return getAccessToken(bodyContent);
     }
 
@@ -32,6 +35,9 @@ public class EWSAuthenticationService {
     public EWSAccessTokenData getAccessTokenFromRefreshToken(String refreshToken) throws Exception {
         String refreshTokenBody = config.getString("y.oauth.token.request.by.refresh.token");
         String bodyContent = refreshTokenBody.replace("${refresh_token}", refreshToken);
+        String baseUrl = "https://" + config.getString("app.host");
+        bodyContent = bodyContent.replace("${y.oauth.redirect}", URLEncoder.encode(baseUrl, "UTF-8"));
+
         return getAccessToken(bodyContent);
     }
 
@@ -42,9 +48,6 @@ public class EWSAuthenticationService {
         EWSAccessTokenData response = null;
 
         try (ClosableHttpClient httpClient = new ClosableHttpClient()) {
-            String baseUrl = config.getString("app.root.url");
-            bodyContent = bodyContent.replace("${y.oauth.redirect}", URLEncoder.encode(baseUrl, "UTF-8"));
-
             // Issue a POST request
             Request request = httpClient.newPOST(config.getString("y.oauth.token.request.url"), bodyContent);
 

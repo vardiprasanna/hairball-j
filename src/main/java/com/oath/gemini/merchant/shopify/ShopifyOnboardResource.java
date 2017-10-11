@@ -142,11 +142,8 @@ public class ShopifyOnboardResource {
         } else {
             // Redirect to Yahoo OAuth2 handler for user's Gemini access. Will will be redirected to here when OAuth2 done
             String requestAuth = config.getString("y.oauth.auth.request.url");
+            String rd = new URI(req.getScheme(), config.getString("app.host"), "/g/shopify/ews", null).toString();
 
-            /**
-             * String rd = config.getString("app.root.url") + "/g/shopify/ews";
-             */
-            String rd = config.getString("app.root.url");
             rd = ClosableHttpClient.buildQueries(rd, "_mc", tokens.getAccessToken());
             rd = ClosableHttpClient.buildQueries(rd, "shop", shop);
 
@@ -168,7 +165,8 @@ public class ShopifyOnboardResource {
         }
 
         try {
-            EWSAccessTokenData tokens = ewsAuthService.getAccessTokenFromAuthCode(code);
+            String rd = new URI(req.getScheme(), config.getString("app.host"), "/g/shopify/ews", null).toString();
+            EWSAccessTokenData tokens = ewsAuthService.getAccessTokenFromAuthCode(code, rd);
 
             // Redirect user to a campaign setup page
             if (tokens != null && tokens.getRefreshToken() != null) {
@@ -244,9 +242,10 @@ public class ShopifyOnboardResource {
         oldStoreAcct.setGeminiNativeAcctId((int) advResponse.get(0).getId());
 
         // Insert or update this shop's account
-        StoreAcctEntity newStoreAcct = databaseService.findByAny(oldStoreAcct);
-        if (newStoreAcct == null) {
-            newStoreAcct = new StoreAcctEntity();
+        oldStoreAcct = databaseService.findByAny(oldStoreAcct);
+
+        if (oldStoreAcct == null) {
+            StoreAcctEntity newStoreAcct = new StoreAcctEntity();
             newStoreAcct.setName(shop.getName());
             newStoreAcct.setDomain(shop.getDomain());
             newStoreAcct.setEmail(shop.getEmail());
@@ -257,15 +256,18 @@ public class ShopifyOnboardResource {
             newStoreAcct.setGeminiNativeAcctId((int) advResponse.get(0).getId());
             newStoreAcct.setPixelId(1234);
             databaseService.save(newStoreAcct);
+            return newStoreAcct;
         } else {
             // Only the following fields can be modified
+            databaseService.replaceIfDummy(oldStoreAcct, "name", shop.getName());
+            databaseService.replaceIfDummy(oldStoreAcct, "domain", shop.getDomain());
+
             oldStoreAcct.setEmail(shop.getEmail());
             oldStoreAcct.setStoreAccessToken(ps.getAccessToken());
             oldStoreAcct.setYahooAccessToken(refreshToken);
-            databaseService.save(oldStoreAcct);
-            newStoreAcct = oldStoreAcct;
+            databaseService.update(oldStoreAcct);
         }
-        return newStoreAcct;
+        return oldStoreAcct;
     }
 
     /**
@@ -320,15 +322,23 @@ public class ShopifyOnboardResource {
 
         // Do nothing if a given script has been inserted already
         Tag[] tags = ps.get(Tag[].class, ShopifyEndpointEnum.SHOPIFY_SCRIPT_TAG_ALL);
-        String javascriptFile = config.getString("shopify.dot.pixel");
-        javascriptFile = ClosableHttpClient.buildQueries(javascriptFile, "_p", storeAcctEntity.getPixelId().toString());
+        String javascriptFile = "https://" + config.getString("shopify.dot.pixel");
+        javascriptFile = ClosableHttpClient.buildQueries(javascriptFile, "_dp", storeAcctEntity.getPixelId().toString());
+        Tag found = null;
 
         if (tags != null) {
             for (Tag t : tags) {
-                if (javascriptFile.equalsIgnoreCase(t.getSrc())) {
-                    return t;
+                if (found == null && javascriptFile.equalsIgnoreCase(t.getSrc())) {
+                    found = t;
+                    continue;
                 }
+                // get rid of this obsoleted script because we only have one script tag
+                ps.delete(String.class, ShopifyEndpointEnum.SHOPIFY_SCRIPT_TAG_OPS, t.getId());
             }
+        }
+
+        if (found != null) {
+            return found;
         }
 
         // Insert a new javascript file

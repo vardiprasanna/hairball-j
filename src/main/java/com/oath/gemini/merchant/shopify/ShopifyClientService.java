@@ -1,9 +1,11 @@
 package com.oath.gemini.merchant.shopify;
 
 import com.oath.gemini.merchant.ClosableHttpClient;
+import java.util.Map;
 import javax.inject.Singleton;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.http.HttpHeader;
+import org.eclipse.jetty.http.HttpMethod;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -31,6 +33,15 @@ public class ShopifyClientService {
         request.header(HttpHeader.ACCEPT, "application/json");
         request.header(HttpHeader.CONTENT_TYPE, "application/json");
         return request.header("X-Shopify-Access-Token", accessToken);
+    }
+
+    public <T> T delete(Class<T> responseType, Enum<?> path, Object... macros) throws Exception {
+        try (ClosableHttpClient httpClient = new ClosableHttpClient()) {
+            String shopifyPath = path.toString().replace("${shop}", shop);
+            Request request = httpClient.newRequest(HttpMethod.DELETE, shopifyPath, null, null, macros);
+            headers(request);
+            return httpClient.send(responseType);
+        }
     }
 
     public String get(Enum<?> path) throws Exception {
