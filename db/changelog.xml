@@ -1,131 +1,154 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<databaseChangeLog
-  xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd">
 
-    <changeSet id="1" author="tong">
-        <createTable tableName="store_sys">
-            <column name="id" type="int(10) unsigned" autoIncrement="true" startWith="1">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="name" type="varchar(255)">
-                <constraints nullable="false" unique="true"/>
-            </column>
-            <column name="description" type="varchar(255)">
-            </column>
-            <column name="domain" type="varchar(255)">
-                <constraints nullable="false" unique="true"/>
-            </column>
-            <column name="cr_date" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
-                <constraints nullable="false"/>
-            </column>
-            <column name="upd_date" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
-                <constraints nullable="false"/>
-            </column>
-        </createTable>
-    </changeSet>
-    <changeSet id="2" author="tong">
-        <createTable tableName="store_acct">
-            <column name="id" type="int(10) unsigned" autoIncrement="true" startWith="1">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="name" type="varchar(255)">
-                <constraints nullable="false" unique="true"/>
-            </column>
-            <column name="email" type="varchar(255)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="domain" type="varchar(255)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="store_sys_id" type="int(10)">
-                <constraints foreignKeyName="store_acct_store_sys_id_fkey" references="store_sys(id)" nullable="false"/>
-            </column>
-            <column name="store_access_token" type="varchar(255)">
-                <constraints nullable="true" unique="true"/>
-            </column>
-            <column name="yahoo_access_token" type="varchar(255)">
-                <constraints nullable="true" unique="true"/>
-            </column>
-            <column name="store_native_acct_id" type="varchar(255)">
-                <constraints nullable="true" unique="true"/>
-            </column>
-            <column name="gemini_native_acct_id" type="int(10)">
-                <constraints nullable="true" unique="true"/>
-            </column>
-            <column name="pixel_id" type="int(10)">
-               <constraints nullable="false"/>
-            </column>
-            <column name="cr_date" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
-                <constraints nullable="false"/>
-            </column>
-            <column name="upd_date" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
-                <constraints nullable="false"/>
-            </column>
-        </createTable>
-    </changeSet>
-    <changeSet id="3" author="tong">
-        <createTable tableName="store_owner">
-            <column name="id" type="int(10) unsigned" autoIncrement="true" startWith="1">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="store_acct_id" type="int(10)">
-                <constraints foreignKeyName="store_owner_store_acct_id_fkey" references="store_acct(id)" nullable="false"/>
-            </column>
-            <column name="name" type="varchar(255)">
-                <constraints nullable="false" unique="true"/>
-            </column>
-            <column name="email" type="varchar(255)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="domain" type="varchar(255)">
-            </column>
-        </createTable>
-    </changeSet>
-    <changeSet id="4" author="tong">
-        <createTable tableName="store_campaign">
-            <column name="id" type="int(10) unsigned" autoIncrement="true" startWith="1">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="store_acct_id" type="int(10)">
-                <constraints foreignKeyName="store_campaign_store_acct_id_fkey" references="store_acct(id)" nullable="false"/>
-            </column>
-            <column name="name" type="varchar(255)">
-                <constraints nullable="false" unique="true"/>
-            </column>
-            <column name="adv_id" type="bigint(20)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="campaign_id" type="bigint(20)">
-                <constraints nullable="true"/>
-            </column>
-            <column name="adgroup_id" type="bigint(20)">
-                <constraints nullable="true"/>
-            </column>
-            <column name="product_feed_id" type="bigint(20)">
-                <constraints nullable="true"/>
-            </column>
-            <column name="status" type="int(10)" defaultValue="0">
-                <constraints nullable="false"/>
-            </column>
-        </createTable>
-    </changeSet>
-    <changeSet id="5" author="tong" failOnError="false">
-    	    <sql>
-    	        INSERT INTO store_sys VALUES(1, 'shopify','shopify e-commerce system','www.shopify.com', '2017-10-10', '2017-10-10')
-    	    </sql>
-    </changeSet>
-    <changeSet id="6" author="tong" failOnError="false">
-    	    <sql>
-    	        INSERT INTO store_acct (name, email, domain, store_sys_id, gemini_native_acct_id, pixel_id, cr_date, upd_date)
-    	           VALUES('dummy1', 'dummy1@email.com', 'dummy1.domain.com', 1, 1643580, 10038216, '2017-10-10', '2017-10-10')
-    	    </sql>
-    </changeSet>
-    <changeSet id="7" author="tong" failOnError="false">
-    	    <sql>
-    	        INSERT INTO store_acct (name, email, domain, store_sys_id, gemini_native_acct_id, pixel_id, cr_date, upd_date)
-    	           VALUES('dummy2', 'dummy2@email.com', 'dummy2.domain.com', 1, 1648887, 10039241, '2017-10-10', '2017-10-10')
-    	    </sql>
-    </changeSet>
+  <changeSet id="1" author="tong">
+    <createTable tableName="store_sys">
+      <column name="id" type="int(10) unsigned" autoIncrement="true" startWith="1">
+        <constraints primaryKey="true" nullable="false" />
+      </column>
+      <column name="name" type="varchar(255)">
+        <constraints nullable="false" unique="true" />
+      </column>
+      <column name="description" type="varchar(255)">
+      </column>
+      <column name="domain" type="varchar(255)">
+        <constraints nullable="false" unique="true" />
+      </column>
+      <column name="cr_date" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
+        <constraints nullable="false" />
+      </column>
+      <column name="upd_date" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
+        <constraints nullable="false" />
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet id="2" author="tong">
+    <createTable tableName="store_acct">
+      <column name="id" type="int(10) unsigned" autoIncrement="true" startWith="1">
+        <constraints primaryKey="true" nullable="false" />
+      </column>
+      <column name="name" type="varchar(255)">
+        <constraints nullable="false" unique="true" />
+      </column>
+      <column name="email" type="varchar(255)">
+        <constraints nullable="false" />
+      </column>
+      <column name="domain" type="varchar(255)">
+        <constraints nullable="false" />
+      </column>
+      <column name="store_sys_id" type="int(10)">
+        <constraints foreignKeyName="store_acct_store_sys_id_fkey" references="store_sys(id)" nullable="false" />
+      </column>
+      <column name="store_access_token" type="varchar(255)">
+        <constraints nullable="true" unique="true" />
+      </column>
+      <column name="yahoo_access_token" type="varchar(255)">
+        <constraints nullable="true" unique="true" />
+      </column>
+      <column name="store_native_acct_id" type="varchar(255)">
+        <constraints nullable="true" unique="true" />
+      </column>
+      <column name="gemini_native_acct_id" type="int(10)">
+        <constraints nullable="true" unique="true" />
+      </column>
+      <column name="pixel_id" type="int(10)">
+        <constraints nullable="false" />
+      </column>
+      <column name="cr_date" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
+        <constraints nullable="false" />
+      </column>
+      <column name="upd_date" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
+        <constraints nullable="false" />
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet id="3" author="tong">
+    <createTable tableName="store_owner">
+      <column name="id" type="int(10) unsigned" autoIncrement="true" startWith="1">
+        <constraints primaryKey="true" nullable="false" />
+      </column>
+      <column name="store_acct_id" type="int(10)">
+        <constraints foreignKeyName="store_owner_store_acct_id_fkey" references="store_acct(id)" nullable="false" />
+      </column>
+      <column name="name" type="varchar(255)">
+        <constraints nullable="false" unique="true" />
+      </column>
+      <column name="email" type="varchar(255)">
+        <constraints nullable="false" />
+      </column>
+      <column name="domain" type="varchar(255)">
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet id="4" author="tong">
+    <createTable tableName="store_campaign">
+      <column name="id" type="int(10) unsigned" autoIncrement="true" startWith="1">
+        <constraints primaryKey="true" nullable="false" />
+      </column>
+      <column name="store_acct_id" type="int(10)">
+        <constraints foreignKeyName="store_campaign_store_acct_id_fkey" references="store_acct(id)" nullable="false" />
+      </column>
+      <column name="name" type="varchar(255)">
+        <constraints nullable="false" unique="true" />
+      </column>
+      <column name="adv_id" type="bigint(20)">
+        <constraints nullable="false" />
+      </column>
+      <column name="campaign_id" type="bigint(20)">
+        <constraints nullable="true" />
+      </column>
+      <column name="adgroup_id" type="bigint(20)">
+        <constraints nullable="true" />
+      </column>
+      <column name="product_feed_id" type="bigint(20)">
+        <constraints nullable="true" />
+      </column>
+      <column name="status" type="int(10)" defaultValue="0">
+        <constraints nullable="false" />
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet id="5" author="tong" failOnError="false">
+    <sql>
+      INSERT INTO store_sys VALUES(1, 'shopify','shopify e-commerce system','www.shopify.com', '2017-10-10', '2017-10-10')
+    </sql>
+  </changeSet>
+  <changeSet id="6" author="tong" failOnError="false">
+    <sql>
+      INSERT INTO store_acct (name, email, domain, store_sys_id, gemini_native_acct_id, pixel_id, cr_date, upd_date)
+      VALUES('DPA Bridge - dummy1', 'dummy1@email.com', 'dummy1.domain.com', 1, 1643580, 10038216, '2017-10-10', '2017-10-10')
+    </sql>
+  </changeSet>
+  <changeSet id="7" author="tong" failOnError="false">
+    <sql>
+      INSERT INTO store_acct (name, email, domain, store_sys_id, gemini_native_acct_id, pixel_id, cr_date, upd_date)
+      VALUES('Josebose - dummy2', 'dummy2@email.com', 'dummy2.domain.com', 1, 1648887, 10039241, '2017-10-10', '2017-10-10')
+    </sql>
+  </changeSet>
+  <changeSet id="8" author="tong" failOnError="false">
+    <sql>
+      INSERT INTO store_acct (name, email, domain, store_sys_id, gemini_native_acct_id, pixel_id, cr_date, upd_date)
+      VALUES('Bombas - dummy3', 'dummy3@email.com', 'dummy3.domain.com', 1, 1107912, 404608, '2017-10-10', '2017-10-10')
+    </sql>
+  </changeSet>
+  <changeSet id="9" author="tong" failOnError="false">
+    <sql>
+      INSERT INTO store_acct (name, email, domain, store_sys_id, gemini_native_acct_id, pixel_id, cr_date, upd_date)
+      VALUES('Leesa Sleep - dummy4', 'dummy4@email.com', 'dummy4.domain.com', 1, 1092351, 404322, '2017-10-10', '2017-10-10')
+    </sql>
+  </changeSet>
+  <changeSet id="`10" author="tong" failOnError="false">
+    <sql>
+      INSERT INTO store_acct (name, email, domain, store_sys_id, gemini_native_acct_id, pixel_id, cr_date, upd_date)
+      VALUES('MVMT Watches Gemini - dummy5', 'dummy5@email.com', 'dummy5.domain.com', 1, 1128265, 424091, '2017-10-10', '2017-10-10')
+    </sql>
+  </changeSet>
+  <changeSet id="11" author="tong" failOnError="false">
+    <sql>
+      INSERT INTO store_acct (name, email, domain, store_sys_id, gemini_native_acct_id, pixel_id, cr_date, upd_date)
+      VALUES('Chubbies - dummy6', 'dummy6@email.com', 'dummy6.domain.com', 1, 1569029, 10024365, '2017-10-10', '2017-10-10')
+    </sql>
+  </changeSet>
 </databaseChangeLog>

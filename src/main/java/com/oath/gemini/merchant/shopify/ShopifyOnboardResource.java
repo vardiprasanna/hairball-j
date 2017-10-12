@@ -322,7 +322,7 @@ public class ShopifyOnboardResource {
 
         // Do nothing if a given script has been inserted already
         Tag[] tags = ps.get(Tag[].class, ShopifyEndpointEnum.SHOPIFY_SCRIPT_TAG_ALL);
-        String javascriptFile = "https://" + config.getString("shopify.dot.pixel");
+        String javascriptFile = config.getString("shopify.dot.pixel");
         javascriptFile = ClosableHttpClient.buildQueries(javascriptFile, "_dp", storeAcctEntity.getPixelId().toString());
         Tag found = null;
 
