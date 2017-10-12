@@ -6,6 +6,7 @@ import com.oath.gemini.merchant.db.StoreCampaignEntity;
 import com.oath.gemini.merchant.ews.EWSClientService;
 import com.oath.gemini.merchant.ews.EWSConstant.PrdAvailabilityEnum;
 import com.oath.gemini.merchant.ews.EWSConstant.PrdFeedTypeEnum;
+import com.oath.gemini.merchant.ews.EWSConstant.StatusEnum;
 import com.oath.gemini.merchant.ews.EWSEndpointEnum;
 import com.oath.gemini.merchant.ews.EWSResponseData;
 import com.oath.gemini.merchant.ews.json.ProductFeedData;
@@ -108,14 +109,18 @@ public class ShopifyProductSetBuilder {
         }
 
         Archetype archeType = new Archetype(svc, ews);
-        EWSResponseData<ProductFeedData> response;
+        EWSResponseData<ProductFeedData> productFeeds;
 
         // Check whether Gemini already knows the FTP connection of this product feed
-        response = ews.get(ProductFeedData.class, EWSEndpointEnum.PRODUCT_FEED_BY_ADVERTISER, archeType.getAdvertiserId());
-        if (response != null && response.isOk()) {
-            StoreCampaignEntity cmpEntity = archeType.create();
-            cmpEntity.setProductFeedId(response.get(0).getId());
-            return cmpEntity;
+        productFeeds = ews.get(ProductFeedData.class, EWSEndpointEnum.PRODUCT_FEED_BY_ADVERTISER, archeType.getAdvertiserId());
+        if (productFeeds != null && productFeeds.isOk()) {
+            for (ProductFeedData fs : productFeeds.getObjects()) {
+                if (fs.getStatus() == StatusEnum.ACTIVE) {
+                    StoreCampaignEntity cmpEntity = archeType.create();
+                    cmpEntity.setProductFeedId(productFeeds.get(0).getId());
+                    return cmpEntity;
+                }
+            }
         }
 
         // Let Gemini know how to access this product feed
@@ -128,10 +133,10 @@ public class ShopifyProductSetBuilder {
         feedData.setFileName(remoteFile);
         feedData.setFeedUrl("ftp://" + ClosableFTPClient.host);
 
-        response = ews.create(ProductFeedData.class, feedData, EWSEndpointEnum.PRODUCT_FEED);
-        if (response != null && response.isOk()) {
+        productFeeds = ews.create(ProductFeedData.class, feedData, EWSEndpointEnum.PRODUCT_FEED);
+        if (productFeeds != null && productFeeds.isOk()) {
             StoreCampaignEntity cmpEntity = archeType.create();
-            cmpEntity.setProductFeedId(response.get(0).getId());
+            cmpEntity.setProductFeedId(productFeeds.get(0).getId());
             return cmpEntity;
         }
         throw new RuntimeException("Failed to instantiate a product feed, and/or a campaign");
