@@ -19,16 +19,24 @@ public class ServletFormHolder extends ServletHolder {
             throws UnavailableException, ServletException, IOException {
         System.err.println("handle content type=" + baseRequest.getContentType());
         System.err.println("handle method=" + baseRequest.getMethod());
-        
+
         super.handle(baseRequest, request, response);
     }
 
     @Override
     protected void prepare(Request baseRequest, ServletRequest request, ServletResponse response)
             throws ServletException, UnavailableException {
-        System.err.println("prepare content type=" + baseRequest.getContentType());
-        System.err.println("prepare method=" + baseRequest.getMethod());
-        
+
+        if ("GET".equals(baseRequest.getMethod()) && "application/x-www-form-urlencoded".equals(baseRequest.getContentType())) {
+            System.err.println("prepare content type before=" + baseRequest.getContentType());
+            System.err.println("prepare content type before=" + request.getContentType());
+            
+            baseRequest.setContentType("text/plain");
+
+            System.err.println("prepare content type after=" + baseRequest.getContentType());
+            System.err.println("prepare content type after=" + request.getContentType());
+        }
+
         super.prepare(baseRequest, request, response);
     }
 }
