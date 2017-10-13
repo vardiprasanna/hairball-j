@@ -147,9 +147,7 @@ System.err.println("home 7");
             return Response.status(202).build();
          //   return setup(shop, storeAcct.getYahooAccessToken(), storeAcct.getStoreAccessToken());
         } else {
-            return Response.status(204).build();
             // Redirect to Yahoo OAuth2 handler for user's Gemini access. Will will be redirected to here when OAuth2 done
-            /**
             String requestAuth = config.getString("y.oauth.auth.request.url");
             String rd = new URI(req.getScheme(), config.getString("app.host"), "/g/shopify/ews", null).toString();
 
@@ -158,7 +156,6 @@ System.err.println("home 7");
 
             requestAuth = requestAuth.replace("${y.oauth.redirect}", URLEncoder.encode(rd, "UTF-8"));
             return Response.temporaryRedirect(URI.create(requestAuth)).build();
-            */
         }
     }
 
