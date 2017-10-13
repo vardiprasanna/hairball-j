@@ -5,7 +5,6 @@ import java.net.URLEncoder;
 import java.util.Base64;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.ws.rs.core.MediaType;
 import org.apache.commons.configuration.Configuration;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.http.HttpHeader;;
@@ -57,7 +56,7 @@ public class EWSAuthenticationService {
             refreshBaseOAuth = config.getString("y.oauth.token.basic");
             refreshBaseOAuth = "Basic " + Base64.getEncoder().encodeToString(refreshBaseOAuth.getBytes());
 
-            request.header(HttpHeader.CONTENT_TYPE, MediaType.TEXT_PLAIN);
+            request.header(HttpHeader.CONTENT_TYPE, "application/x-www-form-urlencoded");
             request.header(HttpHeader.AUTHORIZATION, refreshBaseOAuth);
             response = httpClient.send(EWSAccessTokenData.class);
         }
