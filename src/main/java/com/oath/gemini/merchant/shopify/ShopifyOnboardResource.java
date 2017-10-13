@@ -202,7 +202,7 @@ public class ShopifyOnboardResource {
         registerStoreCampainIfRequired(ps, ews, storeCmpEntity);
 
         // All done. Take a user to this application's campaign configuration page such as budget, price, date range, etc
-        String target = config.getString("campaign.setting.url");
+        String target = config.getString("campaign.setup.url");
         return Response.temporaryRedirect(URI.create(target)).build();
     }
 
