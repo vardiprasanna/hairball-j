@@ -31,6 +31,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
@@ -203,7 +204,7 @@ public class ShopifyOnboardResource {
 
         // All done. Take a user to this application's campaign configuration page such as budget, price, date range, etc
         String target = config.getString("campaign.setup.url");
-        return Response.temporaryRedirect(URI.create(target)).build();
+        return Response.temporaryRedirect(URI.create(target)).type(MediaType.TEXT_HTML_TYPE).build();
     }
 
     /**
