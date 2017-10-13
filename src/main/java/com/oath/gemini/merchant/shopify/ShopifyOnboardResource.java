@@ -26,7 +26,6 @@ import javax.annotation.Resource;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -91,6 +90,9 @@ public class ShopifyOnboardResource {
         String redirectUrl = path.substring(0, path.indexOf("shopify")) + "shopify/home";
 
         URI uri = buildScopeRequestUrl(shop, redirectUrl);
+System.err.println("welcome uri=" + uri.toString());
+        
+        
         return Response.temporaryRedirect(uri).build();
     }
 
@@ -104,11 +106,40 @@ public class ShopifyOnboardResource {
      * @param _mc is a merchant access code
      */
     @GET
-    @Consumes("*/*")
     @Path("home")
+    /**
     public Response home(@Context HttpServletRequest req, @QueryParam("hmac") String hmac, @QueryParam("shop") String shop,
             @QueryParam("timestamp") String ts, @QueryParam("code") String code, @QueryParam("state") String state,
             @DefaultValue("") @QueryParam("_refresh") String _refresh, @DefaultValue("") @QueryParam("_mc") String _mc) throws Exception {
+        */
+    
+    public Response home(@Context HttpServletRequest req 
+            ) throws Exception {
+        
+System.err.println("home content type=" + req.getContentType());
+System.err.println("home query=" + req.getQueryString());
+System.err.println("home query=" + req.getQueryString());
+
+String hmac = req.getParameter("hmac");
+String shop = req.getParameter("shop");
+String ts = req.getParameter("timestamp");
+String code = req.getParameter("code");
+String state = req.getParameter("state");
+String _refresh = req.getParameter("_refresh");
+String _mc = req.getParameter("_mc");
+
+System.err.println("home hmac=" + hmac);
+System.err.println("home shop=" + shop);
+System.err.println("home ts=" + ts);
+System.err.println("home code=" + code);
+System.err.println("home state=" + state);
+System.err.println("home _refresh=" + _refresh);
+System.err.println("home _mc=" + _mc);
+
+for (Map.Entry<String, String[]> p : req.getParameterMap().entrySet()) {
+    System.err.println("home " + p.getKey() + " = " + p.getValue());
+}
+
 
 System.err.println("home 1");
         // Verify the signature of the call
