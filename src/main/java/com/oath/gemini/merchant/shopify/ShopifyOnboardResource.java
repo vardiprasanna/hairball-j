@@ -28,7 +28,6 @@ import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
@@ -91,42 +90,9 @@ public class ShopifyOnboardResource {
         String redirectUrl = path.substring(0, path.indexOf("shopify")) + "shopify/home";
 
         URI uri = buildScopeRequestUrl(shop, redirectUrl);
-System.err.println("welcome uri=" + uri.toString());
-        
-        
         return Response.temporaryRedirect(uri).build();
     }
-    @POST
-    @Path("home")
-    public Response postHome(@Context HttpServletRequest req) throws Exception {
 
-        System.err.println("home 0");
-        System.err.println("home content type=" + req.getContentType());
-        System.err.println("home query=" + req.getQueryString());
-        System.err.println("home query=" + req.getQueryString());
-
-        String hmac = req.getParameter("hmac");
-        String shop = req.getParameter("shop");
-        String ts = req.getParameter("timestamp");
-        String code = req.getParameter("code");
-        String state = req.getParameter("state");
-        String _refresh = req.getParameter("_refresh");
-        String _mc = req.getParameter("_mc");
-
-        System.err.println("home hmac=" + hmac);
-        System.err.println("home shop=" + shop);
-        System.err.println("home ts=" + ts);
-        System.err.println("home code=" + code);
-        System.err.println("home state=" + state);
-        System.err.println("home _refresh=" + _refresh);
-        System.err.println("home _mc=" + _mc);
-
-        for (Map.Entry<String, String[]> p : req.getParameterMap().entrySet()) {
-            System.err.println("home " + p.getKey() + " = " + p.getValue());
-        }
-        return Response.ok().build();
-    }
-    
     /**
      * The user is redirected to here when he either grants us the access of his Shopify data. <br/>
      * 
@@ -138,42 +104,10 @@ System.err.println("welcome uri=" + uri.toString());
      */
     @GET
     @Path("home")
-    /**
     public Response home(@Context HttpServletRequest req, @QueryParam("hmac") String hmac, @QueryParam("shop") String shop,
             @QueryParam("timestamp") String ts, @QueryParam("code") String code, @QueryParam("state") String state,
             @DefaultValue("") @QueryParam("_refresh") String _refresh, @DefaultValue("") @QueryParam("_mc") String _mc) throws Exception {
-        */
-    
-    public Response home(@Context HttpServletRequest req 
-            ) throws Exception {
 
-        System.err.println("home 0");
-System.err.println("home content type=" + req.getContentType());
-System.err.println("home query=" + req.getQueryString());
-System.err.println("home query=" + req.getQueryString());
-
-String hmac = req.getParameter("hmac");
-String shop = req.getParameter("shop");
-String ts = req.getParameter("timestamp");
-String code = req.getParameter("code");
-String state = req.getParameter("state");
-String _refresh = req.getParameter("_refresh");
-String _mc = req.getParameter("_mc");
-
-System.err.println("home hmac=" + hmac);
-System.err.println("home shop=" + shop);
-System.err.println("home ts=" + ts);
-System.err.println("home code=" + code);
-System.err.println("home state=" + state);
-System.err.println("home _refresh=" + _refresh);
-System.err.println("home _mc=" + _mc);
-
-for (Map.Entry<String, String[]> p : req.getParameterMap().entrySet()) {
-    System.err.println("home " + p.getKey() + " = " + p.getValue());
-}
-
-
-System.err.println("home 1");
         // Verify the signature of the call
         try {
             String counterHmac = ShopifyOauthHelper.generateHMac("code=" + code, "shop=" + shop, "state=" + state, "timestamp=" + ts);
@@ -184,14 +118,12 @@ System.err.println("home 1");
             log.error("failed to validate the legitimate of the call", e);
             return Response.serverError().build();
         }
-System.err.println("home 2");
 
         // If user denies our access of his Shopify data, we do nothing
         if ("denied".equalsIgnoreCase(_refresh)) {
             return Response.ok().build();
         }
 
-System.err.println("home 3");
         // Ask for the access scopes if our app has not been installed yet
         ShopifyAccessToken tokens = fetchAuthToken(shop, code);
 
@@ -200,15 +132,12 @@ System.err.println("home 3");
             log.error("a shopify code '{}' likely has expired", code);
             return Response.status(Status.BAD_REQUEST).build();
         }
-System.err.println("home 5");
 
         // If Shopify's shop account does not exist, we certainly do not have his Yahoo's Refresh Token, and therefore asks him
         // to go through Yahoo's OAuth flow
         StoreAcctEntity storeAcct = databaseService.findStoreAcctByAccessToken(tokens.getAccessToken());
-System.err.println("home 6");
 
         if (storeAcct != null) {
-System.err.println("home 7");
             return setup(shop, storeAcct.getYahooAccessToken(), storeAcct.getStoreAccessToken());
         } else {
             // Redirect to Yahoo OAuth2 handler for user's Gemini access. Will will be redirected to here when OAuth2 done
