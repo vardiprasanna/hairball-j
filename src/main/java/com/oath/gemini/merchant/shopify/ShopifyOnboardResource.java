@@ -31,7 +31,6 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
@@ -109,6 +108,7 @@ public class ShopifyOnboardResource {
             @QueryParam("timestamp") String ts, @QueryParam("code") String code, @QueryParam("state") String state,
             @DefaultValue("") @QueryParam("_refresh") String _refresh, @DefaultValue("") @QueryParam("_mc") String _mc) throws Exception {
 
+        System.out.println("home 1");
         // Verify the signature of the call
         try {
             String counterHmac = ShopifyOauthHelper.generateHMac("code=" + code, "shop=" + shop, "state=" + state, "timestamp=" + ts);
@@ -119,12 +119,14 @@ public class ShopifyOnboardResource {
             log.error("failed to validate the legitimate of the call", e);
             return Response.serverError().build();
         }
+System.out.println("home 2");
 
         // If user denies our access of his Shopify data, we do nothing
         if ("denied".equalsIgnoreCase(_refresh)) {
             return Response.ok().build();
         }
 
+System.out.println("home 3");
         // Ask for the access scopes if our app has not been installed yet
         ShopifyAccessToken tokens = fetchAuthToken(shop, code);
 
@@ -133,15 +135,21 @@ public class ShopifyOnboardResource {
             log.error("a shopify code '{}' likely has expired", code);
             return Response.status(Status.BAD_REQUEST).build();
         }
+        System.out.println("home 5");
 
         // If Shopify's shop account does not exist, we certainly do not have his Yahoo's Refresh Token, and therefore asks him
         // to go through Yahoo's OAuth flow
         StoreAcctEntity storeAcct = databaseService.findStoreAcctByAccessToken(tokens.getAccessToken());
+        System.out.println("home 6");
 
         if (storeAcct != null) {
-            return setup(shop, storeAcct.getYahooAccessToken(), storeAcct.getStoreAccessToken());
+            System.out.println("home 7");
+            return Response.status(202).build();
+         //   return setup(shop, storeAcct.getYahooAccessToken(), storeAcct.getStoreAccessToken());
         } else {
+            return Response.status(204).build();
             // Redirect to Yahoo OAuth2 handler for user's Gemini access. Will will be redirected to here when OAuth2 done
+            /**
             String requestAuth = config.getString("y.oauth.auth.request.url");
             String rd = new URI(req.getScheme(), config.getString("app.host"), "/g/shopify/ews", null).toString();
 
@@ -150,6 +158,7 @@ public class ShopifyOnboardResource {
 
             requestAuth = requestAuth.replace("${y.oauth.redirect}", URLEncoder.encode(rd, "UTF-8"));
             return Response.temporaryRedirect(URI.create(requestAuth)).build();
+            */
         }
     }
 
@@ -204,7 +213,7 @@ public class ShopifyOnboardResource {
 
         // All done. Take a user to this application's campaign configuration page such as budget, price, date range, etc
         String target = config.getString("campaign.setup.url");
-        return Response.temporaryRedirect(URI.create(target)).type(MediaType.TEXT_HTML_TYPE).build();
+        return Response.temporaryRedirect(URI.create(target)).build();
     }
 
     /**
