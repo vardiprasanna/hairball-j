@@ -28,6 +28,7 @@ import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
@@ -95,7 +96,37 @@ System.err.println("welcome uri=" + uri.toString());
         
         return Response.temporaryRedirect(uri).build();
     }
+    @POST
+    @Path("home")
+    public Response postHome(@Context HttpServletRequest req) throws Exception {
 
+        System.err.println("home 0");
+        System.err.println("home content type=" + req.getContentType());
+        System.err.println("home query=" + req.getQueryString());
+        System.err.println("home query=" + req.getQueryString());
+
+        String hmac = req.getParameter("hmac");
+        String shop = req.getParameter("shop");
+        String ts = req.getParameter("timestamp");
+        String code = req.getParameter("code");
+        String state = req.getParameter("state");
+        String _refresh = req.getParameter("_refresh");
+        String _mc = req.getParameter("_mc");
+
+        System.err.println("home hmac=" + hmac);
+        System.err.println("home shop=" + shop);
+        System.err.println("home ts=" + ts);
+        System.err.println("home code=" + code);
+        System.err.println("home state=" + state);
+        System.err.println("home _refresh=" + _refresh);
+        System.err.println("home _mc=" + _mc);
+
+        for (Map.Entry<String, String[]> p : req.getParameterMap().entrySet()) {
+            System.err.println("home " + p.getKey() + " = " + p.getValue());
+        }
+        return Response.ok().build();
+    }
+    
     /**
      * The user is redirected to here when he either grants us the access of his Shopify data. <br/>
      * 
@@ -115,7 +146,8 @@ System.err.println("welcome uri=" + uri.toString());
     
     public Response home(@Context HttpServletRequest req 
             ) throws Exception {
-        
+
+        System.err.println("home 0");
 System.err.println("home content type=" + req.getContentType());
 System.err.println("home query=" + req.getQueryString());
 System.err.println("home query=" + req.getQueryString());

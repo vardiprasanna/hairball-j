@@ -86,13 +86,13 @@ public class App extends ResourceConfig {
         servletContextHandler.addServlet(new ServletHolder(new ServletContainer(this)), "/g/*");
 
         // Add the filter, and then use the provided FilterHolder to configure it
-        FilterHolder corsFilter = new FilterHolder(CrossOriginFilter.class);
-        corsFilter.setInitParameter(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, "*");
-        corsFilter.setInitParameter(CrossOriginFilter.ACCESS_CONTROL_ALLOW_ORIGIN_HEADER, "*");
-        corsFilter.setInitParameter(CrossOriginFilter.ALLOWED_METHODS_PARAM, "GET,POST,HEAD");
-        corsFilter.setInitParameter(CrossOriginFilter.ALLOWED_HEADERS_PARAM, "X-Requested-With,Content-Type,Accept,Origin");
-
-        servletContextHandler.addFilter(corsFilter, "/*", EnumSet.of(DispatcherType.REQUEST));
+//        FilterHolder corsFilter = new FilterHolder(CrossOriginFilter.class);
+//        corsFilter.setInitParameter(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, "*");
+//        corsFilter.setInitParameter(CrossOriginFilter.ACCESS_CONTROL_ALLOW_ORIGIN_HEADER, "*");
+//        corsFilter.setInitParameter(CrossOriginFilter.ALLOWED_METHODS_PARAM, "GET,POST,HEAD");
+//        corsFilter.setInitParameter(CrossOriginFilter.ALLOWED_HEADERS_PARAM, "X-Requested-With,Content-Type,Accept,Origin");
+//
+//        servletContextHandler.addFilter(corsFilter, "/*", EnumSet.of(DispatcherType.REQUEST));
         handlerCollection.addHandler(servletContextHandler);
         jetty.setHandler(handlerCollection);
     }
