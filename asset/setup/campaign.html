@@ -1,7 +1,79 @@
-<html>
+<!doctype html>
+<html lang="en">
 <head>
+    <title>Hairball</title>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <script type='text/javascript'>
+        $(function () {
+            $("#startdate_picker").datepicker();
+            $("#enddate_picker").datepicker();
+        });
+        $(function () {
+            $("#tabs").tabs();
+        });
+    </script>
+    <style>
+        h1 {
+            margin-left: 1em;
+        }
+
+        /* http://astronautweb.co/snippet/font-awesome/ */
+        a.toggle_status:before {
+            font-family: FontAwesome;
+            font-size: 35px;
+            content: "\f205";
+            display: inline-block;
+            color: limegreen;
+            margin-right: 7px;
+            vertical-align: middle;
+            box-sizing: border-box;
+        }
+
+        .homepage-v3 .hero {
+            background: url(https://s.yimg.com/cv/ae/gemini/homepage/v3/hero_background_v2.jpg) no-repeat 50% fixed;
+            background-size: cover;
+            color: #fff;
+            min-height: auto;
+            overflow-y: hidden;
+            padding: 40px 0 0 0;
+            position: relative;
+            width: 100%;
+        }
+    </style>
 </head>
-<body>
-<p>Placeholder for customizing a campaign</p>
+<body class="homepage-v3 hero">
+<noscript>
+    You need to enable JavaScript to run this app.
+</noscript>
+<div id="root" class="homepage-v3 hero"></div>
+
+<div id="tabs">
+    <ul>
+        <li><a href="#tabs-1">Configuration</a></li>
+        <li><a href="#tabs-2">Reports</a></li>
+    </ul>
+    <div id="tabs-1">
+        <div style="margin: 1em">
+            <div style="margin-top: 1em"><label>Schedule:</label></div>
+            <input type="text" id="startdate_picker" placeholder="staring date" style="margin-left: 1em; margin-right: 1em">
+            <input type="text" id="enddate_picker" placeholder="ending date">
+
+            <div style="margin-top: 1em"><label>Budget:</label></div>
+            <input type="text" id="startdate_picker" placeholder="total" style="margin-left: 1em; margin-right: 1em">
+            <input type="text" id="enddate_picker" placeholder="daily">
+            <div style="margin-top: 1em; vertical-align: middle">
+                <a class="toggle_status">
+                <label id="control-toggle-status" class="mr10">Active</label></i></a>
+            </div>
+        </div>
+    </div>
+    <div id="tabs-2">
+        <p>This is a placeholder showing varioua campaign reports</p>
+    </div>
+</div>
 </body>
 </html>
