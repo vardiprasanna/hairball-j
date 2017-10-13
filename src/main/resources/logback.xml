@@ -1,0 +1,50 @@
+<configuration scan="true">
+  <appender name="app_file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${pom.log.directory}/${pom.product.name}.log</file>
+
+    <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+      <fileNamePattern>${pom.log.directory}/${pom.product.name}.%i.log</fileNamePattern>
+      <minIndex>1</minIndex>
+      <maxIndex>15</maxIndex>
+      <MaxHistory>15</MaxHistory>
+    </rollingPolicy>
+
+    <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+      <maxFileSize>100MB</maxFileSize>
+    </triggeringPolicy>
+
+    <encoder>
+      <pattern>%d - %t - %X{guid} %p [%c] - %m%n</pattern>
+    </encoder>
+  </appender>
+
+  <appender name="jetty" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${pom.log.directory}/jetty.log</file>
+
+    <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+      <fileNamePattern>${pom.log.directory}/jetty.%i.log</fileNamePattern>
+      <minIndex>1</minIndex>
+      <maxIndex>15</maxIndex>
+      <MaxHistory>15</MaxHistory>
+    </rollingPolicy>
+
+    <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+      <maxFileSize>100MB</maxFileSize>
+    </triggeringPolicy>
+
+    <encoder>
+      <!-- <pattern>%d %-5level %class{36}.%M %L - %msg%n</pattern> -->
+      <pattern>%d %p [%c] - %m%n</pattern>
+    </encoder>
+  </appender>
+
+  <logger name="com.oath.gemini.merchant" level="${pom.log.level}">
+    <appender-ref ref="app_file" />
+  </logger>
+  <logger name="com.mchange" level="${pom.log.level}">
+    <appender-ref ref="app_file" />
+  </logger>
+  <logger name="org.eclipse.jetty" level="INFO">
+    <appender-ref ref="jetty" />
+  </logger>
+</configuration>

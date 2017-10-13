@@ -23,6 +23,14 @@ public class AppConfiguration {
                 config = new PropertiesConfiguration();
                 ((PropertiesConfiguration) config).load(inputStream);
             }
+
+            File logback = new File(configDir, "logback.xml");
+            System.setProperty("com.mchange.v2.log.MLog", "com.mchange.v2.log.log4j.Log4jMLog");
+
+            if (logback.exists()) {
+                System.setProperty("logback.configurationFile", logback.getAbsolutePath());
+            }
+
         } catch (ConfigurationException e) {
             throw new RuntimeException(e);
         }
