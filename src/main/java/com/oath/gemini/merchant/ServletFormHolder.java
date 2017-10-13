@@ -1,6 +1,5 @@
 package com.oath.gemini.merchant;
 
-import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -15,28 +14,13 @@ public class ServletFormHolder extends ServletHolder {
     }
 
     @Override
-    public void handle(Request baseRequest, ServletRequest request, ServletResponse response)
-            throws UnavailableException, ServletException, IOException {
-        System.err.println("handle content type=" + baseRequest.getContentType());
-        System.err.println("handle method=" + baseRequest.getMethod());
-
-        super.handle(baseRequest, request, response);
-    }
-
-    @Override
     protected void prepare(Request baseRequest, ServletRequest request, ServletResponse response)
             throws ServletException, UnavailableException {
 
+        // Shopify passes a wrong media type at GET. Must terminate it to avoid 415 error code
         if ("GET".equals(baseRequest.getMethod()) && "application/x-www-form-urlencoded".equals(baseRequest.getContentType())) {
-            System.err.println("prepare content type before=" + baseRequest.getContentType());
-            System.err.println("prepare content type before=" + request.getContentType());
-            
             baseRequest.setContentType("text/plain");
-
-            System.err.println("prepare content type after=" + baseRequest.getContentType());
-            System.err.println("prepare content type after=" + request.getContentType());
         }
-
         super.prepare(baseRequest, request, response);
     }
 }
