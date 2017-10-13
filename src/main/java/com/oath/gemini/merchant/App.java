@@ -83,7 +83,7 @@ public class App extends ResourceConfig {
         handlerCollection.addHandler(UIResourceHandler);
 
         ServletContextHandler servletContextHandler = new ServletContextHandler(jetty, "/", ServletContextHandler.SESSIONS);
-        servletContextHandler.addServlet(new ServletHolder(new ServletContainer(this)), "/g/*");
+        servletContextHandler.addServlet(new ServletFormHolder(new ServletContainer(this)), "/g/*");
 
         // Add the filter, and then use the provided FilterHolder to configure it
         FilterHolder corsFilter = new FilterHolder(CrossOriginFilter.class);
