@@ -108,7 +108,7 @@ public class ShopifyOnboardResource {
             @QueryParam("timestamp") String ts, @QueryParam("code") String code, @QueryParam("state") String state,
             @DefaultValue("") @QueryParam("_refresh") String _refresh, @DefaultValue("") @QueryParam("_mc") String _mc) throws Exception {
 
-        System.out.println("home 1");
+        System.err.println("home 1");
         // Verify the signature of the call
         try {
             String counterHmac = ShopifyOauthHelper.generateHMac("code=" + code, "shop=" + shop, "state=" + state, "timestamp=" + ts);
@@ -119,14 +119,14 @@ public class ShopifyOnboardResource {
             log.error("failed to validate the legitimate of the call", e);
             return Response.serverError().build();
         }
-System.out.println("home 2");
+System.err.println("home 2");
 
         // If user denies our access of his Shopify data, we do nothing
         if ("denied".equalsIgnoreCase(_refresh)) {
             return Response.ok().build();
         }
 
-System.out.println("home 3");
+System.err.println("home 3");
         // Ask for the access scopes if our app has not been installed yet
         ShopifyAccessToken tokens = fetchAuthToken(shop, code);
 
@@ -135,15 +135,15 @@ System.out.println("home 3");
             log.error("a shopify code '{}' likely has expired", code);
             return Response.status(Status.BAD_REQUEST).build();
         }
-        System.out.println("home 5");
+System.err.println("home 5");
 
         // If Shopify's shop account does not exist, we certainly do not have his Yahoo's Refresh Token, and therefore asks him
         // to go through Yahoo's OAuth flow
         StoreAcctEntity storeAcct = databaseService.findStoreAcctByAccessToken(tokens.getAccessToken());
-        System.out.println("home 6");
+System.err.println("home 6");
 
         if (storeAcct != null) {
-            System.out.println("home 7");
+System.err.println("home 7");
             return Response.status(202).build();
          //   return setup(shop, storeAcct.getYahooAccessToken(), storeAcct.getStoreAccessToken());
         } else {
