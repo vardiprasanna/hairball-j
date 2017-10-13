@@ -26,6 +26,7 @@ import javax.annotation.Resource;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -103,12 +104,13 @@ public class ShopifyOnboardResource {
      * @param _mc is a merchant access code
      */
     @GET
+    @Consumes("*/*")
     @Path("home")
     public Response home(@Context HttpServletRequest req, @QueryParam("hmac") String hmac, @QueryParam("shop") String shop,
             @QueryParam("timestamp") String ts, @QueryParam("code") String code, @QueryParam("state") String state,
             @DefaultValue("") @QueryParam("_refresh") String _refresh, @DefaultValue("") @QueryParam("_mc") String _mc) throws Exception {
 
-        System.err.println("home 1");
+System.err.println("home 1");
         // Verify the signature of the call
         try {
             String counterHmac = ShopifyOauthHelper.generateHMac("code=" + code, "shop=" + shop, "state=" + state, "timestamp=" + ts);
@@ -144,8 +146,7 @@ System.err.println("home 6");
 
         if (storeAcct != null) {
 System.err.println("home 7");
-            return Response.status(202).build();
-         //   return setup(shop, storeAcct.getYahooAccessToken(), storeAcct.getStoreAccessToken());
+            return setup(shop, storeAcct.getYahooAccessToken(), storeAcct.getStoreAccessToken());
         } else {
             // Redirect to Yahoo OAuth2 handler for user's Gemini access. Will will be redirected to here when OAuth2 done
             String requestAuth = config.getString("y.oauth.auth.request.url");
