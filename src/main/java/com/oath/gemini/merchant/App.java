@@ -1,5 +1,6 @@
 package com.oath.gemini.merchant;
 
+import com.oath.gemini.merchant.db.DatabaseResource;
 import com.oath.gemini.merchant.db.StoreAcctEntity;
 import com.oath.gemini.merchant.db.StoreCampaignEntity;
 import com.oath.gemini.merchant.db.StoreOwnerEntity;
@@ -30,6 +31,9 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 
+/**
+ * @author tong on 10/1/2017
+ */
 public class App extends ResourceConfig {
     public static final String KEYSTORE_PASSWORD = "secret";
     private final Configuration config;
@@ -55,6 +59,8 @@ public class App extends ResourceConfig {
 
         super.register(new AppBinder(sessions));
         super.register(ShopifyOnboardResource.class);
+        super.register(DatabaseResource.class);
+        super.register(AppFeatureBinder.class);
     }
 
     public static App getInstance() {

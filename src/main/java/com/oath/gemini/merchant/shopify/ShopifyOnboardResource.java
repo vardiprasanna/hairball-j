@@ -45,6 +45,7 @@ import lombok.extern.slf4j.Slf4j;
  * 
  * @see the onboard flow - https://github.com/Shopify/omniauth-shopify-oauth2/wiki/Shopify-OAuth
  * @see more detail - https://help.shopify.com/api/getting-started/authentication/oauth#confirming-installation
+ * @author tong on 10/1/2017
  */
 @Slf4j
 @Singleton
