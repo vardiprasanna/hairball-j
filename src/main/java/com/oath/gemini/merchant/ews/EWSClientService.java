@@ -5,6 +5,7 @@ import com.oath.gemini.merchant.ClosableHttpClient;
 import java.lang.reflect.Array;
 import java.util.List;
 import java.util.Map;
+import javax.ws.rs.core.MediaType;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpMethod;
@@ -61,8 +62,8 @@ public class EWSClientService {
             Request request = httpClient.newRequest(method, path.toString(), requestBody, null, params);
 
             // Send a request
-            request.header(HttpHeader.ACCEPT, "application/json");
-            request.header(HttpHeader.CONTENT_TYPE, "application/json");
+            request.header(HttpHeader.ACCEPT, MediaType.APPLICATION_JSON);
+            request.header(HttpHeader.CONTENT_TYPE, MediaType.APPLICATION_JSON);
             request.header(HttpHeader.AUTHORIZATION, "Bearer " + tokens.getAccessToken());
             Map<String, String> res = httpClient.send(Map.class);
 

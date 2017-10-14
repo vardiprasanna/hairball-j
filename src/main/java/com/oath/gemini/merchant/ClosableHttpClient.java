@@ -10,6 +10,7 @@ import java.lang.reflect.Array;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.client.HttpClient;
@@ -58,7 +59,7 @@ public class ClosableHttpClient extends HttpClient implements Closeable, AutoClo
                 ObjectWriter writer = mapper.writerFor(content.getClass());
 
                 provider = new StringContentProvider(writer.writeValueAsString(content));
-                request.header(HttpHeader.CONTENT_TYPE, "application/json");
+                request.header(HttpHeader.CONTENT_TYPE, MediaType.APPLICATION_JSON);
                 // provider.forEach(c -> System.out.println(new String(c.array())));
             }
             request.content(provider);

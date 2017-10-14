@@ -3,6 +3,7 @@ package com.oath.gemini.merchant.shopify;
 import com.oath.gemini.merchant.ClosableHttpClient;
 import java.util.Map;
 import javax.inject.Singleton;
+import javax.ws.rs.core.MediaType;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpMethod;
@@ -30,8 +31,8 @@ public class ShopifyClientService {
     }
 
     public Request headers(Request request) {
-        request.header(HttpHeader.ACCEPT, "application/json");
-        request.header(HttpHeader.CONTENT_TYPE, "application/json");
+        request.header(HttpHeader.ACCEPT, MediaType.APPLICATION_JSON);
+        request.header(HttpHeader.CONTENT_TYPE, MediaType.APPLICATION_JSON);
         return request.header("X-Shopify-Access-Token", accessToken);
     }
 
