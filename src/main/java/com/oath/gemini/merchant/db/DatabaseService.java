@@ -51,6 +51,23 @@ public class DatabaseService {
     }
 
     @SuppressWarnings("unchecked")
+    public StoreAcctEntity findStoreAcctByAccessToken(String accessToken) {
+        Session session = sessionFactory.openSession();
+
+        try {
+            Criteria criteria = session.createCriteria(StoreAcctEntity.class);
+            criteria.add(Restrictions.eq("storeAccessToken", accessToken));
+            List<StoreAcctEntity> list = criteria.list();
+            return (list != null && list.size() == 1 ? list.get(0) : null);
+
+        } finally {
+            if (session != null) {
+                session.close();
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
     public StoreCampaignEntity findStoreCampaignById(long id) {
         Session session = sessionFactory.openSession();
 
@@ -67,29 +84,14 @@ public class DatabaseService {
         }
     }
 
-    public <T> T replaceIfDummy(T entity, String fieldName, String replacingBy) {
-        try {
-            Field field = entity.getClass().getDeclaredField(fieldName);
-            field.setAccessible(true);
-            Object value = field.get(entity);
-
-            if ((value instanceof String) && ((String) value).contains("dummy")) {
-                field.set(entity, replacingBy);
-            }
-        } catch (Exception e) {
-            // ignored
-        }
-        return entity;
-    }
-
     @SuppressWarnings("unchecked")
-    public StoreAcctEntity findStoreAcctByAccessToken(String accessToken) {
+    public StoreSysEntity findStoreSysByDoman(String domain) {
         Session session = sessionFactory.openSession();
 
         try {
-            Criteria criteria = session.createCriteria(StoreAcctEntity.class);
-            criteria.add(Restrictions.eq("storeAccessToken", accessToken));
-            List<StoreAcctEntity> list = criteria.list();
+            Criteria criteria = session.createCriteria(StoreSysEntity.class);
+            criteria.add(Restrictions.eq("domain", domain));
+            List<StoreSysEntity> list = criteria.list();
             return (list != null && list.size() == 1 ? list.get(0) : null);
 
         } finally {
@@ -134,23 +136,6 @@ public class DatabaseService {
     }
 
     @SuppressWarnings("unchecked")
-    public StoreSysEntity findStoreSysByDoman(String domain) {
-        Session session = sessionFactory.openSession();
-
-        try {
-            Criteria criteria = session.createCriteria(StoreSysEntity.class);
-            criteria.add(Restrictions.eq("domain", domain));
-            List<StoreSysEntity> list = criteria.list();
-            return (list != null && list.size() == 1 ? list.get(0) : null);
-
-        } finally {
-            if (session != null) {
-                session.close();
-            }
-        }
-    }
-
-    @SuppressWarnings("unchecked")
     public <T> T findById(Class<T> entityClass, Integer id) {
         Session session = sessionFactory.openSession();
 
@@ -165,5 +150,34 @@ public class DatabaseService {
                 session.close();
             }
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> List<T> listAll(Class<T> entity) {
+        Session session = sessionFactory.openSession();
+        try {
+            Criteria criteria = session.createCriteria(entity);
+            return criteria.list();
+        } finally {
+            if (session != null) {
+                session.close();
+            }
+        }
+
+    }
+
+    public <T> T replaceIfDummy(T entity, String fieldName, String replacingBy) {
+        try {
+            Field field = entity.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            Object value = field.get(entity);
+
+            if ((value instanceof String) && ((String) value).contains("dummy")) {
+                field.set(entity, replacingBy);
+            }
+        } catch (Exception e) {
+            // ignored
+        }
+        return entity;
     }
 }
