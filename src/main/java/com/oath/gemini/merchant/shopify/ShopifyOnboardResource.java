@@ -193,14 +193,18 @@ public class ShopifyOnboardResource {
         EWSAccessTokenData tokens = ewsAuthService.getAccessTokenFromRefreshToken(gRefreshToken);
         EWSClientService ews = new EWSClientService(tokens);
         StoreAcctEntity storeAcctEntity = registerStoreAccountIfRequired(ps, ews);
-        StoreCampaignEntity storeCmpEntity = new ShopifyProductSetBuilder(ps, ews).upload(false);
+        StoreCampaignEntity storeCmpEntity = null; // TODO databaseService.findByAcctId(StoreCampaignEntity.class, storeAcctEntity.getId());
+
+        if (storeCmpEntity == null) {
+            storeCmpEntity = new ShopifyProductSetBuilder(ps, ews).upload(false);
+
+            // By now, we have configured a DPA campaign and its product feed on Gemini site. Let's persist this info locally
+            storeCmpEntity.setStoreAcctId(storeAcctEntity.getId());
+            registerStoreCampainIfRequired(ps, ews, storeCmpEntity);
+        }
 
         // Inject or modify a dot pixel to tracke user's product events
         injectScriptTag(shop, storeAcctEntity);
-
-        // By now, we have configured a DPA campaign and its product feed on Gemini site. Let's persist this info locally
-        storeCmpEntity.setStoreAcctId(storeAcctEntity.getId());
-        registerStoreCampainIfRequired(ps, ews, storeCmpEntity);
 
         // All done. Take a user to this application's campaign configuration page such as budget, price, date range, etc
         String target = config.getString("campaign.setup.url");

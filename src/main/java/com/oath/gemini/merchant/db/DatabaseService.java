@@ -7,12 +7,16 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import org.hibernate.Criteria;
+import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 
+/**
+ * @author tong on 10/1/2017
+ */
 @Singleton
 public class DatabaseService {
     @Inject
@@ -142,8 +146,23 @@ public class DatabaseService {
         try {
             Criteria criteria = session.createCriteria(entityClass);
             criteria.add(Restrictions.eq("id", id));
-            List<T> list = criteria.list();
-            return (list != null && list.size() == 1 ? list.get(0) : null);
+            return (T) criteria.uniqueResult();
+
+        } finally {
+            if (session != null) {
+                session.close();
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T findByAcctId(Class<T> entityClass, Integer id) {
+        Session session = sessionFactory.openSession();
+
+        try {
+            Criteria criteria = session.createCriteria(entityClass);
+            criteria.add(Restrictions.eq("storeAcctId", id));
+            return (T) criteria.uniqueResult();
 
         } finally {
             if (session != null) {
@@ -163,7 +182,24 @@ public class DatabaseService {
                 session.close();
             }
         }
+    }
 
+    /**
+     * Note: this is HSQLDB specific backup. It is used only during the development
+     */
+    public void backup(String directory) {
+        Session session = sessionFactory.openSession();
+        try {
+            if (!directory.endsWith("/")) {
+                directory += "/";
+            }
+            Query q = session.createSQLQuery("BACKUP DATABASE TO '" + directory + "' BLOCKING");
+            q.executeUpdate();
+        } finally {
+            if (session != null) {
+                session.close();
+            }
+        }
     }
 
     public <T> T replaceIfDummy(T entity, String fieldName, String replacingBy) {
