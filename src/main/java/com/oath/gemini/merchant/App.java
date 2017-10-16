@@ -1,5 +1,6 @@
 package com.oath.gemini.merchant;
 
+import com.oath.gemini.merchant.cron.QuartzFeature;
 import com.oath.gemini.merchant.db.DatabaseResource;
 import com.oath.gemini.merchant.db.StoreAcctEntity;
 import com.oath.gemini.merchant.db.StoreCampaignEntity;
@@ -61,6 +62,7 @@ public class App extends ResourceConfig {
         super.register(ShopifyOnboardResource.class);
         super.register(DatabaseResource.class);
         super.register(AppFeatureBinder.class);
+        super.register(QuartzFeature.class);
     }
 
     public static App getInstance() {

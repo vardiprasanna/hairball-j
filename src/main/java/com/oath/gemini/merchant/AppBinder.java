@@ -6,6 +6,11 @@ import org.apache.commons.configuration.Configuration;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.hibernate.SessionFactory;
 
+/**
+ * Bind instantces/classes so that they will be available for injection
+ * 
+ * @author tong on 10/1/2017
+ */
 public class AppBinder extends AbstractBinder {
     private final SessionFactory sessionFactory;
 
