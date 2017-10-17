@@ -16,6 +16,9 @@ import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPReply;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * @author tong on 10/1/2017
+ */
 @Slf4j
 public class ClosableFTPClient implements Closeable, AutoCloseable {
     public static String username, password, host;

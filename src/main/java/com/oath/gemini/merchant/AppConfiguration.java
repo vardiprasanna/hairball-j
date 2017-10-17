@@ -6,6 +6,9 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 
+/**
+ * @author tong on 10/1/2017
+ */
 public class AppConfiguration {
     private final static Configuration config;
 

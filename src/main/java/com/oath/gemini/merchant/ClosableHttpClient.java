@@ -22,6 +22,9 @@ import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * @author tong on 10/1/2017
+ */
 @Slf4j
 public class ClosableHttpClient extends HttpClient implements Closeable, AutoCloseable {
     private static int DEFAULT_THREADPOOL_TIMEOUT = 10;

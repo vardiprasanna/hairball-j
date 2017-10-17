@@ -15,6 +15,9 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Provider;
 import org.apache.commons.lang3.StringUtils;
 
+/**
+ * @author tong on 10/1/2017
+ */
 @Provider
 @PreMatching
 @Priority(Priorities.AUTHORIZATION)
