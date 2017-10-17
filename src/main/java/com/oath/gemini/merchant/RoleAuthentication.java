@@ -53,13 +53,12 @@ public class RoleAuthentication implements ContainerRequestFilter {
 
             // Yahoo user is permitted
             Map<String, Cookie> cookies = requestContext.getCookies();
-            if (cookies != null) {
-                for (Map.Entry<String, Cookie> entry : cookies.entrySet()) {
-                    System.out.println(entry.getKey());
-                }
-                return cookies.keySet().stream().anyMatch(k -> k.equals("YBY"));
+            boolean authorized = cookies.keySet().stream().anyMatch(k -> k.equals("YBY"));
+            
+            if (!authorized) {
+                System.err.println("unauthorized from " + host);
             }
-            return false;
+            return true; // TODO
         }
 
         @Override
