@@ -2,6 +2,7 @@ package com.oath.gemini.merchant.db;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.oath.gemini.merchant.ClosableFTPClient;
 import com.oath.gemini.merchant.cron.QuartzCronAnnotation;
 import java.io.IOException;
@@ -48,6 +49,7 @@ public class DatabaseResource {
 
     @GET
     @Path("acct/{id:.*}")
+    @JsonUnwrapped
     public List<StoreAcctEntity> listAccounts(@PathParam("id") @DefaultValue("") String id) {
         return list(StoreAcctEntity.class, id);
     }
