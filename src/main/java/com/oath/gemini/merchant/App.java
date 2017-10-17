@@ -27,6 +27,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.eclipse.jetty.util.resource.ResourceCollection;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 import org.glassfish.jersey.servlet.ServletContainer;
@@ -60,6 +61,7 @@ public class App extends ResourceConfig {
         SessionFactory sessions = buildSessionFactory(cfg);
 
         super.register(new AppBinder(sessions));
+        super.register(JacksonFeature.class);
         super.register(ShopifyOnboardResource.class);
         super.register(DatabaseResource.class);
         super.register(AppFeatureBinder.class);
