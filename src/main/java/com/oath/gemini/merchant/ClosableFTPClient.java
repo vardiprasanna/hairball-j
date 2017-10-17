@@ -12,7 +12,7 @@ import java.util.Arrays;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.ftp.FTP;
-import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPSClient;
 import org.apache.commons.net.ftp.FTPReply;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ClosableFTPClient implements Closeable, AutoCloseable {
     public static String username, password, host;
     private static int connectionTimeout;
-    private FTPClient ftp = new FTPClient();
+    private FTPSClient ftp = new FTPSClient(false); // TLS explicit
 
     static {
         Configuration config = AppConfiguration.getConfig();
