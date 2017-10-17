@@ -1,5 +1,6 @@
 package com.oath.gemini.merchant.db;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.sql.Timestamp;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -39,8 +40,10 @@ public class StoreSysEntity {
     private Boolean isDeleted;
 
     @Column(name = "cr_date", nullable = false)
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Timestamp createdDate;
 
     @Column(name = "upd_date", nullable = false)
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Timestamp updatedDate;
 }
