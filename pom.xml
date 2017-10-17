@@ -292,9 +292,10 @@
       <!-- hairball-j -->
       <id>prod</id>
       <activation>
-        <property>
-          <name>!env</name>
-        </property>
+        <os>
+          <family>unix</family>
+          <name>linux</name>
+        </os>
       </activation>
       <dependencies>
         <dependency>
@@ -311,12 +312,12 @@
       </properties>
     </profile>
     <profile>
+      <!-- hairball -->
       <id>dev</id>
       <activation>
-        <property>
-          <!-- hairball -->
-          <name>env</name>
-        </property>
+        <os>
+          <family>mac</family>
+        </os>
       </activation>
       <dependencies>
         <dependency>
