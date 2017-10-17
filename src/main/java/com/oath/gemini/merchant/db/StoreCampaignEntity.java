@@ -6,13 +6,18 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import org.hibernate.annotations.Where;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * @author tong on 10/1/2017
+ */
 @Getter
 @Setter
 @Entity
 @Table(name = "store_campaign")
+@Where(clause = "isDeleted !=true")
 public class StoreCampaignEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
@@ -36,6 +41,9 @@ public class StoreCampaignEntity {
 
     @Column(name = "product_feed_id")
     private Long productFeedId;
+
+    @Column(name = "is_deleted")
+    private Boolean isDeleted;
 
     private Integer status;
 }

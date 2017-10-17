@@ -20,6 +20,9 @@
       <column name="domain" type="varchar(255)">
         <constraints nullable="false" unique="true" />
       </column>
+      <column name="is_deleted" type="boolean" defaultValueBoolean="false">
+        <constraints nullable="true" />
+      </column>
       <column name="cr_date" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
         <constraints nullable="false" />
       </column>
@@ -60,6 +63,9 @@
       <column name="pixel_id" type="int(10)">
         <constraints nullable="false" />
       </column>
+      <column name="is_deleted" type="boolean" defaultValueBoolean="false">
+        <constraints nullable="true" />
+      </column>
       <column name="cr_date" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
         <constraints nullable="false" />
       </column>
@@ -83,6 +89,9 @@
         <constraints nullable="false" />
       </column>
       <column name="domain" type="varchar(255)">
+      </column>
+      <column name="is_deleted" type="boolean" defaultValueBoolean="false">
+        <constraints nullable="true" />
       </column>
     </createTable>
   </changeSet>
@@ -109,6 +118,9 @@
       <column name="product_feed_id" type="bigint(20)">
         <constraints nullable="true" />
       </column>
+      <column name="is_deleted" type="boolean" defaultValueBoolean="false">
+        <constraints nullable="true" />
+      </column>
       <column name="status" type="int(10)" defaultValue="0">
         <constraints nullable="false" />
       </column>
@@ -116,7 +128,7 @@
   </changeSet>
   <changeSet id="5" author="tong" failOnError="false">
     <sql>
-      INSERT INTO store_sys VALUES(1, 'shopify','shopify e-commerce system','www.shopify.com', '2017-10-10', '2017-10-10')
+      INSERT INTO store_sys VALUES(1, 'shopify','shopify e-commerce system','www.shopify.com', false, '2017-10-10', '2017-10-10')
     </sql>
   </changeSet>
   <changeSet id="6" author="tong" failOnError="false">

@@ -7,13 +7,18 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import org.hibernate.annotations.Where;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * @author tong on 10/1/2017
+ */
 @Getter
 @Setter
 @Entity
 @Table(name = "store_sys")
+@Where(clause = "isDeleted !=true")
 public class StoreSysEntity {
     public StoreSysEntity() {
         updatedDate = createdDate = new Timestamp(System.currentTimeMillis());
@@ -29,6 +34,9 @@ public class StoreSysEntity {
 
     private String description;
     private String domain;
+
+    @Column(name = "is_deleted")
+    private Boolean isDeleted;
 
     @Column(name = "cr_date", nullable = false)
     private Timestamp createdDate;
