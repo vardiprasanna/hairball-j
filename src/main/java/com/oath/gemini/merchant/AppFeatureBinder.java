@@ -13,7 +13,7 @@ import javax.ws.rs.core.FeatureContext;
 public class AppFeatureBinder implements DynamicFeature {
     @Override
     public void configure(ResourceInfo resourceInfo, FeatureContext context) {
-        if (!resourceInfo.getResourceClass().isAnnotationPresent(RolesAllowed.class)) {
+        if (resourceInfo.getResourceClass().isAnnotationPresent(RolesAllowed.class)) {
             context.register(RoleAuthentication.class);
         }
     }

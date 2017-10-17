@@ -28,6 +28,7 @@ import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.eclipse.jetty.util.resource.ResourceCollection;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
@@ -63,6 +64,7 @@ public class App extends ResourceConfig {
         super.register(DatabaseResource.class);
         super.register(AppFeatureBinder.class);
         super.register(QuartzFeature.class);
+        super.register(RolesAllowedDynamicFeature.class);
     }
 
     public static App getInstance() {

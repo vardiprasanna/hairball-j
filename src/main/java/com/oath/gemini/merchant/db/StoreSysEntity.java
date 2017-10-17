@@ -18,7 +18,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "store_sys")
-@Where(clause = "isDeleted !=true")
+@Where(clause="is_deleted = 0")
 public class StoreSysEntity {
     public StoreSysEntity() {
         updatedDate = createdDate = new Timestamp(System.currentTimeMillis());

@@ -17,7 +17,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "store_campaign")
-@Where(clause = "isDeleted !=true")
+@Where(clause="is_deleted = 0")
 public class StoreCampaignEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
