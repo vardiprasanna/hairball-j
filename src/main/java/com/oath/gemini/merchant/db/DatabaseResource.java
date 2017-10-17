@@ -2,7 +2,6 @@ package com.oath.gemini.merchant.db;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.oath.gemini.merchant.ClosableFTPClient;
 import com.oath.gemini.merchant.cron.QuartzCronAnnotation;
 import java.io.IOException;
@@ -25,9 +24,6 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.hibernate.SessionFactory;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -52,11 +48,8 @@ public class DatabaseResource {
 
     @GET
     @Path("acct/{id:.*}")
-    @JsonUnwrapped
-    public ArrayWrapper<List<StoreAcctEntity>> listAccounts(@PathParam("id") @DefaultValue("") String id) {
-        ArrayWrapper<List<StoreAcctEntity>> result = new ArrayWrapper<>();
-        result.setData(list(StoreAcctEntity.class, id));
-        return result;
+    public List<StoreAcctEntity> listAccounts(@PathParam("id") @DefaultValue("") String id) {
+        return list(StoreAcctEntity.class, id);
     }
 
     @GET
@@ -110,11 +103,5 @@ public class DatabaseResource {
             return (result != null ? Arrays.asList(result) : null);
         }
         return databaseService.listAll(entityClass);
-    }
-
-    @RequiredArgsConstructor
-    static class ArrayWrapper<T extends List<?>> {
-        @Getter @Setter
-        public T data;
     }
 }
