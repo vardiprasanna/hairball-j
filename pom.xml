@@ -327,7 +327,7 @@
       </dependencies>
       <properties>
         <pom.app.host>hairball.herokuapp.com</pom.app.host>
-        <pom.campaign.setup.url>http://localhost:3000/</pom.campaign.setup.url>
+        <pom.campaign.setup.url>http://localhost:4080/setup/campaign.html</pom.campaign.setup.url>
         <pom.y.oauth.secret.id>0b596571b0ba8eba179cfa91551a19e40379c8a8</pom.y.oauth.secret.id>
         <pom.y.oauth.client.id>dj0yJmk9NEJVRHRaRnpWa09SJmQ9WVdrOVREQktiREUzTjJrbWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmeD1iYQ--</pom.y.oauth.client.id>
       </properties>
