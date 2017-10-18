@@ -1,12 +1,14 @@
 package com.oath.gemini.merchant.db;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.oath.gemini.merchant.ews.EWSConstant;
+import java.sql.Timestamp;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import org.hibernate.annotations.Where;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,8 +19,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "store_campaign")
-@Where(clause="is_deleted = 0")
-public class StoreCampaignEntity {
+public class StoreCampaignEntity extends StoreBaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     @Column(nullable = false, insertable = false, updatable = false)
@@ -42,8 +43,20 @@ public class StoreCampaignEntity {
     @Column(name = "product_feed_id")
     private Long productFeedId;
 
-    @Column(name = "is_deleted")
-    private Boolean isDeleted;
+    // see EWSConstant.StatusEnum
+    private EWSConstant.StatusEnum status;
 
-    private Integer status;
+    @Column(nullable = false)
+    private Float budget;
+
+    @Column(nullable = false)
+    private Float price;
+
+    @Column(name = "start_date", nullable = false)
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Timestamp startDate;
+
+    @Column(name = "end_date", nullable = false)
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Timestamp endDate;
 }

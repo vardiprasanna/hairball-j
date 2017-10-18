@@ -6,7 +6,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import org.hibernate.annotations.Where;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,8 +16,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "store_owner")
-@Where(clause="is_deleted = 0")
-public class StoreOwnerEntity {
+public class StoreOwnerEntity extends StoreBaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     @Column(nullable = false, insertable = false, updatable = false)
@@ -33,7 +31,4 @@ public class StoreOwnerEntity {
     @Column(nullable = false)
     private String email;
     private String domain;
-
-    @Column(name = "is_deleted")
-    private Boolean isDeleted;
 }

@@ -1,14 +1,11 @@
 package com.oath.gemini.merchant.db;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import java.sql.Timestamp;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import org.hibernate.annotations.Where;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,12 +16,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "store_sys")
-@Where(clause="is_deleted = 0")
-public class StoreSysEntity {
-    public StoreSysEntity() {
-        updatedDate = createdDate = new Timestamp(System.currentTimeMillis());
-    }
-
+public class StoreSysEntity extends StoreBaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     @Column(nullable = false, insertable = false, updatable = false)
@@ -35,15 +27,4 @@ public class StoreSysEntity {
 
     private String description;
     private String domain;
-
-    @Column(name = "is_deleted")
-    private Boolean isDeleted;
-
-    @Column(name = "cr_date", nullable = false)
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private Timestamp createdDate;
-
-    @Column(name = "upd_date", nullable = false)
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private Timestamp updatedDate;
 }

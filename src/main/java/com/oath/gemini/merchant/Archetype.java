@@ -13,6 +13,7 @@ import com.oath.gemini.merchant.ews.json.ProductRule;
 import com.oath.gemini.merchant.ews.json.ProductSetData;
 import com.oath.gemini.merchant.shopify.ShopifyClientService;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import lombok.Getter;
@@ -68,8 +69,19 @@ public class Archetype {
         campaignEntity.setCampaignId(cmpData.getId());
         campaignEntity.setName(cmpData.getCampaignName());
         campaignEntity.setAdgroupId(adGroupData.getId());
-        campaignEntity.setStatus(0);
+        campaignEntity.setStartDate(parseTimestamp(adGroupData.getStartDateStr()));
+        campaignEntity.setEndDate(parseTimestamp(adGroupData.getEndDateStr()));
+        campaignEntity.setPrice(1.5f /*adGroupData.getEcpaGoal() */);
+        campaignEntity.setBudget(cmpData.getBudget().floatValue());
+        campaignEntity.setStatus(EWSConstant.StatusEnum.ACTIVE);
         return campaignEntity;
+    }
+
+    private Timestamp parseTimestamp(String timestamp) {
+        if (timestamp != null) {
+            return new Timestamp(LocalDate.parse(timestamp).toEpochDay());
+        }
+        return null;
     }
 
     private CampaignData newCampaign() throws Exception {
@@ -91,7 +103,7 @@ public class Archetype {
             cmp.setStatus(EWSConstant.StatusEnum.ACTIVE);
             cmp.setCampaignName(entityAutoGenName);
             cmp.setBudgetType("DAILY");
-            cmp.setBudget(BigDecimal.valueOf(10000L));
+            cmp.setBudget(BigDecimal.valueOf(50L));
             cmp.setLanguage("en");
             cmp.setChannel(EWSConstant.ChannelEnum.NATIVE);
             cmp.setObjective(EWSConstant.ObjectiveEnum.VISIT_OFFER);
@@ -131,6 +143,7 @@ public class Archetype {
             group.setCampaignId(cmp.getId());
             group.setAdGroupName(entityAutoGenName);
             group.setProductSetId(pset.getId());
+            group.setEcpaGoal(bidSetData.getValue());
             group.getBidSet().setBids(new BidSetData[] { bidSetData });
             adGroupResponse = ews.create(AdGroupData.class, group, EWSEndpointEnum.ADGROUP_OPS);
             adGroupData = adGroupResponse.get(0);
@@ -148,7 +161,7 @@ public class Archetype {
 
         if (EWSResponseData.isEmpty(psetResponse)) {
             ProductSetData pset = new ProductSetData();
-            String filter = "{\"price\":{\"gt\":\"0.25\"}}"; // TODO: hard-coded price
+            String filter = "{\"price\":{\"gt\":\"0.10\"}}"; // TODO: hard-coded price
 
             pset.setAdvertiserId(advertiserId);
             pset.setStatus(EWSConstant.StatusEnum.ACTIVE);
