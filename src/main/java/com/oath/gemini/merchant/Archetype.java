@@ -135,16 +135,19 @@ public class Archetype {
 
             bidSetData.setChannel(EWSConstant.ChannelEnum.NATIVE);
             bidSetData.setPriceType(EWSConstant.PriceTypeEnum.CPC);
-            bidSetData.setValue(0.1f);
+            bidSetData.setValue(0.1f); // TODO
 
-            group.setStatus(EWSConstant.StatusEnum.PAUSED);
+            group.setStatus(EWSConstant.StatusEnum.ACTIVE);
             group.setStartDateStr(dateTime.format(DateTimeFormatter.ISO_LOCAL_DATE));
             group.setEndDateStr(dateTime.plusMonths(3).format(DateTimeFormatter.ISO_LOCAL_DATE));
             group.setAdvertiserId(cmp.getAdvertiserId());
             group.setCampaignId(cmp.getId());
             group.setAdGroupName(entityAutoGenName);
             group.setProductSetId(pset.getId());
-            group.setEcpaGoal(bidSetData.getValue());
+            // group.setEcpaGoal(5.0f); // TODO
+            // group.setBiddingStrategy(EWSConstant.BiddingStrategyEnum.OPT_CONVERSION);
+            // group.setAdvancedGeoPos(EWSConstant.AdvancedGeoPosEnum.DEFAULT);
+            // group.setAdvancedGeoNeg(EWSConstant.AdvancedGeoNegEnum.DEFAULT);
             group.getBidSet().setBids(new BidSetData[] { bidSetData });
             adGroupResponse = ews.create(AdGroupData.class, group, EWSEndpointEnum.ADGROUP_OPS);
             adGroupData = adGroupResponse.get(0);
