@@ -13,6 +13,7 @@ import com.oath.gemini.merchant.ews.json.ProductRule;
 import com.oath.gemini.merchant.ews.json.ProductSetData;
 import com.oath.gemini.merchant.shopify.ShopifyClientService;
 import java.math.BigDecimal;
+import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -79,7 +80,7 @@ public class Archetype {
 
     private Timestamp parseTimestamp(String timestamp) {
         if (timestamp != null) {
-            return new Timestamp(LocalDate.parse(timestamp).toEpochDay());
+            return new Timestamp(Date.valueOf(LocalDate.parse(timestamp)).getTime());
         }
         return null;
     }

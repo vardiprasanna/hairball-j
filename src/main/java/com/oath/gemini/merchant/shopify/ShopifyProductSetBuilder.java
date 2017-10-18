@@ -1,8 +1,6 @@
 package com.oath.gemini.merchant.shopify;
 
-import com.oath.gemini.merchant.Archetype;
 import com.oath.gemini.merchant.ClosableFTPClient;
-import com.oath.gemini.merchant.db.StoreCampaignEntity;
 import com.oath.gemini.merchant.ews.EWSClientService;
 import com.oath.gemini.merchant.ews.EWSConstant.PrdAvailabilityEnum;
 import com.oath.gemini.merchant.ews.EWSConstant.PrdFeedTypeEnum;
@@ -24,6 +22,8 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Build a product listing from calling Shopify prouduct services
+ * 
+ * @author tong on 10/1/2017
  */
 @Slf4j
 public class ShopifyProductSetBuilder {
@@ -46,13 +46,11 @@ public class ShopifyProductSetBuilder {
 
     /**
      * Produce a Gemini product feed if it has never been done before for this shopper
-     * 
-     * @param reload - true if force to reload the Shopify's prouducts and then make it to the FTP server
      */
-    public StoreCampaignEntity upload(boolean reload) throws Exception {
+    public long uploadFeedIfRequired(long advertiserId) throws Exception {
         // Download products from Shopify and then upload the result to FTP server for Gemini
         try (ClosableFTPClient ftpClient = new ClosableFTPClient()) {
-            if (reload || !ftpClient.exits(remoteFile)) {
+            if (!ftpClient.exits(remoteFile)) {
                 ShopifyProductData[] products = svc.get(ShopifyProductData[].class, ShopifyEndpointEnum.SHOPIFY_PROD_ALL);
                 List<ProductRecordData> geminiProducts = new ArrayList<>();
 
@@ -108,17 +106,14 @@ public class ShopifyProductSetBuilder {
             }
         }
 
-        Archetype archeType = new Archetype(svc, ews);
         EWSResponseData<ProductFeedData> productFeeds;
 
         // Check whether Gemini already knows the FTP connection of this product feed
-        productFeeds = ews.get(ProductFeedData.class, EWSEndpointEnum.PRODUCT_FEED_BY_ADVERTISER, archeType.getAdvertiserId());
+        productFeeds = ews.get(ProductFeedData.class, EWSEndpointEnum.PRODUCT_FEED_BY_ADVERTISER, advertiserId);
         if (productFeeds != null && productFeeds.isOk()) {
             for (ProductFeedData fs : productFeeds.getObjects()) {
                 if (fs.getStatus() == StatusEnum.ACTIVE) {
-                    StoreCampaignEntity cmpEntity = archeType.create();
-                    cmpEntity.setProductFeedId(productFeeds.get(0).getId());
-                    return cmpEntity;
+                    return productFeeds.get(0).getId();
                 }
             }
         }
@@ -126,7 +121,7 @@ public class ShopifyProductSetBuilder {
         // Let Gemini know how to access this product feed
         ProductFeedData feedData = new ProductFeedData();
 
-        feedData.setAdvertiserId(archeType.getAdvertiserId());
+        feedData.setAdvertiserId(advertiserId);
         feedData.setUserName(ClosableFTPClient.username);
         feedData.setPassword(ClosableFTPClient.password);
         feedData.setFeedType(PrdFeedTypeEnum.DPA_RECURRING);
@@ -135,9 +130,7 @@ public class ShopifyProductSetBuilder {
 
         productFeeds = ews.create(ProductFeedData.class, feedData, EWSEndpointEnum.PRODUCT_FEED);
         if (productFeeds != null && productFeeds.isOk()) {
-            StoreCampaignEntity cmpEntity = archeType.create();
-            cmpEntity.setProductFeedId(productFeeds.get(0).getId());
-            return cmpEntity;
+            return productFeeds.get(0).getId();
         }
         throw new RuntimeException("Failed to instantiate a product feed, and/or a campaign");
     }

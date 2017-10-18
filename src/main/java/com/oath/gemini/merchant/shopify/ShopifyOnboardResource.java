@@ -1,5 +1,6 @@
 package com.oath.gemini.merchant.shopify;
 
+import com.oath.gemini.merchant.Archetype;
 import com.oath.gemini.merchant.ClosableHttpClient;
 import com.oath.gemini.merchant.db.DatabaseService;
 import com.oath.gemini.merchant.db.StoreAcctEntity;
@@ -196,7 +197,15 @@ public class ShopifyOnboardResource {
         StoreCampaignEntity storeCmpEntity = null; // TODO databaseService.findByAcctId(StoreCampaignEntity.class, storeAcctEntity.getId());
 
         if (storeCmpEntity == null) {
-            storeCmpEntity = new ShopifyProductSetBuilder(ps, ews).upload(false);
+            Archetype archeType = new Archetype(ps, ews);
+            ShopifyProductSetBuilder feedBuilder = new ShopifyProductSetBuilder(ps, ews);
+
+            // Upload the product feed if it has never been done so
+            long productFeedId = feedBuilder.uploadFeedIfRequired(archeType.getAdvertiserId());
+
+            // Establish a first campaign if it has never been done so
+            storeCmpEntity = archeType.create();
+            storeCmpEntity.setProductFeedId(productFeedId);
 
             // By now, we have configured a DPA campaign and its product feed on Gemini site. Let's persist this info locally
             storeCmpEntity.setStoreAcctId(storeAcctEntity.getId());
@@ -285,15 +294,15 @@ public class ShopifyOnboardResource {
         if (storedEntity != null) {
             cmpEntity.setId(storedEntity.getId());
             Map<String, ?> src = PropertyUtils.describe(cmpEntity);
-            Map<String, ?> dst = PropertyUtils.describe(cmpEntity);
+            Map<String, ?> dst = PropertyUtils.describe(storedEntity);
 
             if (!src.equals(dst)) {
-                for (Map.Entry<String, ?> e : dst.entrySet()) {
-                    if (e.getValue() != null && !e.getKey().equals("class")) {
+                for (Map.Entry<String, ?> e : src.entrySet()) {
+                    if (e.getValue() != null && !e.getKey().equals("class") && e.getKey() != "createdDate") {
                         PropertyUtils.setProperty(storedEntity, e.getKey(), e.getValue());
                     }
                 }
-                databaseService.save(storedEntity);
+                databaseService.update(storedEntity);
             }
         } else {
             databaseService.save(cmpEntity);

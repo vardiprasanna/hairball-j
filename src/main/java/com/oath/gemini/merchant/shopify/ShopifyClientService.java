@@ -1,7 +1,6 @@
 package com.oath.gemini.merchant.shopify;
 
 import com.oath.gemini.merchant.ClosableHttpClient;
-import java.util.Map;
 import javax.inject.Singleton;
 import javax.ws.rs.core.MediaType;
 import org.eclipse.jetty.client.api.Request;
@@ -10,6 +9,9 @@ import org.eclipse.jetty.http.HttpMethod;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * @author tong on 10/1/2017
+ */
 @Singleton
 @Getter
 @Setter
