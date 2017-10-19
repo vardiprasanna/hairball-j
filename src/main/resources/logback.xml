@@ -41,7 +41,7 @@
   <logger name="com.oath.gemini.merchant" level="${pom.log.level}">
     <appender-ref ref="app_file" />
   </logger>
-  <logger name="com.mchange" level="${pom.log.level}">
+  <logger name="com.mchange" level="WARN">
     <appender-ref ref="app_file" />
   </logger>
   <logger name="org.eclipse.jetty" level="INFO">
