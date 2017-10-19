@@ -3,7 +3,7 @@ var pixelId = (function() {
 
     for (var i = 0; i < scriptObjs.length; i++) {
         var src = scriptObjs[i].src;
-        var dp = src.match(/\/pixel.js[\/|?].*_dp=(\d+)/i);
+        var dp = src.match(/\/pixel[\/|?].*_dp=(\d+)/i);
         if (dp && dp.length >= 2) {
             return dp[1];
         }
