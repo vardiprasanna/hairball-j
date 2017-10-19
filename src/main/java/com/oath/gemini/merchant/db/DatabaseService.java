@@ -140,7 +140,7 @@ public class DatabaseService {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T findById(Class<T> entityClass, Integer id) {
+    public <T> T findByEntityId(Class<T> entityClass, Integer id) {
         Session session = sessionFactory.openSession();
 
         try {
