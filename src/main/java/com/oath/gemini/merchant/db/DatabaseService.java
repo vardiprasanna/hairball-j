@@ -72,7 +72,7 @@ public class DatabaseService {
     }
 
     @SuppressWarnings("unchecked")
-    public StoreCampaignEntity findStoreCampaignById(long id) {
+    public StoreCampaignEntity findStoreCampaignByGeminiCampaignId(long id) {
         Session session = sessionFactory.openSession();
 
         try {

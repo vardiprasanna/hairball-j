@@ -289,7 +289,7 @@ public class ShopifyOnboardResource {
      */
     private void registerStoreCampainIfRequired(ShopifyClientService ps, EWSClientService ews, StoreCampaignEntity cmpEntity)
             throws Exception {
-        StoreCampaignEntity storedEntity = databaseService.findStoreCampaignById(cmpEntity.getCampaignId());
+        StoreCampaignEntity storedEntity = databaseService.findStoreCampaignByGeminiCampaignId(cmpEntity.getCampaignId());
 
         if (storedEntity != null) {
             cmpEntity.setId(storedEntity.getId());
