@@ -99,7 +99,7 @@ public class DatabaseResource {
 
     private <T> List<T> list(Class<T> entityClass, String id) {
         if (StringUtils.isNotBlank(id) && NumberUtils.isDigits(id)) {
-            T result = databaseService.findById(entityClass, Integer.parseInt(id));
+            T result = databaseService.findByEntityId(entityClass, Integer.parseInt(id));
             return (result != null ? Arrays.asList(result) : null);
         }
         return databaseService.listAll(entityClass);
