@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ClosableHttpClient extends HttpClient implements Closeable, AutoCloseable {
     private static int DEFAULT_THREADPOOL_TIMEOUT = 10;
     private Request request;
+    private String stringContent;
 
     public ClosableHttpClient() throws Exception {
         super(new SslContextFactory());
@@ -56,14 +57,15 @@ public class ClosableHttpClient extends HttpClient implements Closeable, AutoClo
             StringContentProvider provider;
 
             if (content instanceof String) {
-                provider = new StringContentProvider((String) content);
+                stringContent = (String) content;
+                provider = new StringContentProvider(stringContent);
             } else {
                 ObjectMapper mapper = new ObjectMapper();
                 ObjectWriter writer = mapper.writerFor(content.getClass());
+                stringContent = writer.writeValueAsString(content);
 
-                provider = new StringContentProvider(writer.writeValueAsString(content));
+                provider = new StringContentProvider(stringContent);
                 request.header(HttpHeader.CONTENT_TYPE, MediaType.APPLICATION_JSON);
-                // provider.forEach(c -> System.out.println(new String(c.array())));
             }
             request.content(provider);
         }
@@ -72,12 +74,20 @@ public class ClosableHttpClient extends HttpClient implements Closeable, AutoClo
 
     @SuppressWarnings("unchecked")
     public <T> T send(Class<T> responseType) throws Exception {
-        ContentResponse response = request.send();
-        String responseBody = response.getContentAsString();
-        T result = null;
+        if (log.isDebugEnabled()) {
+            log.debug(">>>>>>>> Begin {} request to: '{}'", request.getMethod(), request.getURI());
+            if (StringUtils.isNotBlank(stringContent)) {
+                log.debug("---- request content");
+                log.debug(stringContent);
+            }
+        }
 
-        // Process a response
-        if (response.getStatus() >= 200 && response.getStatus() < 300) {
+        try {
+            ContentResponse response = request.send();
+            String responseBody = response.getContentAsString();
+            T result = null;
+
+            // Process a response
             if (!String.class.isAssignableFrom(responseType)) {
                 ObjectMapper mapper = new ObjectMapper();
 
@@ -89,17 +99,33 @@ public class ClosableHttpClient extends HttpClient implements Closeable, AutoClo
             } else {
                 result = (T) responseBody;
             }
-        } else {
-            log.error("received an unexpected status code=" + response.getStatus());
 
-            if (HttpStatus.class.isAssignableFrom(responseType)) {
-                HttpStatus error = (HttpStatus) responseType.newInstance();
-                error.setStatus(response.getStatus());
-                error.setMessage(responseBody);
-                result = (T) error;
+            // Process an error message
+            if (!(response.getStatus() >= 200 && response.getStatus() < 300)) {
+                log.error("received an unexpected status code=" + response.getStatus());
+
+                if (result != null) {
+                    if (result instanceof HttpStatus) {
+                        ((HttpStatus) result).setStatus(response.getStatus());
+                        ((HttpStatus) result).setMessage(responseBody);
+                    } else if (result instanceof Map) {
+                        ((Map<String, Object>) result).put("HttpStatus", new HttpStatus(response.getStatus(), responseBody));
+                    }
+                }
             }
+
+            if (log.isDebugEnabled()) {
+                if (StringUtils.isNotBlank(responseBody)) {
+                    log.debug("---- response content");
+                    log.debug(responseBody);
+                }
+                log.debug("End {} request to: '{}' with {}\n", request.getMethod(), request.getURI(), response.getStatus());
+            }
+
+            return result;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed when calling " + request.getURI(), e);
         }
-        return result;
     }
 
     @SuppressWarnings("unchecked")
