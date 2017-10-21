@@ -11,10 +11,10 @@ import org.hibernate.SessionFactory;
  * 
  * @author tong on 10/1/2017
  */
-public class AppBinder extends AbstractBinder {
+public class AppInjectionBinder extends AbstractBinder {
     private final SessionFactory sessionFactory;
 
-    public AppBinder(SessionFactory sessionFactory) {
+    public AppInjectionBinder(SessionFactory sessionFactory) {
         this.sessionFactory = sessionFactory;
     }
 

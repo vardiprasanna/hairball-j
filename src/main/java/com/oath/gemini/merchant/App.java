@@ -60,7 +60,7 @@ public class App extends ResourceConfig {
     private void setFields(Configuration cfg) {
         SessionFactory sessions = buildSessionFactory(cfg);
 
-        super.register(new AppBinder(sessions));
+        super.register(new AppInjectionBinder(sessions));
         super.register(JacksonFeature.class);
         super.register(ShopifyOnboardResource.class);
         super.register(DatabaseResource.class);
