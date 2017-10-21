@@ -53,10 +53,10 @@ public class StoreCampaignEntity extends StoreBaseEntity {
     private Float price;
 
     @Column(name = "start_date", nullable = false)
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ssZ")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     private Timestamp startDate;
 
     @Column(name = "end_date", nullable = false)
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ssZ")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     private Timestamp endDate;
 }

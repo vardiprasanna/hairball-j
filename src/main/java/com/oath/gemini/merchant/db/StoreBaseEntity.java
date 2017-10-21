@@ -24,10 +24,10 @@ public abstract class StoreBaseEntity {
     private Boolean isDeleted;
 
     @Column(name = "cr_date", nullable = false)
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ssZ")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     private Timestamp createdDate;
 
     @Column(name = "upd_date", nullable = false)
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ssZ")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     private Timestamp updatedDate;
 }
