@@ -1,7 +1,7 @@
 package com.oath.gemini.merchant.shopify;
 
+import static com.oath.gemini.merchant.ClosableHttpClient.buildQueries;
 import com.oath.gemini.merchant.Archetype;
-import com.oath.gemini.merchant.ClosableHttpClient;
 import com.oath.gemini.merchant.db.DatabaseService;
 import com.oath.gemini.merchant.db.StoreAcctEntity;
 import com.oath.gemini.merchant.db.StoreCampaignEntity;
@@ -21,7 +21,6 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.util.HashMap;
-import java.util.Map;
 import javax.annotation.Resource;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -34,7 +33,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
-import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -151,8 +149,8 @@ public class ShopifyOnboardResource {
                 String requestAuth = config.getString("y.oauth.auth.request.url");
                 String rd = new URI(req.getScheme(), config.getString("app.host"), "/g/shopify/ews", null).toString();
 
-                rd = ClosableHttpClient.buildQueries(rd, "_mc", tokens.getAccessToken());
-                rd = ClosableHttpClient.buildQueries(rd, "shop", shop);
+                rd = buildQueries(rd, "_mc", tokens.getAccessToken());
+                rd = buildQueries(rd, "shop", shop);
 
                 requestAuth = requestAuth.replace("${y.oauth.redirect}", URLEncoder.encode(rd, "UTF-8"));
                 return Response.temporaryRedirect(URI.create(requestAuth)).build();
@@ -226,6 +224,8 @@ public class ShopifyOnboardResource {
 
         // All done. Take a user to this application's campaign configuration page such as budget, price, date range, etc
         String target = config.getString("campaign.setup.url");
+        target = buildQueries(target, "cmp", storeCmpEntity.getId().toString());
+
         return Response.temporaryRedirect(URI.create(target)).build();
     }
 
@@ -300,24 +300,15 @@ public class ShopifyOnboardResource {
             throws Exception {
         StoreCampaignEntity storedEntity = databaseService.findStoreCampaignByGeminiCampaignId(cmpEntity.getCampaignId());
 
-        if (storedEntity != null) {
-            cmpEntity.setId(storedEntity.getId());
-            Map<String, ?> src = PropertyUtils.describe(cmpEntity);
-            Map<String, ?> dst = PropertyUtils.describe(storedEntity);
-
-            if (!src.equals(dst)) {
-                for (Map.Entry<String, ?> e : src.entrySet()) {
-                    if (e.getValue() != null && !e.getKey().equals("class") && e.getKey() != "createdDate") {
-                        PropertyUtils.setProperty(storedEntity, e.getKey(), e.getValue());
-                    }
-                }
-                databaseService.update(storedEntity);
-            }
-        } else {
+        if (storedEntity == null) {
+            // insert a new campaign record
             String decoratedName = cmpEntity.getName() + "-" + cmpEntity.getCampaignId();
 
             cmpEntity.setName(decoratedName);
             databaseService.save(cmpEntity);
+        } else if (DatabaseService.copyNonNullProperties(storedEntity, cmpEntity, "name")) {
+            // updated an existing campaign record
+            databaseService.update(storedEntity);
         }
     }
 
@@ -349,7 +340,7 @@ public class ShopifyOnboardResource {
         // Do nothing if a given script has been inserted already
         Tag[] tags = ps.get(Tag[].class, ShopifyEndpointEnum.SHOPIFY_SCRIPT_TAG_ALL);
         String javascriptFile = config.getString("shopify.dot.pixel");
-        javascriptFile = ClosableHttpClient.buildQueries(javascriptFile, "_dp", storeAcctEntity.getPixelId().toString());
+        javascriptFile = buildQueries(javascriptFile, "_dp", storeAcctEntity.getPixelId().toString());
         Tag found = null;
 
         if (tags != null) {
@@ -405,7 +396,7 @@ public class ShopifyOnboardResource {
         params.put("state", Long.toString(System.nanoTime()));
 
         String path = ShopifyEndpointEnum.SHOPIFY_REQUEST_ACCESS.toString().replace("${shop}", shop);
-        path = ClosableHttpClient.buildQueries(path, params);
+        path = buildQueries(path, params);
         return URI.create(path);
     }
 }
