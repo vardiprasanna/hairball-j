@@ -10,6 +10,9 @@ import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.configuration.Configuration;
 
+/**
+ * @author tong on 10/1/2017
+ */
 public class ShopifyOauthHelper {
     public final static String SECRET_KEY;
     public final static String API_KEY;

@@ -9,6 +9,9 @@ import org.apache.commons.lang3.StringUtils;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * @author tong on 10/1/2017
+ */
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)

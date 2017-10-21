@@ -11,6 +11,9 @@ import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpMethod;
 import lombok.Getter;
 
+/**
+ * @author tong on 10/1/2017
+ */
 @Getter
 public class EWSClientService {
     EWSAccessTokenData tokens;

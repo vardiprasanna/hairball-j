@@ -1,5 +1,8 @@
 package com.oath.gemini.merchant.ews;
 
+/**
+ * @author tong on 10/1/2017
+ */
 public class EWSConstant {
     /**
      * The status field is reserved for mutable entity state and user transitions. Note that the REJECTED value here is set

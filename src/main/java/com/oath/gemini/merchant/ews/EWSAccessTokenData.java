@@ -19,6 +19,7 @@ import lombok.Getter;
  * </pre>
  * 
  * @See https://developer.yahoo.com/oauth2/guide/flows_authcode/
+ * @author tong on 10/1/2017
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Getter

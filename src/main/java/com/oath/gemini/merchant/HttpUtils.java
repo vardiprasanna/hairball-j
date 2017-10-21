@@ -4,6 +4,9 @@ import java.util.Enumeration;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 
+/**
+ * @author tong on 10/1/2017
+ */
 public class HttpUtils {
     public static String dump(HttpServletRequest req) {
         StringBuilder buf = new StringBuilder();

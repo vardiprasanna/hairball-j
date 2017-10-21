@@ -15,6 +15,8 @@ import org.w3c.dom.NodeList;
 /**
  * Fetch and parse a raw feed in W3 ATOM schema. Unfortunately, the feed itself does not contain all information offered
  * through Shopify product services.
+ * 
+ * @author tong on 10/1/2017
  */
 public class ShopifyProductListingFile {
     /**

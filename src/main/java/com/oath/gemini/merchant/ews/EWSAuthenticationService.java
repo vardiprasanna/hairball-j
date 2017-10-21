@@ -11,6 +11,7 @@ import org.eclipse.jetty.http.HttpHeader;;
 
 /**
  * @see the general flow and an example in https://developer.yahoo.com/oauth2/guide/flows_authcode/
+ * @author tong on 10/1/2017
  */
 @Singleton
 public class EWSAuthenticationService {

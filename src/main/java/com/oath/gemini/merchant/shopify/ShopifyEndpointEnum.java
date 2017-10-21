@@ -1,5 +1,8 @@
 package com.oath.gemini.merchant.shopify;
 
+/**
+ * @author tong on 10/1/2017
+ */
 public enum ShopifyEndpointEnum {
     SHOPIFY_SHOP_INFO("shop.json"),
 
