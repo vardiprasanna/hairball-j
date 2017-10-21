@@ -94,12 +94,18 @@ public class DatabaseResource {
         try {
             path = Files.createTempDirectory("hairball-");
         } catch (Exception e) {
+            System.err.println("#1 failed to create a temporary database backup dir\n" + e.toString());
             log.error("failed to create a temporary database backup dir", e);
             return Response.serverError().build();
         }
 
         log.info("back db to temp dir {}", path);
-        databaseService.backup(path.toString());
+        try {
+            databaseService.backup(path.toString());
+        } catch (Exception e) {
+            System.err.println("#2 failed to create a temporary database backup dir\n" + e.toString());
+            throw e;
+        }
 
         try (ClosableFTPClient ftpClient = new ClosableFTPClient(); Stream<java.nio.file.Path> files = Files.list(path)) {
             files.forEach(local -> {
@@ -111,6 +117,7 @@ public class DatabaseResource {
                     log.info("back '{}' to ftp backup folder", local.toString());
                     Files.delete(local);
                 } catch (Exception e) {
+                    System.err.println("#3 failed to create a temporary database backup dir\n" + e.toString());
                     e.printStackTrace();
                 }
             });
