@@ -49,31 +49,75 @@
 <noscript>
     You need to enable JavaScript to run this app.
 </noscript>
-<div id="root" class="homepage-v3 hero"></div>
+<form id="configuration" action="/g/database/campaign/2/update">
+    <div id="root" class="homepage-v3 hero"></div>
+    <div id="tabs">
+        <ul>
+            <li><a href="#tabs-1">Configuration</a></li>
+        </ul>
+        <div id="tabs-1">
+            <div style="margin: 1em">
+                <div style="margin-top: 1em"><label>Schedule:</label></div>
+                <input type="text" id="startdate_picker" placeholder="staring date"
+                       style="margin-left: 1em; margin-right: 1em">
+                <input type="text" id="enddate_picker" placeholder="ending date">
 
-<div id="tabs">
-    <ul>
-        <li><a href="#tabs-1">Configuration</a></li>
-        <li><a href="#tabs-2">Reports</a></li>
-    </ul>
-    <div id="tabs-1">
-        <div style="margin: 1em">
-            <div style="margin-top: 1em"><label>Schedule:</label></div>
-            <input type="text" id="startdate_picker" placeholder="staring date" style="margin-left: 1em; margin-right: 1em">
-            <input type="text" id="enddate_picker" placeholder="ending date">
-
-            <div style="margin-top: 1em"><label>Budget:</label></div>
-            <input type="text" id="startdate_picker" placeholder="total" style="margin-left: 1em; margin-right: 1em">
-            <input type="text" id="enddate_picker" placeholder="daily">
-            <div style="margin-top: 1em; vertical-align: middle">
-                <a class="toggle_status">
-                <label id="control-toggle-status" class="mr10">Active</label></i></a>
+                <div style="margin-top: 1em"><label>Budget:</label></div>
+                <input type="text" id="budget" name="budget" placeholder="total"
+                       style="margin-left: 1em; margin-right: 1em">
+                <input type="text" id="price" name="price" placeholder="unit price">
+                <div style="margin-top: 1em; vertical-align: middle">
+                    <a class="toggle_status">
+                        <label id="control-toggle-status" class="mr10">Active</label></i></a>
+                </div>
             </div>
         </div>
     </div>
-    <div id="tabs-2">
-        <p>This is a placeholder showing varioua campaign reports</p>
-    </div>
-</div>
+    <button type="submit" value="save">Save</button>
+    <button type="reset" value="seset">Reset</button>
+</form>
+<script type='text/javascript'>
+    const reg = /[?/&;,]?cmp=(.*)[&;,]?$/
+    let query = window.location.search;
+    let cid = reg.exec(query);
+
+    if (cid && cid.length > 1) {
+        $.get("/g/database/campaign/" + cid[1], function (data) {
+            $("#startdate_picker").datepicker("setDate", new Date(data[0].startDate));
+            $("#enddate_picker").datepicker("setDate", new Date('2018-01-20T14:48:00'));
+            $("#budget").val(data[0].budget);
+            $("#price").val(data[0].price);
+        });
+
+        $("#configuration").submit(function (event) {
+            /* stop form from submitting normally */
+            event.preventDefault();
+
+            let startDate = $("#startdate_picker").datepicker("getDate");
+            let endDate = $("#enddate_picker").datepicker("getDate");
+
+            let data = {
+                budget: $("#budget").val(),
+                price: $("#price").val(),
+                startDate: startDate.toISOString(),
+                endDate: endDate.toISOString()
+
+            };
+
+            /* get the action attribute from the <form action=""> element */
+            var $form = $(this),
+                url = $form.attr('action');
+
+            /* Send the data using post with element id name and name2*/
+            $.ajax({
+                type: "PUT",
+                url: url,
+                data: JSON.stringify(data),
+                dataType: 'json',
+                contentType:"application/json; charset=utf-8"
+            });
+        })
+    }
+</script>
 </body>
 </html>
