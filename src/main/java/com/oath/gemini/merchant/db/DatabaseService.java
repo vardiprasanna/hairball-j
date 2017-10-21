@@ -3,6 +3,7 @@ package com.oath.gemini.merchant.db;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -224,7 +225,7 @@ public class DatabaseService {
      * Copy named properties from source to target except those excluded fields
      */
     public static boolean copyNonNullProperties(Object targetEntity, Object sourceEntity, String... excludedFields) throws Exception {
-        List<String> excluded = Arrays.asList("class", "createdDate", "updatedDate", "id");
+        List<String> excluded = new ArrayList<>(Arrays.asList("class", "createdDate", "updatedDate", "id"));
 
         if (excludedFields != null) {
             for (String ef : excludedFields) {
