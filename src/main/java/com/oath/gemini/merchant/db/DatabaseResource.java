@@ -14,13 +14,17 @@ import javax.annotation.Resource;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.hibernate.SessionFactory;
@@ -56,6 +60,27 @@ public class DatabaseResource {
     @Path("campaign/{id:.*}")
     public List<StoreCampaignEntity> listCampaigns(@PathParam("id") @DefaultValue("") String id) {
         return list(StoreCampaignEntity.class, id);
+    }
+
+    @PUT
+    @Path("campaign/{id}/update")
+    public Response modifyCampaign(@PathParam("id") String id, @Context HttpServletRequest req, StoreCampaignEntity userData) {
+        List<StoreCampaignEntity> campaigns = list(StoreCampaignEntity.class, id);
+
+        if (campaigns == null || campaigns.size() != 1) {
+            return Response.status(Status.BAD_REQUEST).entity("{error: 'Not found or found more than one campaigns'}").build();
+        }
+
+        StoreCampaignEntity targetEntity = campaigns.get(0);
+        try {
+            if (DatabaseService.copyNonNullProperties(targetEntity, userData)) {
+                databaseService.update(targetEntity);
+            }
+        } catch (Exception e) {
+            log.error("failed to copy properties", e);
+            return Response.status(Status.BAD_REQUEST).entity("{error: 'failed to copy properties'}").build();
+        }
+        return Response.ok(targetEntity).build();
     }
 
     /**
