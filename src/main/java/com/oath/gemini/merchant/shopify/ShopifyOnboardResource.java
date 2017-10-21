@@ -216,7 +216,7 @@ public class ShopifyOnboardResource {
 
             // By now, we have configured a DPA campaign and its product feed on Gemini site. Let's persist this info locally
             storeCmpEntity.setStoreAcctId(storeAcctEntity.getId());
-            registerStoreCampaignIfRequired(ps, ews, storeCmpEntity);
+            storeCmpEntity = registerStoreCampaignIfRequired(ps, ews, storeCmpEntity);
         }
 
         // Inject or modify a dot pixel to tracke user's product events
@@ -224,7 +224,7 @@ public class ShopifyOnboardResource {
 
         // All done. Take a user to this application's campaign configuration page such as budget, price, date range, etc
         String target = config.getString("campaign.setup.url");
-        target = buildQueries(target, "cmp", storeCmpEntity.getId().toString());
+        target = buildQueries("/setup/campaign.html", "cmp", storeCmpEntity.getId().toString(), "_hbews", tokens.getAccessToken());
 
         return Response.temporaryRedirect(URI.create(target)).build();
     }
@@ -296,8 +296,8 @@ public class ShopifyOnboardResource {
     /**
      * To register campaign info if we haven't done so; otherwise update an existing entity
      */
-    private void registerStoreCampaignIfRequired(ShopifyClientService ps, EWSClientService ews, StoreCampaignEntity cmpEntity)
-            throws Exception {
+    private StoreCampaignEntity registerStoreCampaignIfRequired(ShopifyClientService ps, EWSClientService ews,
+            StoreCampaignEntity cmpEntity) throws Exception {
         StoreCampaignEntity storedEntity = databaseService.findStoreCampaignByGeminiCampaignId(cmpEntity.getCampaignId());
 
         if (storedEntity == null) {
@@ -306,10 +306,12 @@ public class ShopifyOnboardResource {
 
             cmpEntity.setName(decoratedName);
             databaseService.save(cmpEntity);
+            storedEntity = cmpEntity;
         } else if (DatabaseService.copyNonNullProperties(storedEntity, cmpEntity, "name")) {
             // updated an existing campaign record
             databaseService.update(storedEntity);
         }
+        return storedEntity;
     }
 
     /**
