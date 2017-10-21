@@ -1,5 +1,8 @@
 package com.oath.gemini.merchant.ews;
 
+/**
+ * @author tong on 10/1/2017
+ */
 public enum EWSEndpointEnum {
     ADVERTISER("advertiser"),
 
@@ -20,7 +23,20 @@ public enum EWSEndpointEnum {
     private String url = "";
 
     EWSEndpointEnum(String subpath) {
-        url = "https://api.gemini.yahoo.com/v3/rest/" + subpath;
+        this(subpath, 3);
+    }
+
+    EWSEndpointEnum(String subpath, int version) {
+        switch (version) {
+        case 2:
+            url = "https://api.gemini.yahoo.com/v2/rest/" + subpath;
+            break;
+        case 3:
+            url = "https://api.gemini.yahoo.com/v3/rest/" + subpath;
+            break;
+        default:
+            throw new IllegalArgumentException("Unknown EWS API version: " + version + "for " + subpath);
+        }
     }
 
     @Override
