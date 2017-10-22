@@ -4,9 +4,16 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.oath.gemini.merchant.ClosableFTPClient;
 import com.oath.gemini.merchant.cron.QuartzCronAnnotation;
+import com.oath.gemini.merchant.ews.EWSAccessTokenData;
+import com.oath.gemini.merchant.ews.EWSAuthenticationService;
+import com.oath.gemini.merchant.ews.EWSClientService;
+import com.oath.gemini.merchant.ews.EWSEndpointEnum;
+import com.oath.gemini.merchant.ews.EWSResponseData;
+import com.oath.gemini.merchant.ews.json.AdGroupData;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
@@ -46,41 +53,57 @@ import lombok.extern.slf4j.Slf4j;
 public class DatabaseResource {
     @Inject
     DatabaseService databaseService;
-
+    @Inject
+    EWSAuthenticationService ewsAuthService;
     @Inject
     protected SessionFactory sessionFactory;
 
     @GET
     @Path("acct/{id:.*}")
     public List<StoreAcctEntity> listAccounts(@PathParam("id") @DefaultValue("") String id) {
-        return list(StoreAcctEntity.class, id);
+        return listAll(StoreAcctEntity.class, id);
     }
 
     @GET
     @Path("campaign/{id:.*}")
     public List<StoreCampaignEntity> listCampaigns(@PathParam("id") @DefaultValue("") String id) {
-        return list(StoreCampaignEntity.class, id);
+        return listAll(StoreCampaignEntity.class, id);
     }
 
     @PUT
     @Path("campaign/{id}/update")
-    public Response modifyCampaign(@PathParam("id") String id, @Context HttpServletRequest req, StoreCampaignEntity userData) {
-        List<StoreCampaignEntity> campaigns = list(StoreCampaignEntity.class, id);
-
-        if (campaigns == null || campaigns.size() != 1) {
-            return Response.status(Status.BAD_REQUEST).entity("{error: 'Not found or found more than one campaigns'}").build();
+    public Response modifyCampaign(@PathParam("id") String id, @Context HttpServletRequest req, StoreCampaignEntity modifiedStoreCampaign) {
+        StoreCampaignEntity originStoreCampaign = listOne(StoreCampaignEntity.class, id);
+        if (originStoreCampaign == null) {
+            return badRequest("Missing a unique campaigns: ", id);
         }
 
-        StoreCampaignEntity targetEntity = campaigns.get(0);
+        StoreAcctEntity storeAcct = listOne(StoreAcctEntity.class, originStoreCampaign.getStoreAcctId().toString());
+        if (storeAcct == null) {
+            return badRequest("Missing store account for the campaigns: ", id);
+        }
+
+        // Update the corresponding Gemini adgroup first
         try {
-            if (DatabaseService.copyNonNullProperties(targetEntity, userData)) {
-                databaseService.update(targetEntity);
+            modifiedStoreCampaign.setAdgroupId(originStoreCampaign.getAdgroupId());
+            Response status = updateAdGroup(storeAcct.getYahooAccessToken(), modifiedStoreCampaign);
+            if (status.getStatus() != 200) {
+                return status;
+            }
+        } catch (Exception e) {
+            return badRequest("Failed to retrieve EWS token for the campaign: ", id);
+        }
+
+        // Update the store campaign record
+        try {
+            if (DatabaseService.copyNonNullProperties(originStoreCampaign, modifiedStoreCampaign)) {
+                databaseService.update(originStoreCampaign);
             }
         } catch (Exception e) {
             log.error("failed to copy properties", e);
             return Response.status(Status.BAD_REQUEST).entity("{error: 'failed to copy properties'}").build();
         }
-        return Response.ok(targetEntity).build();
+        return Response.ok(originStoreCampaign).build();
     }
 
     /**
@@ -127,11 +150,66 @@ public class DatabaseResource {
         return Response.ok().build();
     }
 
-    private <T> List<T> list(Class<T> entityClass, String id) {
+    private <T> List<T> listAll(Class<T> entityClass, String id) {
         if (StringUtils.isNotBlank(id) && NumberUtils.isDigits(id)) {
             T result = databaseService.findByEntityId(entityClass, Integer.parseInt(id));
             return (result != null ? Arrays.asList(result) : null);
         }
         return databaseService.listAll(entityClass);
     }
+
+    private <T> T listOne(Class<T> entityClass, String id) {
+        List<T> list = listAll(entityClass, id);
+        return (list != null && list.size() == 1 ? list.get(0) : null);
+    }
+
+    private Response badRequest(String... messages) {
+        if (messages != null && messages.length > 0) {
+            StringBuilder sb = new StringBuilder();
+
+            for (String m : messages) {
+                sb.append(m);
+            }
+            Response.status(Status.BAD_REQUEST).entity("{error: '" + sb.toString() + "'}").build();
+        }
+        return Response.status(Status.BAD_REQUEST).build();
+    }
+
+    private Response updateAdGroup(String gRefreshToken, StoreCampaignEntity modifiedStoreCampaign) throws Exception {
+        EWSAccessTokenData tokens = ewsAuthService.getAccessTokenFromRefreshToken(gRefreshToken);
+        EWSClientService ews = new EWSClientService(tokens);
+        EWSResponseData<AdGroupData> adGroupResponse = ews.get(AdGroupData.class, EWSEndpointEnum.ADGROUP_BY_ID,
+                modifiedStoreCampaign.getAdgroupId());
+
+        if (!adGroupResponse.isOk() || adGroupResponse.getObjects() == null || adGroupResponse.getObjects().length != 1) {
+            return badRequest("Failed to retrieve adgroup for the campaign: ", modifiedStoreCampaign.getId().toString());
+        }
+
+        AdGroupData originaldGroupData = adGroupResponse.get(0);
+        AdGroupData modifiedAdGroupData = new AdGroupData();
+
+        if (modifiedStoreCampaign.getStartDate() != null) {
+            modifiedAdGroupData.setStartDateStr(geminiDateFormat.format(modifiedStoreCampaign.getStartDate()));
+        }
+        if (modifiedStoreCampaign.getEndDate() != null) {
+            modifiedAdGroupData.setEndDateStr(geminiDateFormat.format(modifiedStoreCampaign.getEndDate()));
+        }
+        if (modifiedStoreCampaign.getStatus() != null) {
+            modifiedAdGroupData.setStatus(modifiedStoreCampaign.getStatus());
+        }
+        if (modifiedStoreCampaign.getPrice() != null) {
+            // TODO
+        }
+
+        if (DatabaseService.copyNonNullProperties(originaldGroupData, modifiedAdGroupData)) {
+            adGroupResponse = ews.update(AdGroupData.class, originaldGroupData, EWSEndpointEnum.ADGROUP_OPS);
+        }
+
+        if (!adGroupResponse.isOk()) {
+            return badRequest("Failed to update adgroup for the campaign: ", modifiedStoreCampaign.getId().toString());
+        }
+        return Response.ok().build();
+    }
+
+    private static SimpleDateFormat geminiDateFormat = new SimpleDateFormat("yyyy-MM-dd");
 }
