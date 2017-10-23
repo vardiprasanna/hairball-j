@@ -7,6 +7,7 @@ import com.oath.gemini.merchant.ews.EWSEndpointEnum;
 import com.oath.gemini.merchant.ews.EWSResponseData;
 import com.oath.gemini.merchant.ews.json.AdGroupData;
 import com.oath.gemini.merchant.ews.json.AdvertiserData;
+import com.oath.gemini.merchant.ews.json.BidSetArrayData;
 import com.oath.gemini.merchant.ews.json.BidSetData;
 import com.oath.gemini.merchant.ews.json.CampaignData;
 import com.oath.gemini.merchant.ews.json.ProductRule;
@@ -72,7 +73,7 @@ public class Archetype {
         campaignEntity.setAdgroupId(adGroupData.getId());
         campaignEntity.setStartDate(parseTimestamp(adGroupData.getStartDateStr()));
         campaignEntity.setEndDate(parseTimestamp(adGroupData.getEndDateStr()));
-        campaignEntity.setPrice(1.5f /*adGroupData.getEcpaGoal() */);
+        campaignEntity.setPrice(1.5f /* adGroupData.getEcpaGoal() */);
         campaignEntity.setBudget(cmpData.getBudget().floatValue());
         campaignEntity.setStatus(EWSConstant.StatusEnum.ACTIVE);
         return campaignEntity;
@@ -130,12 +131,14 @@ public class Archetype {
         }
         if (adGroupData == null) {
             AdGroupData group = new AdGroupData();
+            BidSetArrayData bidSet = new BidSetArrayData();
             BidSetData bidSetData = new BidSetData();
             LocalDate dateTime = LocalDate.now();
 
             bidSetData.setChannel(EWSConstant.ChannelEnum.NATIVE);
             bidSetData.setPriceType(EWSConstant.PriceTypeEnum.CPC);
             bidSetData.setValue(0.1f); // TODO
+            bidSet.setBids(new BidSetData[] { bidSetData });
 
             group.setStatus(EWSConstant.StatusEnum.ACTIVE);
             group.setStartDateStr(dateTime.format(DateTimeFormatter.ISO_LOCAL_DATE));
@@ -148,7 +151,7 @@ public class Archetype {
             // group.setBiddingStrategy(EWSConstant.BiddingStrategyEnum.OPT_CONVERSION);
             // group.setAdvancedGeoPos(EWSConstant.AdvancedGeoPosEnum.DEFAULT);
             // group.setAdvancedGeoNeg(EWSConstant.AdvancedGeoNegEnum.DEFAULT);
-            group.getBidSet().setBids(new BidSetData[] { bidSetData });
+            group.setBidSet(bidSet);
             adGroupResponse = ews.create(AdGroupData.class, group, EWSEndpointEnum.ADGROUP_OPS);
             adGroupData = adGroupResponse.get(0);
         }

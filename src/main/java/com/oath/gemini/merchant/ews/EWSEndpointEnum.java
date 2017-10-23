@@ -6,7 +6,8 @@ package com.oath.gemini.merchant.ews;
 public enum EWSEndpointEnum {
     ADVERTISER("advertiser"),
 
-    CAMPAIGN_OPS("campaign"), CAMPAIGN_BY_ADVERTISER("campaign/?advertiserId=${0}"),
+    // https://developer.yahoo.com/gemini/guide/campaigns.html
+    CAMPAIGN_OPS("campaign"), CAMPAIGN_BY_ID("campaign/${0}"), CAMPAIGN_BY_ADVERTISER("campaign/?advertiserId=${0}"),
 
     ADGROUP_OPS("adgroup"), ADGROUP_BY_ID("adgroup/${0}"), ADGROUP_BY_CAMPAIGN("adgroup?campaignId=${0}"), ADGROUP_BY_ADVERTISER(
             "adgroup?advertiserId=${0}"),
