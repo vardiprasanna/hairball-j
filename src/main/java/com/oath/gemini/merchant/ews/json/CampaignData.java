@@ -15,6 +15,7 @@ import lombok.Setter;
 
 /**
  * @see https://developer.yahoo.com/gemini/guide/campaigns.html
+ * @author tong on 10/1/2017
  */
 @Getter
 @Setter
@@ -22,10 +23,10 @@ import lombok.Setter;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CampaignData {
     @JsonProperty(required=true)
-    private long id;
+    private Long id;
 
     @JsonProperty(required=true)
-    private long advertiserId;
+    private Long advertiserId;
 
     /**
      * The status of the campaign. Valid values are:

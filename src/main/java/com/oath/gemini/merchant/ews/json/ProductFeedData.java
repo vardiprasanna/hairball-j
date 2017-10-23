@@ -9,16 +9,19 @@ import com.oath.gemini.merchant.ews.EWSConstant.PrdFeedTypeEnum;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * @author tong on 10/1/2017
+ */
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ProductFeedData {
     // It is returned after a feed is uploaded
-    private long id;
+    private Long id;
 
     @JsonProperty(required = true)
-    private long advertiserId;
+    private Long advertiserId;
 
     @JsonProperty(required = true)
     private StatusEnum status = StatusEnum.ACTIVE;

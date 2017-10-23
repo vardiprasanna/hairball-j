@@ -8,6 +8,7 @@ import lombok.Setter;
 
 /**
  * @see https://developer.yahoo.com/gemini/guide/advertiser.html
+ * @author tong on 10/1/2017
  */
 @Getter
 @Setter
@@ -15,7 +16,7 @@ import lombok.Setter;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AdvertiserData {
     @JsonProperty(required = true)
-    private long id;
+    private Long id;
 
     @JsonProperty(value = "advertiserName", required = true)
     private String name;

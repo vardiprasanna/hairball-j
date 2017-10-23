@@ -8,6 +8,9 @@ import com.oath.gemini.merchant.ews.EWSConstant.PrdConditionEnum;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * @author tong on 10/1/2017
+ */
 @Getter
 @Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)

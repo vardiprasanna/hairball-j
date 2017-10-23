@@ -10,6 +10,7 @@ import lombok.Setter;
 
 /**
  * @see https://developer.yahoo.com/gemini/guide/ad.html
+ * @author tong on 10/1/2017
  */
 @Getter
 @Setter
@@ -17,16 +18,16 @@ import lombok.Setter;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AdData {
     @JsonProperty(required=true)
-    private long id;
+    private Long id;
 
     @JsonProperty(required=true)
-    private long adGroupId;
+    private Long adGroupId;
 
     @JsonProperty(required=true)
-    private long campaignId;
+    private Long campaignId;
 
     @JsonProperty(required=true)
-    private long advertiserId;
+    private Long advertiserId;
 
     @JsonProperty(required=true)
     private String adGroupName;

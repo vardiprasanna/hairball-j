@@ -6,6 +6,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * @author tong on 10/1/2017
+ */
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -13,10 +16,10 @@ import lombok.Setter;
 public class ProductRule {
     // The id of the Dot pixel placed on the DPA product page. Required
     @JsonProperty(value = "tagId", required = true)
-    private long pixelId;
+    private Long pixelId;
 
     @JsonProperty(required = true)
-    private long advertiserId;
+    private Long advertiserId;
 
     // Use this to populate the product id in the pixel code. If not specified, it defaults to the product_id. Optional
     private String productIdExtractName = "product_id";

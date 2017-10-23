@@ -10,6 +10,7 @@ import lombok.Setter;
 
 /**
  * @see https://developer.yahoo.com/gemini/guide/ad.html#ad-assets
+ * @author tong on 10/1/2017
  */
 @Getter
 @Setter
@@ -17,7 +18,7 @@ import lombok.Setter;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AdAssetData {
     @JsonProperty(required=true)
-    private long id;
+    private Long id;
 
     @JsonProperty(required=true)
     private StatusEnum status;
@@ -79,5 +80,4 @@ public class AdAssetData {
      * partner that was specified at the campaign level for app installs.
      */
     private String landingUrl;
-
 }

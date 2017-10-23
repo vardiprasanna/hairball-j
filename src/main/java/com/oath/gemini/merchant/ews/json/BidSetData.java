@@ -10,12 +10,13 @@ import lombok.Setter;
 
 /**
  * @see https://developer.yahoo.com/gemini/guide/adgroup.html#bidset-object
+ * @author tong on 10/1/2017
  */
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class BidSetData {
+public class BidSetData implements Comparable<BidSetData> {
     /**
      * The supply channel where the ads will run. Value can be:
      * 
@@ -35,5 +36,29 @@ public class BidSetData {
      * The bid amount. Refer to Data Dictionary to look up currency by type.
      */
     @JsonProperty(required = true)
-    private float value;
+    private Float value;
+
+    @Override
+    public int compareTo(BidSetData o) {
+        if (value == null ^ o.value == null) {
+            return -1;
+        }
+        if (channel == null ^ o.channel == null) {
+            return -1;
+        }
+        if (priceType == null ^ o.priceType == null) {
+            return -1;
+        }
+
+        if (value != null && value.compareTo(o.value) != 0) {
+            return -1;
+        }
+        if (channel != null && channel.compareTo(o.channel) != 0) {
+            return -1;
+        }
+        if (priceType != null && priceType.compareTo(o.priceType) != 0) {
+            return -1;
+        }
+        return 0;
+    }
 }

@@ -13,6 +13,7 @@ import lombok.Setter;
 
 /**
  * @see https://developer.yahoo.com/gemini/guide/adgroup.html
+ * @author tong on 10/1/2017
  */
 @Getter
 @Setter
@@ -21,13 +22,13 @@ import lombok.Setter;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AdGroupData {
     @JsonProperty(required = true)
-    private long id;
+    private Long id;
 
     @JsonProperty(required = true)
-    private long campaignId;
+    private Long campaignId;
 
     @JsonProperty(required = true)
-    private long advertiserId;
+    private Long advertiserId;
 
     @JsonProperty(required = true)
     private String adGroupName;
@@ -38,7 +39,7 @@ public class AdGroupData {
     /**
      * The id of the associate product set.
      */
-    private long productSetId;
+    private Long productSetId;
 
     /**
      * The start date string value of the ad group (in YYYY-mm-dd format) in the timezone of the account. The time will
@@ -59,7 +60,7 @@ public class AdGroupData {
      * Note that bids should fulfill a budget-to-bid ratio of 50:1 for Native campaigns and 1:1 for Search campaigns.
      */
     @JsonProperty(required = true)
-    private BidSetArrayData bidSet = new BidSetArrayData();
+    private BidSetArrayData bidSet;
 
     private AdvancedGeoPosEnum advancedGeoPos;
     private AdvancedGeoNegEnum advancedGeoNeg;
