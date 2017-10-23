@@ -224,7 +224,7 @@ public class DatabaseService {
     /**
      * Copy named properties from source to target except those excluded fields
      */
-    public static boolean copyNonNullProperties(Object targetEntity, Object sourceEntity, String... excludedFields) throws Exception {
+    public static <T> boolean copyNonNullProperties(T targetEntity, T sourceEntity, String... excludedFields) throws Exception {
         List<String> excluded = new ArrayList<>(Arrays.asList("class", "createdDate", "updatedDate", "id"));
 
         if (excludedFields != null) {
@@ -242,8 +242,17 @@ public class DatabaseService {
 
             if (newValue != null && !excluded.contains(propName)) {
                 Object oldValue = PropertyUtils.getProperty(targetEntity, propName);
+                if (oldValue == null) {
+                    continue;
+                }
 
-                if (oldValue != null && !oldValue.equals(newValue)) {
+                boolean isDifferent = false;
+                if (newValue != null && oldValue instanceof Comparable) {
+                    isDifferent = (((Comparable) oldValue).compareTo((Comparable) newValue) != 0);
+                } else {
+                    isDifferent = !oldValue.equals(newValue);
+                }
+                if (isDifferent) {
                     PropertyUtils.setProperty(targetEntity, propName, newValue);
                     isCopied = true;
                 }
