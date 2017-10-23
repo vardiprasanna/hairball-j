@@ -66,6 +66,7 @@ public class Archetype {
         newAd(adGroupData);
 
         StoreCampaignEntity campaignEntity = new StoreCampaignEntity();
+        Float price = adGroupData.getBidSet().getBids()[0].getValue();
 
         campaignEntity.setAdvId(cmpData.getAdvertiserId());
         campaignEntity.setCampaignId(cmpData.getId());
@@ -73,7 +74,7 @@ public class Archetype {
         campaignEntity.setAdgroupId(adGroupData.getId());
         campaignEntity.setStartDate(parseTimestamp(adGroupData.getStartDateStr()));
         campaignEntity.setEndDate(parseTimestamp(adGroupData.getEndDateStr()));
-        campaignEntity.setPrice(1.5f /* adGroupData.getEcpaGoal() */);
+        campaignEntity.setPrice(price);
         campaignEntity.setBudget(cmpData.getBudget().floatValue());
         campaignEntity.setStatus(EWSConstant.StatusEnum.ACTIVE);
         return campaignEntity;
