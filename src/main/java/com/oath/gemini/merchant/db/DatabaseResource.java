@@ -7,10 +7,15 @@ import com.oath.gemini.merchant.cron.QuartzCronAnnotation;
 import com.oath.gemini.merchant.ews.EWSAccessTokenData;
 import com.oath.gemini.merchant.ews.EWSAuthenticationService;
 import com.oath.gemini.merchant.ews.EWSClientService;
+import com.oath.gemini.merchant.ews.EWSConstant;
 import com.oath.gemini.merchant.ews.EWSEndpointEnum;
 import com.oath.gemini.merchant.ews.EWSResponseData;
 import com.oath.gemini.merchant.ews.json.AdGroupData;
+import com.oath.gemini.merchant.ews.json.BidSetArrayData;
+import com.oath.gemini.merchant.ews.json.BidSetData;
+import com.oath.gemini.merchant.ews.json.CampaignData;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
@@ -86,7 +91,9 @@ public class DatabaseResource {
         // Update the corresponding Gemini adgroup first
         try {
             modifiedStoreCampaign.setAdgroupId(originStoreCampaign.getAdgroupId());
+            modifiedStoreCampaign.setCampaignId(originStoreCampaign.getCampaignId());
             Response status = updateAdGroup(storeAcct.getYahooAccessToken(), modifiedStoreCampaign);
+
             if (status.getStatus() != 200) {
                 return status;
             }
@@ -175,17 +182,22 @@ public class DatabaseResource {
         return Response.status(Status.BAD_REQUEST).build();
     }
 
+    /**
+     * Update a Gemini campaign and an adgroup
+     */
     private Response updateAdGroup(String gRefreshToken, StoreCampaignEntity modifiedStoreCampaign) throws Exception {
         EWSAccessTokenData tokens = ewsAuthService.getAccessTokenFromRefreshToken(gRefreshToken);
         EWSClientService ews = new EWSClientService(tokens);
         EWSResponseData<AdGroupData> adGroupResponse = ews.get(AdGroupData.class, EWSEndpointEnum.ADGROUP_BY_ID,
                 modifiedStoreCampaign.getAdgroupId());
+        String campaignIdStr = modifiedStoreCampaign.getCampaignId().toString();
 
         if (!adGroupResponse.isOk() || adGroupResponse.getObjects() == null || adGroupResponse.getObjects().length != 1) {
-            return badRequest("Failed to retrieve adgroup for the campaign: ", modifiedStoreCampaign.getId().toString());
+            return badRequest("Failed to retrieve adgroup for the campaign: ", campaignIdStr);
         }
 
-        AdGroupData originaldGroupData = adGroupResponse.get(0);
+        // Update the adgroup
+        AdGroupData originalGroupData = adGroupResponse.get(0);
         AdGroupData modifiedAdGroupData = new AdGroupData();
 
         if (modifiedStoreCampaign.getStartDate() != null) {
@@ -198,16 +210,45 @@ public class DatabaseResource {
             modifiedAdGroupData.setStatus(modifiedStoreCampaign.getStatus());
         }
         if (modifiedStoreCampaign.getPrice() != null) {
-            // TODO
+            BidSetArrayData bidSet = new BidSetArrayData();
+            BidSetData bidSetData = new BidSetData();
+
+            bidSetData.setChannel(EWSConstant.ChannelEnum.NATIVE);
+            bidSetData.setPriceType(EWSConstant.PriceTypeEnum.CPC);
+            bidSetData.setValue(modifiedStoreCampaign.getPrice());
+            bidSet.setBids(new BidSetData[] { bidSetData });
+            modifiedAdGroupData.setBidSet(bidSet);
         }
 
-        if (DatabaseService.copyNonNullProperties(originaldGroupData, modifiedAdGroupData)) {
-            adGroupResponse = ews.update(AdGroupData.class, originaldGroupData, EWSEndpointEnum.ADGROUP_OPS);
+        if (DatabaseService.copyNonNullProperties(originalGroupData, modifiedAdGroupData)) {
+            adGroupResponse = ews.update(AdGroupData.class, originalGroupData, EWSEndpointEnum.ADGROUP_OPS);
+
+            if (!adGroupResponse.isOk()) {
+                return badRequest("Failed to update adgroup for the campaign: ", campaignIdStr);
+            }
         }
 
-        if (!adGroupResponse.isOk()) {
-            return badRequest("Failed to update adgroup for the campaign: ", modifiedStoreCampaign.getId().toString());
+        // Update the campaign
+        if (modifiedStoreCampaign.getBudget() != null) {
+            EWSResponseData<CampaignData> campaignResponse = ews.get(CampaignData.class, EWSEndpointEnum.CAMPAIGN_BY_ID,
+                    modifiedStoreCampaign.getCampaignId());
+
+            if (!campaignResponse.isOk() || campaignResponse.getObjects() == null || campaignResponse.getObjects().length != 1) {
+                return badRequest("Failed to retrieve the campaign object: ", campaignIdStr);
+            }
+            CampaignData originalCampaignData = campaignResponse.get(0);
+            CampaignData modifiedCampaignData = new CampaignData();
+
+            modifiedCampaignData.setBudget(BigDecimal.valueOf(modifiedStoreCampaign.getBudget().doubleValue()));
+            if (DatabaseService.copyNonNullProperties(originalCampaignData, modifiedCampaignData)) {
+                campaignResponse = ews.update(CampaignData.class, originalCampaignData, EWSEndpointEnum.CAMPAIGN_OPS);
+
+                if (!campaignResponse.isOk()) {
+                    return badRequest("Failed to update the campaign object: ", campaignIdStr);
+                }
+            }
         }
+
         return Response.ok().build();
     }
 
