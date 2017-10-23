@@ -3,6 +3,7 @@ package com.oath.gemini.merchant.db;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.oath.gemini.merchant.ClosableFTPClient;
+import com.oath.gemini.merchant.HttpStatus;
 import com.oath.gemini.merchant.cron.QuartzCronAnnotation;
 import com.oath.gemini.merchant.ews.EWSAccessTokenData;
 import com.oath.gemini.merchant.ews.EWSAuthenticationService;
@@ -98,7 +99,7 @@ public class DatabaseResource {
                 return status;
             }
         } catch (Exception e) {
-            return badRequest("Failed to retrieve EWS token for the campaign: ", id);
+            return badRequest("Failed to retrieve EWS token for the campaign: ", id, e);
         }
 
         // Update the store campaign record
@@ -107,8 +108,7 @@ public class DatabaseResource {
                 databaseService.update(originStoreCampaign);
             }
         } catch (Exception e) {
-            log.error("failed to copy properties", e);
-            return Response.status(Status.BAD_REQUEST).entity("{error: 'failed to copy properties'}").build();
+            return badRequest("failed to copy properties", e);
         }
         return Response.ok(originStoreCampaign).build();
     }
@@ -124,16 +124,14 @@ public class DatabaseResource {
         try {
             path = Files.createTempDirectory("hairball-");
         } catch (Exception e) {
-            log.error("failed to create a temporary database backup dir", e);
-            return Response.serverError().entity("{error: 'failed to create a temporary database backup dir'}").build();
+            return badRequest("failed to create a temporary database backup dir", e);
         }
 
         log.info("back db to temp dir {}", path);
         try {
             databaseService.backup(path.toString());
         } catch (Exception e) {
-            log.error("failed to backup database locally", e);
-            return Response.serverError().entity("{error: 'failed to backup database locally'}").build();
+            return badRequest("failed to backup database locally", e);
         }
 
         try (ClosableFTPClient ftpClient = new ClosableFTPClient(); Stream<java.nio.file.Path> files = Files.list(path)) {
@@ -170,16 +168,31 @@ public class DatabaseResource {
         return (list != null && list.size() == 1 ? list.get(0) : null);
     }
 
-    private Response badRequest(String... messages) {
-        if (messages != null && messages.length > 0) {
-            StringBuilder sb = new StringBuilder();
+    private Response badRequest(String format, Object... params) {
+        return badRequest(Status.BAD_REQUEST.getStatusCode(), null, format, params);
+    }
 
-            for (String m : messages) {
-                sb.append(m);
-            }
-            Response.status(Status.BAD_REQUEST).entity("{error: '" + sb.toString() + "'}").build();
+    private Response badRequest(EWSResponseData<?> response, String format, Object... params) {
+        return badRequest(response.getStatus(), response.getErrors(), format, params);
+    }
+
+    private Response badRequest(int status, String detail, String format, Object... params) {
+        log.error(format, params);
+
+        StringBuilder sb = new StringBuilder(format);
+        HttpStatus error = new HttpStatus();
+
+        for (Object m : params) {
+            sb.append(m);
         }
-        return Response.status(Status.BAD_REQUEST).build();
+
+        error.setStatus(status);
+        error.setBrief(sb.toString());
+
+        if (StringUtils.isNotEmpty(detail)) {
+            error.setMessage(detail);
+        }
+        return Response.status(status).entity(error).build();
     }
 
     /**
@@ -193,7 +206,7 @@ public class DatabaseResource {
         String campaignIdStr = modifiedStoreCampaign.getCampaignId().toString();
 
         if (!adGroupResponse.isOk() || adGroupResponse.getObjects() == null || adGroupResponse.getObjects().length != 1) {
-            return badRequest("Failed to retrieve adgroup for the campaign: ", campaignIdStr);
+            return badRequest(adGroupResponse, "Failed to retrieve adgroup for the campaign: ", campaignIdStr);
         }
 
         // Update the adgroup
@@ -224,7 +237,7 @@ public class DatabaseResource {
             adGroupResponse = ews.update(AdGroupData.class, originalGroupData, EWSEndpointEnum.ADGROUP_OPS);
 
             if (!adGroupResponse.isOk()) {
-                return badRequest("Failed to update adgroup for the campaign: ", campaignIdStr);
+                return badRequest(adGroupResponse, "Failed to update adgroup for the campaign: ", campaignIdStr);
             }
         }
 
@@ -234,7 +247,7 @@ public class DatabaseResource {
                     modifiedStoreCampaign.getCampaignId());
 
             if (!campaignResponse.isOk() || campaignResponse.getObjects() == null || campaignResponse.getObjects().length != 1) {
-                return badRequest("Failed to retrieve the campaign object: ", campaignIdStr);
+                return badRequest(campaignResponse, "Failed to retrieve the campaign object: ", campaignIdStr);
             }
             CampaignData originalCampaignData = campaignResponse.get(0);
             CampaignData modifiedCampaignData = new CampaignData();
@@ -244,7 +257,7 @@ public class DatabaseResource {
                 campaignResponse = ews.update(CampaignData.class, originalCampaignData, EWSEndpointEnum.CAMPAIGN_OPS);
 
                 if (!campaignResponse.isOk()) {
-                    return badRequest("Failed to update the campaign object: ", campaignIdStr);
+                    return badRequest(campaignResponse, "Failed to update the campaign object: ", campaignIdStr);
                 }
             }
         }

@@ -2,6 +2,7 @@ package com.oath.gemini.merchant.ews;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oath.gemini.merchant.ClosableHttpClient;
+import com.oath.gemini.merchant.HttpStatus;
 import java.lang.reflect.Array;
 import java.util.List;
 import java.util.Map;
@@ -68,7 +69,19 @@ public class EWSClientService {
             request.header(HttpHeader.ACCEPT, MediaType.APPLICATION_JSON);
             request.header(HttpHeader.CONTENT_TYPE, MediaType.APPLICATION_JSON);
             request.header(HttpHeader.AUTHORIZATION, "Bearer " + tokens.getAccessToken());
-            Map<String, String> res = httpClient.send(Map.class);
+            Map<String, ?> res = httpClient.send(Map.class);
+
+            // Check an error first
+            if (res != null && res.get("HttpStatus") != null) {
+                HttpStatus httpStatus = (HttpStatus) res.get("HttpStatus");
+
+                if (!httpStatus.isOk()) {
+                    response = new EWSResponseData<>();
+                    response.setErrors(httpStatus.getMessage());
+                    response.setStatus(httpStatus.getStatus());
+                    return response;
+                }
+            }
 
             // Convert a raw response to a list of T objects
             if (res != null && res.get("response") != null) {

@@ -109,7 +109,11 @@ public class ClosableHttpClient extends HttpClient implements Closeable, AutoClo
                         ((HttpStatus) result).setStatus(response.getStatus());
                         ((HttpStatus) result).setMessage(responseBody);
                     } else if (result instanceof Map) {
-                        ((Map<String, Object>) result).put("HttpStatus", new HttpStatus(response.getStatus(), responseBody));
+                        HttpStatus httpStatus = new HttpStatus();
+
+                        httpStatus.setStatus(response.getStatus());
+                        httpStatus.setMessage(responseBody);
+                        ((Map<String, Object>) result).put("HttpStatus", httpStatus);
                     }
                 }
             }

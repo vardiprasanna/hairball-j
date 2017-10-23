@@ -134,7 +134,19 @@
                 url: cmpUrl + "/update",
                 data: JSON.stringify(data),
                 dataType: 'json',
-                contentType: "application/json; charset=utf-8"
+                contentType: "application/json; charset=utf-8",
+                error: function(x) {
+                    let o = JSON.parse(x.responseText);
+                    let display = "";
+
+                    if (o.brief) {
+                        display += o.brief + '\n\n';
+                    }
+                    if (o.message) {
+                        display += o.message;
+                    }
+                    alert(display);
+                }
             });
         });
         $("#status-group").click(function (event) {
