@@ -32,6 +32,7 @@
             vertical-align: middle;
             box-sizing: border-box;
         }
+
         a.toggle_status_off:before {
             font-family: FontAwesome;
             font-size: 35px;
@@ -68,7 +69,8 @@
     <div id="tabs-1">
         <div style="margin-top: 1em; margin-bottom: 3em; vertical-align: middle">
             <span id="status-group">
-                <a id="toggle-status" class="toggle_status_on"><label id="control-toggle-status" class="mr10">Active</label></i></a>
+                <a id="toggle-status" class="toggle_status_on"><label id="control-toggle-status"
+                                                                      class="mr10">Active</label></i></a>
             </span>
         </div>
         <div style="margin: 1em">
@@ -93,10 +95,13 @@
 <script type='text/javascript'>
     const reg = /[?/&;,]?cmp=(.*)[&;,]?$/
     let query = window.location.search;
-    let cid = reg.exec(query);
+    let campaignIds = reg.exec(query);
+    let statusNode = $("#toggle-status > label").contents().filter(function () {
+        return this.nodeType == 3;
+    })[0];
 
-    if (cid && cid.length > 1) {
-        let cmpUrl = "/g/database/campaign/" + cid[1];
+    if (campaignIds && campaignIds.length > 1) {
+        let cmpUrl = "/g/database/campaign/" + campaignIds[1];
         let resetFunc = function () {
             $.get(cmpUrl, function (data) {
                 $("#adgroup_startdate").datepicker("setDate", new Date(data[0].startDate));
@@ -119,7 +124,8 @@
                 budget: $("#campaign_budget").val(),
                 price: $("#adgroup_price").val(),
                 startDate: startDate.toISOString(),
-                endDate: endDate.toISOString()
+                endDate: endDate.toISOString(),
+                status: statusNode.nodeValue.toUpperCase()
             };
 
             /* Send the data using post with element id name and name2*/
@@ -132,16 +138,15 @@
             });
         });
         $("#status-group").click(function (event) {
-            let icon=$("#toggle-status");
-            let txt = $("#toggle-status > label");
-            let status = txt.contents()[0].nodeValue.toUpperCase();
+            let icon = $("#toggle-status");
+            let status = statusNode.nodeValue.toUpperCase();
 
             if (status == 'ACTIVE') {
-                txt.contents()[0].nodeValue = 'Paused';
+                statusNode.nodeValue = 'Paused';
                 icon.removeClass("toggle_status_on");
                 icon.addClass("toggle_status_off");
             } else {
-                txt.contents()[0].nodeValue = 'Active';
+                statusNode.nodeValue = 'Active';
                 icon.removeClass("toggle_status_off");
                 icon.addClass("toggle_status_on");
             }
