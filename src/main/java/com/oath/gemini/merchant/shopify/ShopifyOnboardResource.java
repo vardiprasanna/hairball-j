@@ -254,6 +254,7 @@ public class ShopifyOnboardResource {
         StoreSysEntity storeSysEntity = registerStoreSystemIfRequired();
         EWSResponseData<AdvertiserData> advResponse = ews.get(AdvertiserData.class, EWSEndpointEnum.ADVERTISER);
         String refreshToken = ews.getTokens().getRefreshToken();
+        Long geminiNativeAcctId = advResponse.get(0).getId();
 
         // Check whether this shop already exists
         StoreAcctEntity oldStoreAcct = new StoreAcctEntity();
@@ -262,7 +263,7 @@ public class ShopifyOnboardResource {
         oldStoreAcct.setStoreAccessToken(ps.getAccessToken());
         oldStoreAcct.setYahooAccessToken(refreshToken);
         oldStoreAcct.setStoreNativeAcctId(Long.toString(shop.getId()));
-        oldStoreAcct.setGeminiNativeAcctId((int) advResponse.get(0).getId());
+        oldStoreAcct.setGeminiNativeAcctId(geminiNativeAcctId.intValue());
 
         // Insert or update this shop's account
         oldStoreAcct = databaseService.findByAny(oldStoreAcct);
@@ -276,7 +277,7 @@ public class ShopifyOnboardResource {
             newStoreAcct.setYahooAccessToken(refreshToken);
             newStoreAcct.setStoreSysId(storeSysEntity.getId());
             newStoreAcct.setStoreNativeAcctId(Long.toString(shop.getId()));
-            newStoreAcct.setGeminiNativeAcctId((int) advResponse.get(0).getId());
+            newStoreAcct.setGeminiNativeAcctId(geminiNativeAcctId.intValue());
             newStoreAcct.setPixelId(1234);
             databaseService.save(newStoreAcct);
             return newStoreAcct;
