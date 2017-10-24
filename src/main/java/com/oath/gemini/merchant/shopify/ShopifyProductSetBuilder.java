@@ -34,6 +34,7 @@ public class ShopifyProductSetBuilder {
     private EWSClientService ews;
     private String localFile;
     private String remoteFile;
+    private String shopLink;
 
     public ShopifyProductSetBuilder(ShopifyClientService svc, EWSClientService ews) {
         this.svc = svc;
@@ -42,6 +43,11 @@ public class ShopifyProductSetBuilder {
         String baseName = svc.getShopName();
         localFile = baseName + ".csv";
         remoteFile = "/shopify/" + baseName + ".csv";
+        shopLink = svc.getShop().toLowerCase();
+
+        if (!shopLink.matches("^(http|https)://.*")) {
+            shopLink = "https://" + shopLink;
+        }
     }
 
     /**
@@ -83,7 +89,7 @@ public class ShopifyProductSetBuilder {
                             geminiProduct.setTitle(p.getTitle());
                             geminiProduct.setDescription(p.getDescription());
                             geminiProduct.setImage_link(images[0].getSrc());
-                            geminiProduct.setLink(svc.getShop());
+                            geminiProduct.setLink(shopLink);
                             geminiProduct.setAvailability(PrdAvailabilityEnum.IN_STOCK);
                             geminiProduct.setPrice(Float.toString(variants[0].getPrice()));
                             geminiProduct.setMpn(variants[0].getSku());
