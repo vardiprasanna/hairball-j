@@ -206,14 +206,17 @@ public class DatabaseService {
         }
     }
 
-    public <T> T replaceIfDummy(T entity, String fieldName, String replacingBy) {
+    /**
+     * Allow to replace an entity's field value provided it is null or it contains a "dummy"
+     */
+    public <T> T replaceIfDummyOrBlank(T entity, String fieldName, Object targetValue) {
         try {
             Field field = entity.getClass().getDeclaredField(fieldName);
             field.setAccessible(true);
             Object value = field.get(entity);
 
-            if ((value instanceof String) && ((String) value).contains("dummy")) {
-                field.set(entity, replacingBy);
+            if (value == null || (value instanceof String) && ((String) value).contains("dummy")) {
+                field.set(entity, targetValue);
             }
         } catch (Exception e) {
             // ignored

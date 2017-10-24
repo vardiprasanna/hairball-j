@@ -283,8 +283,9 @@ public class ShopifyOnboardResource {
             return newStoreAcct;
         } else {
             // Only the following fields can be modified
-            databaseService.replaceIfDummy(oldStoreAcct, "name", shop.getName());
-            databaseService.replaceIfDummy(oldStoreAcct, "domain", shop.getDomain());
+            databaseService.replaceIfDummyOrBlank(oldStoreAcct, "name", shop.getName());
+            databaseService.replaceIfDummyOrBlank(oldStoreAcct, "domain", shop.getDomain());
+            databaseService.replaceIfDummyOrBlank(oldStoreAcct, "storeNativeAcctId", Long.toString(shop.getId()));
 
             oldStoreAcct.setEmail(shop.getEmail());
             oldStoreAcct.setStoreAccessToken(ps.getAccessToken());
