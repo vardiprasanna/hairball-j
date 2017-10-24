@@ -2,6 +2,9 @@ package com.oath.gemini.merchant.db;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.oath.gemini.merchant.ClosableFTPClient;
 import com.oath.gemini.merchant.HttpStatus;
 import com.oath.gemini.merchant.cron.QuartzCronAnnotation;
@@ -17,9 +20,11 @@ import com.oath.gemini.merchant.ews.json.BidSetData;
 import com.oath.gemini.merchant.ews.json.CampaignData;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.InetAddress;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
@@ -118,7 +123,7 @@ public class DatabaseResource {
      */
     @GET
     @Path("backup")
-    public Response backup() throws IOException {
+    public Response backup(@Context HttpServletRequest req) throws IOException {
         java.nio.file.Path path = null;
 
         try {
@@ -134,15 +139,24 @@ public class DatabaseResource {
             return badRequest("failed to backup database locally", e);
         }
 
+        List<String> successful = new ArrayList<>();
+        List<String> failure = new ArrayList<>();
+
         try (ClosableFTPClient ftpClient = new ClosableFTPClient(); Stream<java.nio.file.Path> files = Files.list(path)) {
             files.forEach(local -> {
                 try {
-                    String baseName = local.getName(local.getNameCount() - 1).toString();
+                    String prefix = InetAddress.getLocalHost().getHostName();
+                    String baseName = prefix + "__" + local.getName(local.getNameCount() - 1).toString();
                     java.nio.file.Path remoteFile = Paths.get("/backup/", baseName);
+                    failure.add(remoteFile.toString());
 
                     ftpClient.copyTo(local.toString(), remoteFile.toString());
                     log.info("back '{}' to ftp backup folder", local.toString());
                     Files.delete(local);
+
+                    successful.add(remoteFile.toString());
+                    failure.remove(remoteFile.toString());
+
                 } catch (Exception e) {
                     log.error("failed to ftp a local database file '{}'", local, e);
                 }
@@ -152,7 +166,21 @@ public class DatabaseResource {
             Files.delete(path);
         }
 
-        return Response.ok().build();
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode objectNode = mapper.createObjectNode();
+
+        if (successful.size() > 0) {
+            ArrayNode arrayNode = mapper.createArrayNode();
+            successful.stream().forEach(f -> arrayNode.add(f));
+            objectNode.set("successful", arrayNode);
+        }
+        if (failure.size() > 0) {
+            ArrayNode arrayNode = mapper.createArrayNode();
+            successful.stream().forEach(f -> arrayNode.add(f));
+            objectNode.set("failure", arrayNode);
+        }
+
+        return Response.ok(objectNode).build();
     }
 
     private <T> List<T> listAll(Class<T> entityClass, String id) {
