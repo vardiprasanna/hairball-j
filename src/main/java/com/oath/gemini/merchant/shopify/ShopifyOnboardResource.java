@@ -12,6 +12,7 @@ import com.oath.gemini.merchant.ews.EWSClientService;
 import com.oath.gemini.merchant.ews.EWSEndpointEnum;
 import com.oath.gemini.merchant.ews.EWSResponseData;
 import com.oath.gemini.merchant.ews.json.AdvertiserData;
+import com.oath.gemini.merchant.security.SigningService;
 import com.oath.gemini.merchant.shopify.json.ShopifyAccessToken;
 import com.oath.gemini.merchant.shopify.json.ShopifyScriptTagData;
 import com.oath.gemini.merchant.shopify.json.ShopifyShopData;
@@ -52,10 +53,10 @@ import lombok.extern.slf4j.Slf4j;
 public class ShopifyOnboardResource {
     @Inject
     DatabaseService databaseService;
-
+    @Inject
+    SigningService signingService;
     @Inject
     EWSAuthenticationService ewsAuthService;
-
     @Inject
     private Configuration config;
 
@@ -223,8 +224,8 @@ public class ShopifyOnboardResource {
         injectScriptTag(shop, storeAcctEntity);
 
         // All done. Take a user to this application's campaign configuration page such as budget, price, date range, etc
-        String target = config.getString("campaign.setup.url");
-        target = buildQueries("/setup/campaign.html", "cmp", storeCmpEntity.getId().toString(), "_hbews", tokens.getAccessToken());
+        String target = config.getString("campaign.setup.url", "/setup/campaign.html");
+        target = buildQueries(target, "cmp", storeCmpEntity.getId().toString(), "_hbews", tokens.getAccessToken());
 
         return Response.temporaryRedirect(URI.create(target)).build();
     }
