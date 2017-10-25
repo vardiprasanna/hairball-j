@@ -64,7 +64,7 @@
 <div id="root" class="homepage-v3 hero"></div>
 <div id="tabs">
     <ul>
-        <li><a href="#tabs-1">Configuration</a></li>
+        <li><a href="#tabs-1">Gemini Campaign Settings</a></li>
     </ul>
     <div id="tabs-1">
         <div style="margin-top: 1em; margin-bottom: 3em; vertical-align: middle">
@@ -88,8 +88,8 @@
             <input type="hidden" id="adgroup_status"/>
         </div>
     </div>
-    <button id="updateCampaign">Save</button>
-    <button id="restoreCampaign">Reset</button>
+    <button id="updateCampaign">Save changes</button>
+    <button id="restoreCampaign">Discard changes</button>
 </div>
 
 <script type='text/javascript'>
@@ -101,9 +101,12 @@
     })[0];
 
     if (campaignIds && campaignIds.length > 1) {
+        if (query.charAt(0) != '?') {
+            query = '?' + query;
+        }
         let cmpUrl = "/g/database/campaign/" + campaignIds[1];
         let resetFunc = function () {
-            $.get(cmpUrl, function (data) {
+            $.get(cmpUrl + query, function (data) {
                 $("#adgroup_startdate").datepicker("setDate", new Date(data[0].startDate));
                 $("#adgroup_enddate").datepicker("setDate", new Date(data[0].endDate));
                 $("#adgroup_price").val(data[0].price);
@@ -131,7 +134,7 @@
             /* Send the data using post with element id name and name2*/
             $.ajax({
                 type: "PUT",
-                url: cmpUrl + "/update",
+                url: cmpUrl + "/update" + query,
                 data: JSON.stringify(data),
                 dataType: 'json',
                 contentType: "application/json; charset=utf-8",
