@@ -26,6 +26,7 @@ import javax.annotation.Resource;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -144,7 +145,7 @@ public class ShopifyOnboardResource {
             StoreAcctEntity storeAcct = databaseService.findStoreAcctByAccessToken(tokens.getAccessToken());
 
             if (storeAcct != null) {
-                return setupOrRepaireIfRequired(shop, storeAcct.getYahooAccessToken(), storeAcct.getStoreAccessToken());
+                return setupOrRepaireIfRequired(req, shop, storeAcct.getYahooAccessToken(), storeAcct.getStoreAccessToken());
             } else {
                 // Redirect to Yahoo OAuth2 handler for user's Gemini access. Will will be redirected to here when OAuth2 done
                 String requestAuth = config.getString("y.oauth.auth.request.url");
@@ -181,7 +182,7 @@ public class ShopifyOnboardResource {
             // Redirect user to a campaign setup page
             if (tokens != null && tokens.getRefreshToken() != null) {
                 String refreshToken = tokens.getRefreshToken();
-                return setupOrRepaireIfRequired(shop, refreshToken, _mc);
+                return setupOrRepaireIfRequired(req, shop, refreshToken, _mc);
             } else {
                 log.error("invalid EWS authorization code, which could have expired");
                 return Response.status(Status.UNAUTHORIZED).entity("failed to retrieve EWS oAuth token").build();
@@ -195,7 +196,8 @@ public class ShopifyOnboardResource {
     /**
      * Configure a shopper's campaign, product feed if necessary
      */
-    private Response setupOrRepaireIfRequired(String shop, String gRefreshToken, String shopifyRefreshToken) throws Exception {
+    private Response setupOrRepaireIfRequired(HttpServletRequest req, String shop, String gRefreshToken, String shopifyRefreshToken)
+            throws Exception {
 
         // By now, we have both Shopify and Yahoo access tokens. Let's persist this info locally
         ShopifyClientService ps = new ShopifyClientService(shop, shopifyRefreshToken);
@@ -212,7 +214,7 @@ public class ShopifyOnboardResource {
             long productFeedId = feedBuilder.uploadFeedIfRequired(archeType.getAdvertiserId());
 
             // Establish a first campaign if it has never been done so
-            storeCmpEntity = archeType.create();
+            storeCmpEntity = archeType.create(storeAcctEntity);
             storeCmpEntity.setProductFeedId(productFeedId);
 
             // By now, we have configured a DPA campaign and its product feed on Gemini site. Let's persist this info locally
@@ -224,8 +226,13 @@ public class ShopifyOnboardResource {
         injectScriptTag(shop, storeAcctEntity);
 
         // All done. Take a user to this application's campaign configuration page such as budget, price, date range, etc
+        HttpSession session = req.getSession(true);
+        String cmpId = storeCmpEntity.getId().toString();
+        String sig = signingService.sign("h", req.getRemoteHost());
         String target = config.getString("campaign.setup.url", "/setup/campaign.html");
-        target = buildQueries(target, "cmp", storeCmpEntity.getId().toString(), "_hbews", tokens.getAccessToken());
+
+        target = buildQueries(target, "cmp", cmpId, "sig", sig);
+        session.setAttribute("sig", sig);
 
         return Response.temporaryRedirect(URI.create(target)).build();
     }
