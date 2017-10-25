@@ -1,5 +1,6 @@
 package com.oath.gemini.merchant;
 
+import com.oath.gemini.merchant.security.RoleAuthentication;
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.container.DynamicFeature;
 import javax.ws.rs.container.ResourceInfo;
