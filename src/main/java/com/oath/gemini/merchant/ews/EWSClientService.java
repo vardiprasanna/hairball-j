@@ -1,5 +1,6 @@
 package com.oath.gemini.merchant.ews;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oath.gemini.merchant.ClosableHttpClient;
 import com.oath.gemini.merchant.HttpStatus;
@@ -81,6 +82,22 @@ public class EWSClientService {
                     response.setStatus(httpStatus.getStatus());
                     return response;
                 }
+                // ObjectMapper mapper = new ObjectMapper();
+                // JsonNode errorMsg = mapper.readTree(httpStatus.getMessage());
+                //
+                // if (errorMsg.has("errors") && !res.containsKey("errors")) {
+                // res.put("errors", errorMsg.get("errors").toString());
+                // }
+                // if (errorMsg.has("response") && !res.containsKey("response")) {
+                // List<?> obj = mapper.readValue(errorMsg.get("response").toString(), List.class);
+                // res.put("response", obj);
+                // }
+                // if (errorMsg.has("timestamp") && !res.containsKey("timestamp")) {
+                // res.put("timestamp", errorMsg.get("timestamp").toString());
+                // }
+                // if (!res.containsKey("status")) {
+                // res.put("status", httpStatus.getStatus());
+                // }
             }
 
             // Convert a raw response to a list of T objects

@@ -58,7 +58,6 @@ import lombok.extern.slf4j.Slf4j;
 @Resource
 @Produces(MediaType.APPLICATION_JSON)
 @JsonInclude(Include.NON_NULL)
-@RolesAllowed("YBY")
 @Path("database")
 @QuartzCronAnnotation(cron = "db.backup.cron", method = "backup")
 public class DatabaseResource {
@@ -81,6 +80,7 @@ public class DatabaseResource {
         return listAll(StoreCampaignEntity.class, id);
     }
 
+    @RolesAllowed({ "SIG" })
     @PUT
     @Path("campaign/{id}/update")
     public Response modifyCampaign(@PathParam("id") String id, @Context HttpServletRequest req, StoreCampaignEntity modifiedStoreCampaign) {

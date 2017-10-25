@@ -2,28 +2,42 @@ package com.oath.gemini.merchant.security;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.security.Principal;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.annotation.Priority;
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.PreMatching;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Provider;
 import org.apache.commons.lang3.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author tong on 10/1/2017
  */
+@Slf4j
 @Provider
 @PreMatching
 @Priority(Priorities.AUTHORIZATION)
 public class RoleAuthentication implements ContainerRequestFilter {
     private static final Insider insider = new Insider();
+    private static final Pattern regex = Pattern.compile("[?/&;,]?sig=(.*)[&;,]?$");
+
     private ContainerRequestContext requestContext;
+
+    @Context
+    private HttpServletRequest servletRequest;
+    @Inject
+    SigningService signingService;
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
@@ -39,26 +53,62 @@ public class RoleAuthentication implements ContainerRequestFilter {
 
         @Override
         public boolean isUserInRole(String role) {
-            String host = requestContext.getUriInfo().getRequestUri().getHost();
+            String host = servletRequest.getRemoteHost();
 
-            // Local call is allowed
             try {
-                InetAddress addr = InetAddress.getByName(host);
-                if (addr.isAnyLocalAddress() || addr.isLoopbackAddress() || host.equals("localhost")) {
-                    return true;
+                switch (role) {
+                case "localhost":
+                    // Local call is allowed
+                    InetAddress addr = InetAddress.getByName(host);
+
+                    if (addr.isAnyLocalAddress() || addr.isLoopbackAddress() || host.equals("localhost")) {
+                        return true;
+                    }
+                    break;
+
+                case "YBY":
+                    // Yahoo user is permitted
+                    Map<String, Cookie> cookies = requestContext.getCookies();
+                    boolean authorized = cookies.keySet().stream().anyMatch(k -> k.equals("YBY"));
+
+                    if (authorized) {
+                        return true;
+                    }
+                    break;
+
+                case "SIG":
+                    // A same remote host is allowed
+                    String sig = signingService.sign("h", servletRequest.getRemoteHost());
+                    String query = servletRequest.getQueryString();
+                    Matcher matcher = regex.matcher(query);
+                    String clientSig = null;
+
+                    if (matcher.find() && matcher.groupCount() == 1) {
+                        clientSig = matcher.group(1);
+                    }
+                    if (StringUtils.isBlank(clientSig)) {
+                        HttpSession session = servletRequest.getSession();
+                        if (session != null) {
+                            Object val = session.getAttribute("sig");
+                            if (val != null && val instanceof String) {
+                                clientSig = (String) val;
+                            }
+                        }
+                    }
+                    if (sig.equals(clientSig)) {
+                        return true;
+                    }
+                    break;
+
+                default:
+                    log.error("Unknown role: ", role);
                 }
-            } catch (UnknownHostException e) {
+            } catch (Exception e) {
+                log.error("Failed to evaluate the role: {}", role, e);
                 e.printStackTrace();
             }
 
-            // Yahoo user is permitted
-            Map<String, Cookie> cookies = requestContext.getCookies();
-            boolean authorized = cookies.keySet().stream().anyMatch(k -> k.equals("YBY"));
-
-            if (!authorized) {
-                System.err.println("unauthorized from " + host);
-            }
-            return true; // TODO
+            return false;
         }
 
         @Override
