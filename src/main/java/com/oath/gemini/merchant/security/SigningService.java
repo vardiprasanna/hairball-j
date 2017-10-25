@@ -1,11 +1,11 @@
 package com.oath.gemini.merchant.security;
 
-import com.oath.gemini.merchant.AppConfiguration;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import javax.inject.Inject;
 import javax.inject.Singleton;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
@@ -20,8 +20,8 @@ import org.apache.commons.configuration.Configuration;
 public class SigningService {
     private final Mac mac;
 
-    public SigningService() {
-        Configuration config = AppConfiguration.getConfig();
+    @Inject
+    public SigningService(Configuration config) {
         mac = initMac(config.getString("y.oauth.secret.id"));
     }
 

@@ -23,7 +23,7 @@ public class AppInjectionBinder extends AbstractBinder {
     protected void configure() {
         // singleton binding
         bind(AppConfiguration.getConfig()).to(Configuration.class);
-        bind(SigningService.class);
+        bind(SigningService.class).to(SigningService.class);
         bind(sessionFactory).to(SessionFactory.class);
         bind(DatabaseService.class).to(DatabaseService.class);
         bind(EWSAuthenticationService.class).to(EWSAuthenticationService.class);
