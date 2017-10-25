@@ -1,5 +1,6 @@
 package com.oath.gemini.merchant;
 
+import com.oath.gemini.merchant.db.StoreAcctEntity;
 import com.oath.gemini.merchant.db.StoreCampaignEntity;
 import com.oath.gemini.merchant.ews.EWSClientService;
 import com.oath.gemini.merchant.ews.EWSConstant;
@@ -49,7 +50,7 @@ public class Archetype {
     /**
      * Initialize a new campaign
      */
-    public StoreCampaignEntity create() throws Exception {
+    public StoreCampaignEntity create(StoreAcctEntity acctEntity) throws Exception {
         // Initiate a campaign if a specific one does not exist
         CampaignData cmpData = newCampaign();
 
@@ -57,7 +58,7 @@ public class Archetype {
         ProductSetData pset = newProductSet();
 
         // Initiate a product rule
-        newProductRule();
+        newProductRule(acctEntity);
 
         // Initiate an ad group if does not exist
         AdGroupData adGroupData = newAdGroup(cmpData, pset);
@@ -179,24 +180,21 @@ public class Archetype {
         return psetResponse.get(0);
     }
 
-    private ProductRule newProductRule() throws Exception {
+    private ProductRule newProductRule(StoreAcctEntity acctEntity) throws Exception {
+        EWSResponseData<ProductRule> psetResponse = null;
+
         try {
-            EWSResponseData<ProductRule> psetResponse = null;
-
-            try {
-                ProductRule[] rule = { new ProductRule() };
-
-                rule[0].setPixelId(10039241L); // TODO: a hard-coded pixel id
-                rule[0].setAdvertiserId(advertiserId);
-                psetResponse = ews.create(ProductRule.class, rule, EWSEndpointEnum.PRODUCT_RULE_OPS);
-            } catch (Exception e) {
-                return null;
-            }
-
-            return psetResponse.get(0);
+            ProductRule[] rule = { new ProductRule() };
+            rule[0].setPixelId(acctEntity.getPixelId().longValue());
+            rule[0].setAdvertiserId(advertiserId);
+            psetResponse = ews.create(ProductRule.class, rule, EWSEndpointEnum.PRODUCT_RULE_OPS);
         } catch (Exception e) {
-
+            return null;
         }
-        return null;
+        if (!psetResponse.isOk()) {
+            return null;
+        }
+
+        return psetResponse.get(0);
     }
 }
