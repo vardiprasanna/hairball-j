@@ -299,7 +299,6 @@
         <pom.shopify.api.key>62928398fafea63bad905e52e8410079</pom.shopify.api.key>
         <pom.y.oauth.secret.id>be993f12ec0859c1ae70152f933bd9e0e185ae1b</pom.y.oauth.secret.id>
         <pom.y.oauth.client.id>dj0yJmk9Vm01WTdJd01vS3ZSJmQ9WVdrOU1sZGhNbWxtTldNbWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmeD1iMw--</pom.y.oauth.client.id>
-        <pom.campaign.setup.url>https://${pom.app.host}/setup/campaign.html</pom.campaign.setup.url>
         <pom.db.backup.cron>0 0 0 1/1 * ? *</pom.db.backup.cron>
         <pom.log.level>WARN</pom.log.level>
       </properties>
@@ -323,7 +322,6 @@
         <pom.app.host>hairball.herokuapp.com</pom.app.host>
         <pom.shopify.secret.key>f2280639664b0d205f9c1c731980538f</pom.shopify.secret.key>
         <pom.shopify.api.key>92067f220643e535e3cbc65259f65683</pom.shopify.api.key>
-        <pom.campaign.setup.url>http://localhost:4080/setup/campaign.html</pom.campaign.setup.url>
         <pom.y.oauth.secret.id>0b596571b0ba8eba179cfa91551a19e40379c8a8</pom.y.oauth.secret.id>
         <pom.y.oauth.client.id>dj0yJmk9NEJVRHRaRnpWa09SJmQ9WVdrOVREQktiREUzTjJrbWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmeD1iYQ--</pom.y.oauth.client.id>
         <pom.db.backup.cron>0 0 0 1 1 ? *</pom.db.backup.cron>
