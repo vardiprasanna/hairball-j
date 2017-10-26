@@ -79,25 +79,23 @@ public class RoleAuthentication implements ContainerRequestFilter {
                 case "SIG":
                     // A same remote host is allowed
                     HttpSession session = servletRequest.getSession();
-                    String query = servletRequest.getQueryString();
-                    Matcher matcher = regex.matcher(query);
-                    String clientSig = null;
-
-                    if (matcher.find() && matcher.groupCount() == 1) {
-                        clientSig = matcher.group(1);
-                    }
-                    if (StringUtils.isBlank(clientSig)) {
-                        break;
-                    }
                     if (session == null) {
                         break;
                     }
 
+                    String query = servletRequest.getQueryString();
+                    Matcher matcher = regex.matcher(query);
+                    if (!matcher.find() || matcher.groupCount() != 1) {
+                        break;
+                    }
+
+                    String clientSig = matcher.group(1);
                     Object sig = session.getAttribute("sig");
-                    System.err.println("client/sig: " + clientSig + " #### " + sig);
                     if (clientSig.equals(sig)) {
                         return true;
                     }
+                    log.error("sig / client sig does not match from request: ", servletRequest.getRequestURI());
+                    System.err.println("sig / client sig does not match from request: " + servletRequest.getRequestURI());
                     break;
 
                 default:
