@@ -138,18 +138,30 @@
                 data: JSON.stringify(data),
                 dataType: 'json',
                 contentType: "application/json; charset=utf-8",
-                success: function() {
+                success: function () {
                     alert("Your campaign has been updated!");
                 },
-                error: function(x) {
-                    let o = JSON.parse(x.responseText);
+                error: function (x, textStatus, errorThrown) {
                     let display = "";
 
-                    if (o.brief) {
-                        display += o.brief + '\n\n';
+                    try {
+                        let o = JSON.parse(x.responseText);
+                        if (o.brief) {
+                            display += o.brief + '\n\n';
+                        }
+                        if (o.message) {
+                            display += o.message;
+                        }
+                    } catch (err) {
+                        /* ignored */
                     }
-                    if (o.message) {
-                        display += o.message;
+                    if (display == "") {
+                        if (textStatus) {
+                            display = textStatus + ': ' + x.status + ' - ';
+                        }
+                        if (errorThrown) {
+                            display += errorThrown;
+                        }
                     }
                     alert(display);
                 }

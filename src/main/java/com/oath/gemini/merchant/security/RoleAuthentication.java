@@ -86,7 +86,11 @@ public class RoleAuthentication implements ContainerRequestFilter {
                     if (matcher.find() && matcher.groupCount() == 1) {
                         clientSig = matcher.group(1);
                     }
+                    System.err.format("client query: {}, sig: {}", query, clientSig);
                     if (StringUtils.isBlank(clientSig)) {
+                        System.err.println("host: " + servletRequest.getRemoteHost());
+                        System.err.println("sig/client sig: " + sig + "      blank");
+
                         HttpSession session = servletRequest.getSession();
                         if (session != null) {
                             Object val = session.getAttribute("sig");
@@ -97,6 +101,10 @@ public class RoleAuthentication implements ContainerRequestFilter {
                     }
                     if (sig.equals(clientSig)) {
                         return true;
+                    } else {
+                        System.err.println("host: " + servletRequest.getRemoteHost());
+                        System.err.println("sig/client sig: " + sig + "      " + clientSig);
+
                     }
                     break;
 
@@ -108,6 +116,7 @@ public class RoleAuthentication implements ContainerRequestFilter {
                 e.printStackTrace();
             }
 
+            System.err.println("unauthorized from " + host);
             return false;
         }
 
