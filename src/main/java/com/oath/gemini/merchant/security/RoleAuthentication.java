@@ -78,7 +78,7 @@ public class RoleAuthentication implements ContainerRequestFilter {
 
                 case "SIG":
                     // A same remote host is allowed
-                    String sig = signingService.sign("h", servletRequest.getRemoteHost());
+                    HttpSession session = servletRequest.getSession();
                     String query = servletRequest.getQueryString();
                     Matcher matcher = regex.matcher(query);
                     String clientSig = null;
@@ -86,25 +86,17 @@ public class RoleAuthentication implements ContainerRequestFilter {
                     if (matcher.find() && matcher.groupCount() == 1) {
                         clientSig = matcher.group(1);
                     }
-                    System.err.format("client query: {}, sig: {}", query, clientSig);
                     if (StringUtils.isBlank(clientSig)) {
-                        System.err.println("host: " + servletRequest.getRemoteHost());
-                        System.err.println("sig/client sig: " + sig + "      blank");
-
-                        HttpSession session = servletRequest.getSession();
-                        if (session != null) {
-                            Object val = session.getAttribute("sig");
-                            if (val != null && val instanceof String) {
-                                clientSig = (String) val;
-                            }
-                        }
+                        break;
                     }
-                    if (sig.equals(clientSig)) {
-                        return true;
-                    } else {
-                        System.err.println("host: " + servletRequest.getRemoteHost());
-                        System.err.println("sig/client sig: " + sig + "      " + clientSig);
+                    if (session == null) {
+                        break;
+                    }
 
+                    Object sig = session.getAttribute("sig");
+                    System.err.println("client/sig: " + clientSig + " #### " + sig);
+                    if (clientSig.equals(sig)) {
+                        return true;
                     }
                     break;
 
