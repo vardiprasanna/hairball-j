@@ -80,7 +80,7 @@ public class DatabaseResource {
         return listAll(StoreCampaignEntity.class, id);
     }
 
-    @RolesAllowed({ "SIG" })
+    @RolesAllowed({ "SIG", "YBY", "localhost" })
     @PUT
     @Path("campaign/{id}/update")
     public Response modifyCampaign(@PathParam("id") String id, @Context HttpServletRequest req, StoreCampaignEntity modifiedStoreCampaign) {
