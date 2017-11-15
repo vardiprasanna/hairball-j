@@ -10,14 +10,16 @@ public enum ShopifyEndpointEnum {
 
     SHOPIFY_REQUEST_ACCESS("oauth/authorize"),
 
-    SHOPIFY_APPS_PAGE("apps"),
+    SHOPIFY_STORE_ACCESS("storefront_access_tokens/${0}.json"),
+
+    SHOPIFY_STORE_ACCESS_ALL("storefront_access_tokens.json"),
 
     SHOPIFY_PROD_COUNT("products/count.json"),
 
     SHOPIFY_PROD_ALL("products.json"),
-    
+
     SHOPIFY_PROD_IMAGES("products/${0}/images.json"),
-    
+
     SHOPIFY_PROD_VARIANTS("products/${0}/variants.json"),
 
     SHOPIFY_SCRIPT_TAG("script_tags.json"),
@@ -25,7 +27,7 @@ public enum ShopifyEndpointEnum {
     SHOPIFY_SCRIPT_TAG_ALL("script_tags.json"),
 
     SHOPIFY_SCRIPT_TAG_OPS("script_tags/${0}.json"),
-    
+
     SHOPIFY_PROD_LISTING("product_listings.json"),
 
     SHOPIFY_PROD_FEED("https://${0}/collections/", "all.atom");
