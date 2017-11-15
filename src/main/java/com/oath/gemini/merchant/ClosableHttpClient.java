@@ -2,6 +2,7 @@ package com.oath.gemini.merchant;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import java.io.Closeable;
@@ -60,7 +61,7 @@ public class ClosableHttpClient extends HttpClient implements Closeable, AutoClo
                 stringContent = (String) content;
                 provider = new StringContentProvider(stringContent);
             } else {
-                ObjectMapper mapper = new ObjectMapper();
+                ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
                 ObjectWriter writer = mapper.writerFor(content.getClass());
                 stringContent = writer.writeValueAsString(content);
 
@@ -89,7 +90,7 @@ public class ClosableHttpClient extends HttpClient implements Closeable, AutoClo
 
             // Process a response
             if (!String.class.isAssignableFrom(responseType)) {
-                ObjectMapper mapper = new ObjectMapper();
+                ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
                 if (responseType.isArray()) {
                     result = (T) convertToArray(mapper, responseType, responseBody);

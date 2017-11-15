@@ -1,6 +1,6 @@
 package com.oath.gemini.merchant.ews;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oath.gemini.merchant.ClosableHttpClient;
 import com.oath.gemini.merchant.HttpStatus;
@@ -82,7 +82,7 @@ public class EWSClientService {
                     response.setStatus(httpStatus.getStatus());
                     return response;
                 }
-                // ObjectMapper mapper = new ObjectMapper();
+                // ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
                 // JsonNode errorMsg = mapper.readTree(httpStatus.getMessage());
                 //
                 // if (errorMsg.has("errors") && !res.containsKey("errors")) {
@@ -102,7 +102,7 @@ public class EWSClientService {
 
             // Convert a raw response to a list of T objects
             if (res != null && res.get("response") != null) {
-                ObjectMapper mapper = new ObjectMapper();
+                ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
                 Object rawResponse = res.get("response");
                 T[] ewsObjects = null;
 
