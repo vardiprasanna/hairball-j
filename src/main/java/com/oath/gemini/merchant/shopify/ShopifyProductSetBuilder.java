@@ -126,7 +126,7 @@ public class ShopifyProductSetBuilder {
         productFeeds = ews.get(ProductFeedData.class, EWSEndpointEnum.PRODUCT_FEED_BY_ADVERTISER, advertiserId);
         if (productFeeds != null && productFeeds.isOk()) {
             for (ProductFeedData fs : productFeeds.getObjects()) {
-                if (fs.getStatus() == StatusEnum.ACTIVE) {
+                if (fs.getStatus() == StatusEnum.ACTIVE && fs.getFileName().equals(remoteFile)) {
                     return productFeeds.get(0).getId();
                 }
             }
