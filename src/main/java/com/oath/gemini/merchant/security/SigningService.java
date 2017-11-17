@@ -25,7 +25,7 @@ public class SigningService {
         mac = initMac(config.getString("y.oauth.secret.id"));
     }
 
-    public Mac initMac(String secretKey) {
+    private Mac initMac(String secretKey) {
         try {
             SecretKeySpec keySpec = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
             Mac mac = Mac.getInstance("HmacSHA256");
@@ -48,7 +48,7 @@ public class SigningService {
     /**
      * Generate a hash string by using a custom Mac
      */
-    public String sign(Mac mac, String... pairs) throws NoSuchAlgorithmException, InvalidKeyException, DecoderException {
+    private String sign(Mac mac, String... pairs) throws NoSuchAlgorithmException, InvalidKeyException, DecoderException {
         // prepare message - the order of the input strings is sensitive when does comparison
         StringBuilder msg = new StringBuilder();
         for (String p : pairs) {
