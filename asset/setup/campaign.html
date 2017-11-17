@@ -93,7 +93,7 @@
 </div>
 
 <script type='text/javascript'>
-    const reg = /[?/&;,]?cmp=(.*)[&;,]?$/
+    const reg = /[?/&;,]?cmp=([0-9]+)[&;,]?.*$/
     let query = window.location.search;
     let campaignIds = reg.exec(query);
     let statusNode = $("#toggle-status > label").contents().filter(function () {
