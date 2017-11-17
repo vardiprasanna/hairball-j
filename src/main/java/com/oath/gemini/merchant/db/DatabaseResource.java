@@ -69,14 +69,14 @@ public class DatabaseResource {
     @Inject
     protected SessionFactory sessionFactory;
 
-    @RolesAllowed({ "YBY", "localhost" })
+    @RolesAllowed({ "SIG", "YBY", "localhost" })
     @GET
     @Path("acct/{id:.*}")
     public List<StoreAcctEntity> listAccounts(@PathParam("id") @DefaultValue("") String id) {
         return listAll(StoreAcctEntity.class, id);
     }
 
-    @RolesAllowed({ "YBY", "localhost" })
+    @RolesAllowed({ "SIG", "YBY", "localhost" })
     @GET
     @Path("campaign/{id:.*}")
     public List<StoreCampaignEntity> listCampaigns(@PathParam("id") @DefaultValue("") String id) {
