@@ -10,9 +10,9 @@ public enum ShopifyEndpointEnum {
 
     SHOPIFY_REQUEST_ACCESS("oauth/authorize"),
 
-    SHOPIFY_STORE_ACCESS("storefront_access_tokens/${0}.json"),
+    SHOPIFY_UI_TOKEN("storefront_access_tokens/${0}.json"),
 
-    SHOPIFY_STORE_ACCESS_ALL("storefront_access_tokens.json"),
+    SHOPIFY_UI_TOKEN_ALL("storefront_access_tokens.json"),
 
     SHOPIFY_PROD_COUNT("products/count.json"),
 

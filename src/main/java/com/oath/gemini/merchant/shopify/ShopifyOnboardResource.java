@@ -16,6 +16,8 @@ import com.oath.gemini.merchant.security.SigningService;
 import com.oath.gemini.merchant.shopify.json.ShopifyAccessToken;
 import com.oath.gemini.merchant.shopify.json.ShopifyScriptTagData;
 import com.oath.gemini.merchant.shopify.json.ShopifyShopData;
+import com.oath.gemini.merchant.shopify.json.ShopifyStoreFrontTokenData;
+import com.oath.gemini.merchant.shopify.json.ShopifyStoreFrontTokensData;
 import com.oath.gemini.merchant.shopify.json.ShopifyTokenRequestData;
 import com.oath.gemini.merchant.shopify.json.Tag;
 import java.net.MalformedURLException;
@@ -112,7 +114,7 @@ public class ShopifyOnboardResource {
     @Path("home")
     public Response home(@Context HttpServletRequest req, @QueryParam("hmac") String hmac, @QueryParam("shop") String shop,
             @QueryParam("timestamp") String ts, @QueryParam("code") String code, @QueryParam("state") String state,
-            @DefaultValue("") @QueryParam("_refresh") String _refresh, @DefaultValue("") @QueryParam("_mc") String _mc) {
+            @DefaultValue("") @QueryParam("_refresh") String _refresh) {
 
         // Verify the signature of the call
         try {
@@ -222,7 +224,7 @@ public class ShopifyOnboardResource {
             storeCmpEntity = registerStoreCampaignIfRequired(ps, ews, storeCmpEntity);
         }
 
-        // Inject or modify a dot pixel to tracke user's product events
+        // Inject or modify a dot pixel to track user's product events
         injectScriptTag(shop, storeAcctEntity);
 
         // All done. Take a user to this application's campaign configuration page such as budget, price, date range, etc
@@ -235,6 +237,30 @@ public class ShopifyOnboardResource {
         session.setAttribute("sig", sig);
 
         return Response.temporaryRedirect(URI.create(target)).build();
+    }
+
+    /**
+     * Create if necessary, and then fetch a store-front (UI) token, which is intended to learn the navigation of products
+     */
+    private String retrieveStoreFrontToken(ShopifyClientService ps) throws Exception {
+        ShopifyStoreFrontTokensData[] storeFrontTokens = ps.get(ShopifyStoreFrontTokensData[].class,
+                ShopifyEndpointEnum.SHOPIFY_UI_TOKEN_ALL);
+
+        if (storeFrontTokens != null && storeFrontTokens.length > 0) {
+            for (ShopifyStoreFrontTokensData t : storeFrontTokens) {
+                if (t.getScope().contains("unauthenticated_read_collection_listings")
+                        && t.getScope().contains("unauthenticated_read_product_listings")) {
+                    return t.getAccessToken();
+                }
+            }
+        }
+
+        // Create an anonymous public access token
+        ShopifyStoreFrontTokenData newToken = new ShopifyStoreFrontTokenData();
+
+        newToken.setTitle("hairball");
+        newToken = ps.post(ShopifyStoreFrontTokenData.class, newToken, ShopifyEndpointEnum.SHOPIFY_UI_TOKEN_ALL);
+        return newToken.getAccessToken();
     }
 
     /**
