@@ -80,12 +80,16 @@ public class RoleAuthentication implements ContainerRequestFilter {
                     // A same remote host is allowed
                     HttpSession session = servletRequest.getSession();
                     if (session == null) {
+                        log.error("failed to verify the signature due to lack of session");
+                        System.err.println("failed to verify the signature due to lack of session");
                         break;
                     }
 
                     String query = servletRequest.getQueryString();
                     Matcher matcher = regex.matcher(query);
                     if (!matcher.find() || matcher.groupCount() != 1) {
+                        log.error("failed to verify the signature because unable to match: {}", query);
+                        System.err.println("failed to verify the signature because unable to match: " + query);
                         break;
                     }
 
