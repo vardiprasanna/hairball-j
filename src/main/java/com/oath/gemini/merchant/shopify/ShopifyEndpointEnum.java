@@ -30,7 +30,9 @@ public enum ShopifyEndpointEnum {
 
     SHOPIFY_PROD_LISTING("product_listings.json"),
 
-    SHOPIFY_PROD_FEED("https://${0}/collections/", "all.atom");
+    SHOPIFY_PROD_FEED("https://${0}/collections/", "all.atom"),
+
+    SHOPIFY_WEBHOOK_ALL("webhooks.json");
     private String url = "";
 
     ShopifyEndpointEnum(String subpath) {
