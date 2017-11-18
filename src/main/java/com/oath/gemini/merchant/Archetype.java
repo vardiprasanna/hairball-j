@@ -11,7 +11,7 @@ import com.oath.gemini.merchant.ews.json.AdvertiserData;
 import com.oath.gemini.merchant.ews.json.BidSetArrayData;
 import com.oath.gemini.merchant.ews.json.BidSetData;
 import com.oath.gemini.merchant.ews.json.CampaignData;
-import com.oath.gemini.merchant.ews.json.ProductRule;
+import com.oath.gemini.merchant.ews.json.ProductRuleData;
 import com.oath.gemini.merchant.ews.json.ProductSetData;
 import com.oath.gemini.merchant.shopify.ShopifyClientService;
 import java.math.BigDecimal;
@@ -180,14 +180,14 @@ public class Archetype {
         return psetResponse.get(0);
     }
 
-    private ProductRule newProductRule(StoreAcctEntity acctEntity) throws Exception {
-        EWSResponseData<ProductRule> psetResponse = null;
+    private ProductRuleData newProductRule(StoreAcctEntity acctEntity) throws Exception {
+        EWSResponseData<ProductRuleData> psetResponse = null;
 
         try {
-            ProductRule[] rule = { new ProductRule() };
+            ProductRuleData[] rule = { new ProductRuleData() };
             rule[0].setPixelId(acctEntity.getPixelId().longValue());
             rule[0].setAdvertiserId(advertiserId);
-            psetResponse = ews.create(ProductRule.class, rule, EWSEndpointEnum.PRODUCT_RULE_OPS);
+            psetResponse = ews.create(ProductRuleData.class, rule, EWSEndpointEnum.PRODUCT_RULE_OPS);
         } catch (Exception e) {
             return null;
         }
