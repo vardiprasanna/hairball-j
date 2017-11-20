@@ -35,8 +35,9 @@ public class HttpUtils {
             byte[] bytes = new byte[1000];
             int len = reader.readLine(bytes, 0, bytes.length);
 
-            if (len > 0) {
+            while (len > 0) {
                 buf.append(new String(bytes, 0, len));
+                len = reader.readLine(bytes, 0, bytes.length);
             }
         } catch (Exception e) {
             buf.append("content error: " + e.toString());
