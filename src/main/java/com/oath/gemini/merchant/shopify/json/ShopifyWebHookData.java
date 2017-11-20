@@ -9,12 +9,15 @@ import lombok.Setter;
 /**
  * @author tong 10/1/2017
  */
-@Getter
-@Setter
 @JsonTypeName(value = "webhook")
 @JsonTypeInfo(include = JsonTypeInfo.As.WRAPPER_OBJECT, use = JsonTypeInfo.Id.NAME)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ShopifyWebHookData {
+public class ShopifyWebHookData extends WebHook {
+}
+
+@Getter
+@Setter
+class WebHook {
     private String topic;
     private String address;
     private String format = "json";
