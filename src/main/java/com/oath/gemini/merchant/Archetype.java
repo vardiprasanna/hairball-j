@@ -1,9 +1,11 @@
 package com.oath.gemini.merchant;
 
+import com.oath.gemini.merchant.db.DatabaseService;
 import com.oath.gemini.merchant.db.StoreAcctEntity;
 import com.oath.gemini.merchant.db.StoreCampaignEntity;
 import com.oath.gemini.merchant.ews.EWSClientService;
 import com.oath.gemini.merchant.ews.EWSConstant;
+import com.oath.gemini.merchant.ews.EWSConstant.StatusEnum;
 import com.oath.gemini.merchant.ews.EWSEndpointEnum;
 import com.oath.gemini.merchant.ews.EWSResponseData;
 import com.oath.gemini.merchant.ews.json.AdGroupData;
@@ -11,6 +13,7 @@ import com.oath.gemini.merchant.ews.json.AdvertiserData;
 import com.oath.gemini.merchant.ews.json.BidSetArrayData;
 import com.oath.gemini.merchant.ews.json.BidSetData;
 import com.oath.gemini.merchant.ews.json.CampaignData;
+import com.oath.gemini.merchant.ews.json.ProductFeedData;
 import com.oath.gemini.merchant.ews.json.ProductRuleData;
 import com.oath.gemini.merchant.ews.json.ProductSetData;
 import com.oath.gemini.merchant.shopify.ShopifyClientService;
@@ -19,6 +22,8 @@ import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+import org.apache.commons.collections4.CollectionUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,14 +32,16 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class Archetype {
+    private DatabaseService databaseService;
     private EWSClientService ews;
     private String entityAutoGenName;
 
     @Getter
     private long advertiserId;
 
-    public Archetype(ShopifyClientService svc, EWSClientService ews) throws Exception {
+    public Archetype(ShopifyClientService svc, EWSClientService ews, DatabaseService ds) throws Exception {
         this.ews = ews;
+        this.databaseService = ds;
         EWSResponseData<AdvertiserData> advResponse = ews.get(AdvertiserData.class, EWSEndpointEnum.ADVERTISER);
 
         if (EWSResponseData.isEmpty(advResponse)) {
@@ -63,9 +70,6 @@ public class Archetype {
         // Initiate an ad group if does not exist
         AdGroupData adGroupData = newAdGroup(cmpData, pset);
 
-        // Initiate a product ad if does not exist
-        newAd(adGroupData);
-
         StoreCampaignEntity campaignEntity = new StoreCampaignEntity();
         Float price = adGroupData.getBidSet().getBids()[0].getValue();
 
@@ -79,6 +83,92 @@ public class Archetype {
         campaignEntity.setBudget(cmpData.getBudget().floatValue());
         campaignEntity.setStatus(EWSConstant.StatusEnum.ACTIVE);
         return campaignEntity;
+    }
+
+    /**
+     * Sunset a shop owner after it uninstalls our app
+     */
+    public void tearDown(StoreAcctEntity acctEntity) throws Exception {
+        StoreCampaignEntity cmpEntity = new StoreCampaignEntity();
+        cmpEntity.setStoreAcctId(acctEntity.getId());
+        cmpEntity.setStatus(StatusEnum.ACTIVE);
+
+        List<StoreCampaignEntity> cmpEntities = databaseService.findAllByAny(cmpEntity);
+        if (CollectionUtils.isEmpty(cmpEntities)) {
+            log.warn("No active campaign found for shop {}", acctEntity.getDomain());
+        }
+
+        for (StoreCampaignEntity sce : cmpEntities) {
+            if (tearAdGroup(sce.getAdgroupId()) == null) {
+                continue;
+            }
+            if (tearCampaign(sce.getCampaignId()) == null) {
+                continue;
+            }
+            tearProductFeed(sce.getProductFeedId());
+            
+            sce.setStatus(StatusEnum.PAUSED);
+            databaseService.update(sce);
+        }
+    }
+
+    /**
+     * Deactivate a Gemini campaign
+     */
+    private CampaignData tearCampaign(long cmpId) throws Exception {
+        EWSResponseData<CampaignData> campaignResponse = ews.get(CampaignData.class, EWSEndpointEnum.CAMPAIGN_BY_ID, cmpId);
+
+        if (!campaignResponse.isOk() || campaignResponse.getObjects() == null || campaignResponse.getObjects().length != 1) {
+            log.error("Failed to find a campaign for advid={}, campaign={}", advertiserId, cmpId);
+            return null;
+        }
+
+        CampaignData cmpData = campaignResponse.get(0);
+
+        if (cmpData.getStatus() != StatusEnum.DELETED) {
+            cmpData.setStatus(StatusEnum.DELETED);
+            campaignResponse = ews.update(CampaignData.class, cmpData, EWSEndpointEnum.ADGROUP_OPS);
+
+            if (!campaignResponse.isOk()) {
+                log.error("Failed to deactivate a campaign for advid={}, campaign={}", advertiserId, cmpId);
+                return null;
+            }
+            cmpData = campaignResponse.get(0);
+        }
+        return cmpData;
+    }
+
+    /**
+     * Deactivate a Gemini adgroup
+     */
+    private AdGroupData tearAdGroup(long adgroupId) throws Exception {
+        EWSResponseData<AdGroupData> adGroupResponse = ews.get(AdGroupData.class, EWSEndpointEnum.ADGROUP_BY_ID, adgroupId);
+
+        if (!adGroupResponse.isOk() || adGroupResponse.getObjects() == null || adGroupResponse.getObjects().length != 1) {
+            log.error("Failed to find an ad group for advid={}, adgroupd={}", advertiserId, adgroupId);
+            return null;
+        }
+
+        AdGroupData adGroupData = adGroupResponse.get(0);
+
+        if (adGroupData.getStatus() != StatusEnum.DELETED) {
+            adGroupData.setStatus(StatusEnum.DELETED);
+            adGroupResponse = ews.update(AdGroupData.class, adGroupData, EWSEndpointEnum.ADGROUP_OPS);
+
+            if (!adGroupResponse.isOk()) {
+                log.error("Failed to deactivate an adgroup for advid={}, adgroupd={}", advertiserId, adgroupId);
+                return null;
+            }
+            adGroupData = adGroupResponse.get(0);
+        }
+        return adGroupData;
+    }
+
+    /**
+     * Remove a product feed
+     */
+    private ProductFeedData tearProductFeed(long feedId) {
+        return null; // TODO
     }
 
     private Timestamp parseTimestamp(String timestamp) {
@@ -159,9 +249,6 @@ public class Archetype {
         }
 
         return adGroupData;
-    }
-
-    private void newAd(AdGroupData adGroupData) {
     }
 
     private ProductSetData newProductSet() throws Exception {

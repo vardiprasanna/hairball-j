@@ -2,6 +2,7 @@ package com.oath.gemini.merchant.shopify;
 
 import static com.oath.gemini.merchant.ClosableHttpClient.buildQueries;
 import com.oath.gemini.merchant.Archetype;
+import com.oath.gemini.merchant.HttpUtils;
 import com.oath.gemini.merchant.db.DatabaseService;
 import com.oath.gemini.merchant.db.StoreAcctEntity;
 import com.oath.gemini.merchant.db.StoreCampaignEntity;
@@ -13,16 +14,20 @@ import com.oath.gemini.merchant.ews.EWSEndpointEnum;
 import com.oath.gemini.merchant.ews.EWSResponseData;
 import com.oath.gemini.merchant.ews.json.AdvertiserData;
 import com.oath.gemini.merchant.security.SigningService;
-import com.oath.gemini.merchant.shopify.json.ShopifyAccessToken;
+import com.oath.gemini.merchant.shopify.json.ShopifyAccessTokenData;
 import com.oath.gemini.merchant.shopify.json.ShopifyScriptTagData;
 import com.oath.gemini.merchant.shopify.json.ShopifyShopData;
 import com.oath.gemini.merchant.shopify.json.ShopifyStoreFrontTokenData;
 import com.oath.gemini.merchant.shopify.json.ShopifyStoreFrontTokensData;
 import com.oath.gemini.merchant.shopify.json.ShopifyTokenRequestData;
+import com.oath.gemini.merchant.shopify.json.ShopifyWebHookData;
+import com.oath.gemini.merchant.shopify.json.ShopifyWebHooksData;
 import com.oath.gemini.merchant.shopify.json.Tag;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import javax.annotation.Resource;
 import javax.inject.Inject;
@@ -31,12 +36,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
+import org.apache.commons.codec.DecoderException;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -134,7 +141,7 @@ public class ShopifyOnboardResource {
 
         try {
             // Ask for the access scopes if our app has not been installed yet
-            ShopifyAccessToken tokens = fetchAuthToken(shop, code);
+            ShopifyAccessTokenData tokens = fetchAuthToken(shop, code);
 
             if (tokens == null || StringUtils.isBlank(tokens.getAccessToken())) {
                 // The shopify code may have expired when user clicks the Browser's Back button to re-play an earlier on-boarding
@@ -196,6 +203,61 @@ public class ShopifyOnboardResource {
     }
 
     /**
+     * When a shop owner uninstalls this app, Shopify will notify us via the server side call
+     * 
+     * <pre>
+     * Your webhook acknowledges that it received data by sending a 200 OK response. Any response outside of the 200 range
+     * will let Shopify know that you did not receive your webhook, including 301 Redirect. Shopify does not follow
+     * redirects for webhook notifications and will consider a redirection as an error response.
+     * 
+     * Shopify has implemented a 5-second timeout period and a retry period for subscriptions. We wait 5 seconds for a
+     * response to each request, and if there isn't one or we get an error, we retry the connection to a total of 19 times
+     * over the next 48 hours. A webhook will be deleted if there are 19 consecutive failures for the exact same webhook.
+     * You should monitor the admin of your webhook tool for failing webhooks.
+     * </pre>
+     */
+    @Path("uninstall")
+    public Response uninstall(@Context HttpServletRequest req, @HeaderParam("X-Shopify-Topic") String topics,
+            @HeaderParam("X-Shopify-Shop-Domain") String shop, @HeaderParam("X-Shopify-Hmac-Sha256") String hmac) {
+        String counterHmac;
+
+        try {
+            String data = HttpUtils.getContent(req);
+            counterHmac = ShopifyOauthHelper.generateHMac(data);
+        } catch (InvalidKeyException | NoSuchAlgorithmException | DecoderException e) {
+            log.error("Failed to generate a hmac when to handle the uninstallation");
+            return Response.serverError().entity(e.toString()).build();
+        }
+
+        // if (!hmac.equals(counterHmac)) {
+        // return Response.status(Status.UNAUTHORIZED).build();
+        // }
+
+        try {
+            StoreAcctEntity acctEntity = new StoreAcctEntity();
+            acctEntity.setDomain(shop);
+            acctEntity.setIsDeleted(false);
+            acctEntity = databaseService.findByAny(acctEntity);
+
+            if (acctEntity != null) {
+                ShopifyClientService ps = new ShopifyClientService(shop, acctEntity.getStoreAccessToken());
+                EWSAccessTokenData tokens = ewsAuthService.getAccessTokenFromRefreshToken(acctEntity.getYahooAccessToken());
+                EWSClientService ews = new EWSClientService(tokens);
+
+                new Archetype(ps, ews, databaseService).tearDown(acctEntity);
+            } else {
+                log.warn("No store account found for shop {}", shop);
+            }
+
+        } catch (Exception e) {
+            log.error("Failed to update the database and/or Gemini");
+            return Response.serverError().entity(e.toString()).build();
+        }
+
+        return Response.ok().build();
+    }
+
+    /**
      * Configure a shopper's campaign, product feed if necessary
      */
     private Response setupOrRepaireIfRequired(HttpServletRequest req, String shop, String gRefreshToken, String shopifyRefreshToken)
@@ -209,7 +271,7 @@ public class ShopifyOnboardResource {
         StoreCampaignEntity storeCmpEntity = null; // TODO databaseService.findByAcctId(StoreCampaignEntity.class, storeAcctEntity.getId());
 
         if (storeCmpEntity == null) {
-            Archetype archeType = new Archetype(ps, ews);
+            Archetype archeType = new Archetype(ps, ews, databaseService);
             ShopifyProductSetBuilder feedBuilder = new ShopifyProductSetBuilder(ps, ews);
 
             // Upload the product feed if it has never been done so
@@ -225,7 +287,10 @@ public class ShopifyOnboardResource {
         }
 
         // Inject or modify a dot pixel to track user's product events
-        injectScriptTag(shop, storeAcctEntity);
+        injectScriptTag(ps, storeAcctEntity);
+
+        // Register an app uninstallation event listener
+        registerWebhook(ps, req);
 
         // All done. Take a user to this application's campaign configuration page such as budget, price, date range, etc
         HttpSession session = req.getSession(true);
@@ -240,7 +305,7 @@ public class ShopifyOnboardResource {
     }
 
     /**
-     * Create if necessary, and then fetch a store-front (UI) token, which is intended to learn the navigation of products
+     * Create if necessary, and then fetch a store-front (UI) token, which is intended to learn the topography of products
      */
     private String retrieveStoreFrontToken(ShopifyClientService ps) throws Exception {
         ShopifyStoreFrontTokensData[] storeFrontTokens = ps.get(ShopifyStoreFrontTokensData[].class,
@@ -351,6 +416,27 @@ public class ShopifyOnboardResource {
     }
 
     /**
+     * Set the event listener when our app is uninstalled
+     */
+    private void registerWebhook(ShopifyClientService ps, HttpServletRequest req) throws Exception {
+        ShopifyWebHooksData[] webhooks = ps.get(ShopifyWebHooksData[].class, ShopifyEndpointEnum.SHOPIFY_WEBHOOK_ALL);
+        ShopifyWebHookData webhook = new ShopifyWebHookData();
+        String address = req.getRequestURL().toString();
+
+        webhook.setAddress(address.substring(0, address.indexOf("shopify")) + "shopify/uninstall");
+        webhook.setTopic("app/uninstalled");
+
+        if (webhooks != null) {
+            for (ShopifyWebHooksData wh : webhooks) {
+                if (wh.getTopic().equals(webhook.getTopic()) && wh.getAddress().equals(webhook.getAddress())) {
+                    return;
+                }
+            }
+        }
+        ps.post(ShopifyWebHookData.class, webhook, ShopifyEndpointEnum.SHOPIFY_WEBHOOK_ALL);
+    }
+
+    /**
      * POST https://{shop}.myshopify.com/admin/oauth/access_token with the following parameters provided in the body of the
      * request:
      * 
@@ -358,7 +444,7 @@ public class ShopifyOnboardResource {
      * client_secret - The Secret Key for the app (see the credentials section of this guide). <br/>
      * code - The authorization code provided in the redirect described above. <br/>
      */
-    private static ShopifyAccessToken fetchAuthToken(String shop, String authCode) throws Exception {
+    private static ShopifyAccessTokenData fetchAuthToken(String shop, String authCode) throws Exception {
         ShopifyClientService ps = new ShopifyClientService(shop, authCode);
         ShopifyTokenRequestData reqestBody = new ShopifyTokenRequestData();
 
@@ -366,15 +452,13 @@ public class ShopifyOnboardResource {
         reqestBody.setClientId(ShopifyOauthHelper.API_KEY);
         reqestBody.setClientSecret(ShopifyOauthHelper.SECRET_KEY);
         reqestBody.setCode(authCode);
-        return ps.post(ShopifyAccessToken.class, reqestBody, ShopifyEndpointEnum.SHOPIFY_FETCH_TOKEN);
+        return ps.post(ShopifyAccessTokenData.class, reqestBody, ShopifyEndpointEnum.SHOPIFY_FETCH_TOKEN);
     }
 
     /**
      * @see https://help.shopify.com/api/reference/scripttag
      */
-    private Tag injectScriptTag(String shop, StoreAcctEntity storeAcctEntity) throws Exception {
-        ShopifyClientService ps = new ShopifyClientService(shop, storeAcctEntity.getStoreAccessToken());
-
+    private Tag injectScriptTag(ShopifyClientService ps, StoreAcctEntity storeAcctEntity) throws Exception {
         // Do nothing if a given script has been inserted already
         Tag[] tags = ps.get(Tag[].class, ShopifyEndpointEnum.SHOPIFY_SCRIPT_TAG_ALL);
         String javascriptFile = config.getString("shopify.dot.pixel");
