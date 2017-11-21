@@ -1,6 +1,8 @@
 package com.oath.gemini.merchant.ews;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oath.gemini.merchant.ClosableHttpClient;
 import com.oath.gemini.merchant.HttpStatus;
@@ -70,34 +72,47 @@ public class EWSClientService {
             request.header(HttpHeader.ACCEPT, MediaType.APPLICATION_JSON);
             request.header(HttpHeader.CONTENT_TYPE, MediaType.APPLICATION_JSON);
             request.header(HttpHeader.AUTHORIZATION, "Bearer " + tokens.getAccessToken());
-            Map<String, ?> res = httpClient.send(Map.class);
+            Map<String, Object> res = httpClient.send(Map.class);
 
             // Check an error first
             if (res != null && res.get("HttpStatus") != null) {
                 HttpStatus httpStatus = (HttpStatus) res.get("HttpStatus");
 
+                // if (!httpStatus.isOk()) {
+                // response = new EWSResponseData<>();
+                // response.setErrors(httpStatus.getMessage());
+                // response.setStatus(httpStatus.getStatus());
+                // return response;
+                // }
                 if (!httpStatus.isOk()) {
+                    ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                    JsonNode errorMsg = mapper.readTree(httpStatus.getMessage());
                     response = new EWSResponseData<>();
+
+                    if (errorMsg.has("response")) {
+                        JsonNode responseNode = errorMsg.get("response");
+                        T[] ewsObjects = null;
+
+                        if (responseNode.isArray()) {
+                            ewsObjects = mapper.convertValue(responseNode, new TypeReference<T[]>() {
+                            });
+                        } else {
+                            T obj = mapper.convertValue(responseNode, responseType);
+                            if (obj != null) {
+                                ewsObjects = (T[]) (Array.newInstance(responseType, 1));
+                                ewsObjects[0] = obj;
+                            }
+                        }
+                        response.setObjects(ewsObjects);
+                    }
+
+                    if (errorMsg.has("timestamp")) {
+                        response.setTimestamp(errorMsg.get("timestamp").toString());
+                    }
                     response.setErrors(httpStatus.getMessage());
                     response.setStatus(httpStatus.getStatus());
                     return response;
                 }
-                // ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-                // JsonNode errorMsg = mapper.readTree(httpStatus.getMessage());
-                //
-                // if (errorMsg.has("errors") && !res.containsKey("errors")) {
-                // res.put("errors", errorMsg.get("errors").toString());
-                // }
-                // if (errorMsg.has("response") && !res.containsKey("response")) {
-                // List<?> obj = mapper.readValue(errorMsg.get("response").toString(), List.class);
-                // res.put("response", obj);
-                // }
-                // if (errorMsg.has("timestamp") && !res.containsKey("timestamp")) {
-                // res.put("timestamp", errorMsg.get("timestamp").toString());
-                // }
-                // if (!res.containsKey("status")) {
-                // res.put("status", httpStatus.getStatus());
-                // }
             }
 
             // Convert a raw response to a list of T objects
