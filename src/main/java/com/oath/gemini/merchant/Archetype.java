@@ -23,7 +23,9 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -99,14 +101,18 @@ public class Archetype {
         }
 
         for (StoreCampaignEntity sce : cmpEntities) {
-            if (tearAdGroup(sce.getAdgroupId()) == null) {
-                continue;
+            AdGroupData adGroupData = tearAdGroup(sce.getAdgroupId());
+
+            if (adGroupData != null) {
+                tearProductSet(adGroupData.getProductSetId());
             }
+
+            tearProductFeed(sce.getProductFeedId());
+
             if (tearCampaign(sce.getCampaignId()) == null) {
                 continue;
             }
-            tearProductFeed(sce.getProductFeedId());
-            
+
             sce.setStatus(StatusEnum.PAUSED);
             databaseService.update(sce);
         }
@@ -122,20 +128,7 @@ public class Archetype {
             log.error("Failed to find a campaign for advid={}, campaign={}", advertiserId, cmpId);
             return null;
         }
-
-        CampaignData cmpData = campaignResponse.get(0);
-
-        if (cmpData.getStatus() != StatusEnum.DELETED) {
-            cmpData.setStatus(StatusEnum.DELETED);
-            campaignResponse = ews.update(CampaignData.class, cmpData, EWSEndpointEnum.ADGROUP_OPS);
-
-            if (!campaignResponse.isOk()) {
-                log.error("Failed to deactivate a campaign for advid={}, campaign={}", advertiserId, cmpId);
-                return null;
-            }
-            cmpData = campaignResponse.get(0);
-        }
-        return cmpData;
+        return changeStatus(CampaignData.class, campaignResponse.get(0), StatusEnum.PAUSED, EWSEndpointEnum.CAMPAIGN_OPS);
     }
 
     /**
@@ -148,26 +141,17 @@ public class Archetype {
             log.error("Failed to find an ad group for advid={}, adgroupd={}", advertiserId, adgroupId);
             return null;
         }
-
-        AdGroupData adGroupData = adGroupResponse.get(0);
-
-        if (adGroupData.getStatus() != StatusEnum.DELETED) {
-            adGroupData.setStatus(StatusEnum.DELETED);
-            adGroupResponse = ews.update(AdGroupData.class, adGroupData, EWSEndpointEnum.ADGROUP_OPS);
-
-            if (!adGroupResponse.isOk()) {
-                log.error("Failed to deactivate an adgroup for advid={}, adgroupd={}", advertiserId, adgroupId);
-                return null;
-            }
-            adGroupData = adGroupResponse.get(0);
-        }
-        return adGroupData;
+        return changeStatus(AdGroupData.class, adGroupResponse.get(0), StatusEnum.PAUSED, EWSEndpointEnum.ADGROUP_OPS);
     }
 
     /**
      * Remove a product feed
      */
     private ProductFeedData tearProductFeed(long feedId) {
+        return null; // TODO
+    }
+
+    private ProductSetData tearProductSet(long productSetId) throws Exception {
         return null; // TODO
     }
 
@@ -185,7 +169,7 @@ public class Archetype {
         if (EWSResponseData.isNotEmpty(cmpResponse)) {
             for (CampaignData c : cmpResponse.getObjects()) {
                 if (c.getCampaignName().contains(entityAutoGenName) && c.getStatus() != EWSConstant.StatusEnum.DELETED) {
-                    cmpData = c;
+                    cmpData = changeStatus(CampaignData.class, c, StatusEnum.ACTIVE, EWSEndpointEnum.CAMPAIGN_OPS);
                     break;
                 }
             }
@@ -216,7 +200,7 @@ public class Archetype {
         if (EWSResponseData.isNotEmpty(adGroupResponse)) {
             for (AdGroupData g : adGroupResponse.getObjects()) {
                 if (g.getAdGroupName().contains(entityAutoGenName) && g.getStatus() != EWSConstant.StatusEnum.DELETED) {
-                    adGroupData = g;
+                    adGroupData = changeStatus(AdGroupData.class, g, StatusEnum.ACTIVE, EWSEndpointEnum.ADGROUP_OPS);
                     break;
                 }
             }
@@ -283,5 +267,30 @@ public class Archetype {
         }
 
         return psetResponse.get(0);
+    }
+
+    private <T> T changeStatus(Class<T> clazz, T entity, StatusEnum status, EWSEndpointEnum endpoint) throws Exception {
+        String currentStatus = BeanUtils.getProperty(entity, "status");
+
+        // Do nothing if the status is same
+        if (StringUtils.isNumeric(currentStatus)) {
+            if (StatusEnum.values()[Integer.parseInt(currentStatus)] == status) {
+                return entity;
+            }
+        } else {
+            if (StatusEnum.valueOf(currentStatus) == status) {
+                return entity;
+            }
+        }
+
+        BeanUtils.setProperty(entity, "status", status);
+        EWSResponseData<T> response = ews.update(clazz, entity, endpoint);
+
+        if (!response.isOk()) {
+            Object id = BeanUtils.getProperty(entity, "id");
+            log.error("Failed to deactivate an entity for advid={}, entity={}", advertiserId, id);
+            return null;
+        }
+        return response.get(0);
     }
 }
