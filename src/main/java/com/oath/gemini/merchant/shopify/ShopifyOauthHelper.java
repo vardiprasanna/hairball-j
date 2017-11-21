@@ -4,6 +4,7 @@ import com.oath.gemini.merchant.AppConfiguration;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.codec.DecoderException;
@@ -18,7 +19,14 @@ public class ShopifyOauthHelper {
     public final static String API_KEY;
 
     public static String generateHMac(String... pairs) throws NoSuchAlgorithmException, InvalidKeyException, DecoderException {
+        return Hex.encodeHexString(generateHMacBytes(pairs));
+    }
 
+    public static String generateHMac64(String... pairs) throws NoSuchAlgorithmException, InvalidKeyException, DecoderException {
+        return Base64.getEncoder().encodeToString(generateHMacBytes(pairs));
+    }
+
+    private static byte[] generateHMacBytes(String... pairs) {
         // prepare message - the keys of pairs must be in lexicographical order
         StringBuilder msg = new StringBuilder();
         for (String p : pairs) {
@@ -30,7 +38,7 @@ public class ShopifyOauthHelper {
 
         // produce hmac-sha256
         byte[] hmacBytes = mac.doFinal(msg.toString().getBytes());
-        return Hex.encodeHexString(hmacBytes);
+        return hmacBytes;
     }
 
     private ShopifyOauthHelper() {
