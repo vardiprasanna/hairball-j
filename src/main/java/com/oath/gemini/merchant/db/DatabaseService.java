@@ -109,8 +109,13 @@ public class DatabaseService {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public <T> T findByAny(T entity) throws Exception {
+        List<T> list = findAllByAny(entity);
+        return (!list.isEmpty() ? list.get(0) : null);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> List<T> findAllByAny(T entity) throws Exception {
         Criterion criterion = null;
         Field[] fields = entity.getClass().getDeclaredFields();
 
@@ -133,8 +138,7 @@ public class DatabaseService {
         Session session = sessionFactory.openSession();
         try {
             Criteria criteria = session.createCriteria(entity.getClass());
-            List<T> list = criteria.add(criterion).list();
-            return (!list.isEmpty() ? list.get(0) : null);
+            return criteria.add(criterion).list();
 
         } finally {
             if (session != null) {
