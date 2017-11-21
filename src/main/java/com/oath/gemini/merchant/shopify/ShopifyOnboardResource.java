@@ -223,15 +223,15 @@ public class ShopifyOnboardResource {
 
         try {
             String data = HttpUtils.getContent(req);
-            counterHmac = ShopifyOauthHelper.generateHMac(data);
+            counterHmac = ShopifyOauthHelper.generateHMac64(data);
         } catch (InvalidKeyException | NoSuchAlgorithmException | DecoderException e) {
             log.error("Failed to generate a hmac when to handle the uninstallation");
             return Response.serverError().entity(e.toString()).build();
         }
 
-        // if (!hmac.equals(counterHmac)) {
-        // return Response.status(Status.UNAUTHORIZED).build();
-        // }
+        if (!hmac.equals(counterHmac)) {
+            return Response.status(Status.UNAUTHORIZED).build();
+        }
 
         try {
             StoreAcctEntity acctEntity = new StoreAcctEntity();
