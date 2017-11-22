@@ -5,6 +5,7 @@ import com.oath.gemini.merchant.db.StoreAcctEntity;
 import com.oath.gemini.merchant.db.StoreCampaignEntity;
 import com.oath.gemini.merchant.ews.EWSClientService;
 import com.oath.gemini.merchant.ews.EWSConstant;
+import com.oath.gemini.merchant.ews.EWSConstant.PrdFeedTypeEnum;
 import com.oath.gemini.merchant.ews.EWSConstant.StatusEnum;
 import com.oath.gemini.merchant.ews.EWSEndpointEnum;
 import com.oath.gemini.merchant.ews.EWSResponseData;
@@ -59,18 +60,21 @@ public class Archetype {
     /**
      * Initialize a new campaign
      */
-    public StoreCampaignEntity create(StoreAcctEntity acctEntity) throws Exception {
+    public StoreCampaignEntity create(StoreAcctEntity acctEntity, String remoteFTPFileName) throws Exception {
         // Initiate a campaign if a specific one does not exist
         CampaignData cmpData = newCampaign();
 
+        // Initiate a product feed
+        ProductFeedData prodFeedData = newProductFeed(remoteFTPFileName);
+
         // Initiate a product set
-        ProductSetData pset = newProductSet();
+        ProductSetData prodSetData = newProductSet();
 
         // Initiate a product rule
-        newProductRule(acctEntity);
+        ProductRuleData prodRuleData = newProductRule(acctEntity);
 
         // Initiate an ad group if does not exist
-        AdGroupData adGroupData = newAdGroup(cmpData, pset);
+        AdGroupData adGroupData = newAdGroup(cmpData, prodSetData);
 
         StoreCampaignEntity campaignEntity = new StoreCampaignEntity();
         Float price = adGroupData.getBidSet().getBids()[0].getValue();
@@ -84,6 +88,8 @@ public class Archetype {
         campaignEntity.setPrice(price);
         campaignEntity.setBudget(cmpData.getBudget().floatValue());
         campaignEntity.setStatus(EWSConstant.StatusEnum.ACTIVE);
+        campaignEntity.setProductFeedId(prodFeedData.getId());
+        campaignEntity.setStoreAcctId(acctEntity.getId());
         return campaignEntity;
     }
 
@@ -93,7 +99,7 @@ public class Archetype {
     public void tearDown(StoreAcctEntity acctEntity) throws Exception {
         StoreCampaignEntity cmpEntity = new StoreCampaignEntity();
         cmpEntity.setStoreAcctId(acctEntity.getId());
-        cmpEntity.setStatus(StatusEnum.ACTIVE);
+//        cmpEntity.setStatus(StatusEnum.ACTIVE);
 
         List<StoreCampaignEntity> cmpEntities = databaseService.findAllByAny(cmpEntity);
         if (CollectionUtils.isEmpty(cmpEntities)) {
@@ -108,10 +114,7 @@ public class Archetype {
             }
 
             tearProductFeed(sce.getProductFeedId());
-
-            if (tearCampaign(sce.getCampaignId()) == null) {
-                continue;
-            }
+            tearCampaign(sce.getCampaignId());
 
             sce.setStatus(StatusEnum.PAUSED);
             databaseService.update(sce);
@@ -145,21 +148,24 @@ public class Archetype {
     }
 
     /**
-     * Remove a product feed
+     * Deactivate a product feed
      */
-    private ProductFeedData tearProductFeed(long feedId) {
-        return null; // TODO
+    private ProductFeedData tearProductFeed(long feedId) throws Exception {
+        EWSResponseData<ProductFeedData> feedResponse = ews.get(ProductFeedData.class, EWSEndpointEnum.PRODUCT_FEED_BY_ID, feedId);
+
+        if (!feedResponse.isOk() || feedResponse.getObjects() == null || feedResponse.getObjects().length != 1) {
+            log.error("Failed to find an product feed for advid={}, feed={}", advertiserId, feedId);
+            return null;
+        }
+        // Note: Gemini supports only DELETE operation, and therefore the op below would fail
+        return changeStatus(ProductFeedData.class, feedResponse.get(0), StatusEnum.PAUSED, EWSEndpointEnum.PRODUCT_FEED_OPS);
     }
 
+    /**
+     * Deactivate a product set
+     */
     private ProductSetData tearProductSet(long productSetId) throws Exception {
         return null; // TODO
-    }
-
-    private Timestamp parseTimestamp(String timestamp) {
-        if (timestamp != null) {
-            return new Timestamp(Date.valueOf(LocalDate.parse(timestamp)).getTime());
-        }
-        return null;
     }
 
     private CampaignData newCampaign() throws Exception {
@@ -235,6 +241,36 @@ public class Archetype {
         return adGroupData;
     }
 
+    private ProductFeedData newProductFeed(String feedFileName) throws Exception {
+        EWSResponseData<ProductFeedData> feedResponse = ews.get(ProductFeedData.class, EWSEndpointEnum.PRODUCT_FEED_BY_ADVERTISER,
+                advertiserId);
+        ProductFeedData productFeedData = null;
+
+        if (feedResponse != null && feedResponse.isOk()) {
+            for (ProductFeedData fs : feedResponse.getObjects()) {
+                if (fs.getFileName().equals(feedFileName) && fs.getStatus() != StatusEnum.DELETED) {
+                    productFeedData = changeStatus(ProductFeedData.class, fs, StatusEnum.ACTIVE, EWSEndpointEnum.PRODUCT_FEED_OPS);
+                }
+            }
+        }
+
+        if (productFeedData == null) {
+            // Let Gemini know how to access this product feed
+            ProductFeedData feedData = new ProductFeedData();
+
+            feedData.setAdvertiserId(advertiserId);
+            feedData.setUserName(ClosableFTPClient.username);
+            feedData.setPassword(ClosableFTPClient.password);
+            feedData.setFeedType(PrdFeedTypeEnum.DPA_RECURRING);
+            feedData.setFileName(feedFileName);
+            feedData.setFeedUrl("ftp://" + ClosableFTPClient.host);
+
+            feedResponse = ews.create(ProductFeedData.class, feedData, EWSEndpointEnum.PRODUCT_FEED_OPS);
+            productFeedData = feedResponse.get(0);
+        }
+        return productFeedData;
+    }
+
     private ProductSetData newProductSet() throws Exception {
         EWSResponseData<ProductSetData> psetResponse = ews.get(ProductSetData.class, EWSEndpointEnum.PRODUCT_SET_BY_ADVERTISER,
                 advertiserId);
@@ -277,10 +313,8 @@ public class Archetype {
             if (StatusEnum.values()[Integer.parseInt(currentStatus)] == status) {
                 return entity;
             }
-        } else {
-            if (StatusEnum.valueOf(currentStatus) == status) {
-                return entity;
-            }
+        } else if (status.name().equals(currentStatus)) {
+            return entity;
         }
 
         BeanUtils.setProperty(entity, "status", status);
@@ -292,5 +326,12 @@ public class Archetype {
             return null;
         }
         return response.get(0);
+    }
+
+    private Timestamp parseTimestamp(String timestamp) {
+        if (timestamp != null) {
+            return new Timestamp(Date.valueOf(LocalDate.parse(timestamp)).getTime());
+        }
+        return null;
     }
 }

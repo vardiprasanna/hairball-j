@@ -1,13 +1,7 @@
 package com.oath.gemini.merchant.shopify;
 
 import com.oath.gemini.merchant.ClosableFTPClient;
-import com.oath.gemini.merchant.ews.EWSClientService;
 import com.oath.gemini.merchant.ews.EWSConstant.PrdAvailabilityEnum;
-import com.oath.gemini.merchant.ews.EWSConstant.PrdFeedTypeEnum;
-import com.oath.gemini.merchant.ews.EWSConstant.StatusEnum;
-import com.oath.gemini.merchant.ews.EWSEndpointEnum;
-import com.oath.gemini.merchant.ews.EWSResponseData;
-import com.oath.gemini.merchant.ews.json.ProductFeedData;
 import com.oath.gemini.merchant.ews.json.ProductRecordData;
 import com.oath.gemini.merchant.shopify.json.ShopifyProductData;
 import com.oath.gemini.merchant.shopify.json.ShopifyProductImageData;
@@ -31,14 +25,12 @@ public class ShopifyProductSetBuilder {
             "gtin", "mpn", "brand", "product_type" };
 
     private ShopifyClientService svc;
-    private EWSClientService ews;
     private String localFile;
     private String remoteFile;
     private String productsRootUrl;
 
-    public ShopifyProductSetBuilder(ShopifyClientService svc, EWSClientService ews) {
+    public ShopifyProductSetBuilder(ShopifyClientService svc) {
         this.svc = svc;
-        this.ews = ews;
 
         String baseName = svc.getShopName();
         localFile = baseName + ".csv";
@@ -61,7 +53,7 @@ public class ShopifyProductSetBuilder {
     /**
      * Produce a Gemini product feed if it has never been done before for this shopper
      */
-    public long uploadFeedIfRequired(long advertiserId) throws Exception {
+    public String uploadFeedIfRequired(long advertiserId) throws Exception {
         // Download products from Shopify and then upload the result to FTP server for Gemini
         try (ClosableFTPClient ftpClient = new ClosableFTPClient()) {
             if (!ftpClient.exits(remoteFile)) {
@@ -120,33 +112,7 @@ public class ShopifyProductSetBuilder {
             }
         }
 
-        EWSResponseData<ProductFeedData> productFeeds;
-
-        // Check whether Gemini already knows the FTP connection of this product feed
-        productFeeds = ews.get(ProductFeedData.class, EWSEndpointEnum.PRODUCT_FEED_BY_ADVERTISER, advertiserId);
-        if (productFeeds != null && productFeeds.isOk()) {
-            for (ProductFeedData fs : productFeeds.getObjects()) {
-                if (fs.getStatus() == StatusEnum.ACTIVE && fs.getFileName().equals(remoteFile)) {
-                    return productFeeds.get(0).getId();
-                }
-            }
-        }
-
-        // Let Gemini know how to access this product feed
-        ProductFeedData feedData = new ProductFeedData();
-
-        feedData.setAdvertiserId(advertiserId);
-        feedData.setUserName(ClosableFTPClient.username);
-        feedData.setPassword(ClosableFTPClient.password);
-        feedData.setFeedType(PrdFeedTypeEnum.DPA_RECURRING);
-        feedData.setFileName(remoteFile);
-        feedData.setFeedUrl("ftp://" + ClosableFTPClient.host);
-
-        productFeeds = ews.create(ProductFeedData.class, feedData, EWSEndpointEnum.PRODUCT_FEED);
-        if (productFeeds != null && productFeeds.isOk()) {
-            return productFeeds.get(0).getId();
-        }
-        throw new RuntimeException("Failed to instantiate a product feed, and/or a campaign");
+        return remoteFile;
     }
 
     private static <T> boolean isEmpty(T[] array) {

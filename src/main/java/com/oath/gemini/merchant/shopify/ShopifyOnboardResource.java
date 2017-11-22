@@ -272,17 +272,15 @@ public class ShopifyOnboardResource {
 
         if (storeCmpEntity == null) {
             Archetype archeType = new Archetype(ps, ews, databaseService);
-            ShopifyProductSetBuilder feedBuilder = new ShopifyProductSetBuilder(ps, ews);
+            ShopifyProductSetBuilder feedBuilder = new ShopifyProductSetBuilder(ps);
 
             // Upload the product feed if it has never been done so
-            long productFeedId = feedBuilder.uploadFeedIfRequired(archeType.getAdvertiserId());
+            String remoteFTPFileName = feedBuilder.uploadFeedIfRequired(archeType.getAdvertiserId());
 
             // Establish a first campaign if it has never been done so
-            storeCmpEntity = archeType.create(storeAcctEntity);
-            storeCmpEntity.setProductFeedId(productFeedId);
+            storeCmpEntity = archeType.create(storeAcctEntity, remoteFTPFileName);
 
             // By now, we have configured a DPA campaign and its product feed on Gemini site. Let's persist this info locally
-            storeCmpEntity.setStoreAcctId(storeAcctEntity.getId());
             storeCmpEntity = registerStoreCampaignIfRequired(ps, ews, storeCmpEntity);
         }
 
@@ -433,7 +431,12 @@ public class ShopifyOnboardResource {
                 }
             }
         }
-        ps.post(ShopifyWebHookData.class, webhook, ShopifyEndpointEnum.SHOPIFY_WEBHOOK_ALL);
+
+        try {
+            ps.post(ShopifyWebHookData.class, webhook, ShopifyEndpointEnum.SHOPIFY_WEBHOOK_ALL);
+        } catch (Exception e) {
+            log.warn("Failed to register '{}' for the event '{}'", webhook.getAddress(), webhook.getTopic(), e);
+        }
     }
 
     /**
