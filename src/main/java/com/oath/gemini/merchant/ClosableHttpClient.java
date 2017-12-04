@@ -1,6 +1,7 @@
 package com.oath.gemini.merchant;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -90,12 +91,17 @@ public class ClosableHttpClient extends HttpClient implements Closeable, AutoClo
 
             // Process a response
             if (!String.class.isAssignableFrom(responseType)) {
-                ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                try {
+                    ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-                if (responseType.isArray()) {
-                    result = (T) convertToArray(mapper, responseType, responseBody);
-                } else {
-                    result = mapper.readValue(responseBody, responseType);
+                    if (responseType.isArray()) {
+                        result = (T) convertToArray(mapper, responseType, responseBody);
+                    } else {
+                        result = mapper.readValue(responseBody, responseType);
+                    }
+                } catch (JsonParseException e) {
+                    log.error("Failed to convert '{}' to '{}' at '{}'", responseBody, responseType.getName(), request.getURI());
+                    throw e;
                 }
             } else {
                 result = (T) responseBody;
@@ -103,7 +109,7 @@ public class ClosableHttpClient extends HttpClient implements Closeable, AutoClo
 
             // Process an error message
             if (!(response.getStatus() >= 200 && response.getStatus() < 300)) {
-                log.error("received an unexpected status code=" + response.getStatus());
+                log.error("received an error code=" + response.getStatus());
 
                 if (result != null) {
                     if (result instanceof HttpStatus) {
