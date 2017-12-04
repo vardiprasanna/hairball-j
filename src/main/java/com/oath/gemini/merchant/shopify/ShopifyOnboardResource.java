@@ -113,15 +113,11 @@ public class ShopifyOnboardResource {
      * 
      * A sample URL initiated from Shopify is: <br/>
      * http://localhost:4080/g/shopify/home?code=22805a9745d6f27ea0b989818670976c&hmac=9b1d163afc0ea825e121505920d2f223cd90f89f98e027f6c21cb70d5a5fe2ce&shop=dpa-bridge.myshopify.com&timestamp=1503786189
-     * 
-     * @param _refresh is a Gemini's OAuth2 refresh token
-     * @param _mc is a merchant access code
      */
     @GET
     @Path("home")
     public Response home(@Context HttpServletRequest req, @QueryParam("hmac") String hmac, @QueryParam("shop") String shop,
-            @QueryParam("timestamp") String ts, @QueryParam("code") String code, @QueryParam("state") String state,
-            @DefaultValue("") @QueryParam("_refresh") String _refresh) {
+            @QueryParam("timestamp") String ts, @QueryParam("code") String code, @QueryParam("state") String state) {
 
         // Verify the signature of the call
         try {
@@ -132,11 +128,6 @@ public class ShopifyOnboardResource {
         } catch (Exception e) {
             log.error("failed to validate the legitimate of the call", e);
             return Response.serverError().build();
-        }
-
-        // If user denies our access of his Shopify data, we do nothing
-        if ("denied".equalsIgnoreCase(_refresh)) {
-            return Response.ok().build();
         }
 
         try {
@@ -198,7 +189,7 @@ public class ShopifyOnboardResource {
             }
         } catch (Exception e) {
             log.error("failed to validate the legitimate of the call", req.getRequestURI());
-            return Response.serverError().entity(e.toString()).build();
+            return Response.serverError().entity(e.getMessage() != null ? e.getMessage() : e.toString()).build();
         }
     }
 
@@ -347,9 +338,13 @@ public class ShopifyOnboardResource {
      * To register a Shopify's shop, which typically happens when the shop installs our application.
      */
     private StoreAcctEntity registerStoreAccountIfRequired(ShopifyClientService ps, EWSClientService ews) throws Exception {
+        EWSResponseData<AdvertiserData> advResponse = ews.get(AdvertiserData.class, EWSEndpointEnum.ADVERTISER);
+        if (advResponse.size() <= 0) {
+            throw new Exception("Unable to retrieve the Gemini account, which must be registered separately if hasn't been done yet.");
+        }
+
         ShopifyShopData shop = ps.get(ShopifyShopData.class, ShopifyEndpointEnum.SHOPIFY_SHOP_INFO);
         StoreSysEntity storeSysEntity = registerStoreSystemIfRequired();
-        EWSResponseData<AdvertiserData> advResponse = ews.get(AdvertiserData.class, EWSEndpointEnum.ADVERTISER);
         String refreshToken = ews.getTokens().getRefreshToken();
         Long geminiNativeAcctId = advResponse.get(0).getId();
 
