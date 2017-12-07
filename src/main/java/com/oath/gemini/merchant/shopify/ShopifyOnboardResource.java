@@ -87,7 +87,8 @@ public class ShopifyOnboardResource {
         try {
             String counterHmac = ShopifyOauthHelper.generateHMac("shop=" + shop, "timestamp=" + ts);
             if (!hmac.equals(counterHmac)) {
-                System.err.format("input hmac='{}', shop='{}, ts='{}', and prv='{}', pub='{}'", hmac, shop, ts, ShopifyOauthHelper.SECRET_KEY, ShopifyOauthHelper.API_KEY);
+                String deb = String.format("input hmac='%s', shop='%s, ts='%s', and prv='%s', pub='{}'", hmac, shop, ts, ShopifyOauthHelper.SECRET_KEY, ShopifyOauthHelper.API_KEY);
+                System.err.println(deb);
                 return Response.status(Status.UNAUTHORIZED).build();
             }
         } catch (Exception e) {
@@ -124,6 +125,8 @@ public class ShopifyOnboardResource {
         try {
             String counterHmac = ShopifyOauthHelper.generateHMac("code=" + code, "shop=" + shop, "state=" + state, "timestamp=" + ts);
             if (!hmac.equals(counterHmac)) {
+                String deb = String.format("input hmac='%s', code='%s', shop='%s, ts='%s', and prv='%s', pub='{}'", hmac, code, shop, ts, ShopifyOauthHelper.SECRET_KEY, ShopifyOauthHelper.API_KEY);
+                System.err.println(deb);
                 return Response.status(Status.UNAUTHORIZED).build();
             }
         } catch (Exception e) {
