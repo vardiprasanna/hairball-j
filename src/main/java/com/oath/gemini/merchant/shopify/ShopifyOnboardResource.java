@@ -87,6 +87,7 @@ public class ShopifyOnboardResource {
         try {
             String counterHmac = ShopifyOauthHelper.generateHMac("shop=" + shop, "timestamp=" + ts);
             if (!hmac.equals(counterHmac)) {
+                System.err.format("input hmac='{}', shop='{}, ts='{}', and prv='{}', pub='{}'", hmac, shop, ts, ShopifyOauthHelper.SECRET_KEY, ShopifyOauthHelper.API_KEY);
                 return Response.status(Status.UNAUTHORIZED).build();
             }
         } catch (Exception e) {
