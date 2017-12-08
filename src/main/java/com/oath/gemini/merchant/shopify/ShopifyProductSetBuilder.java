@@ -10,8 +10,12 @@ import java.io.FileWriter;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.lang3.ArrayUtils;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -28,6 +32,7 @@ public class ShopifyProductSetBuilder {
     private String localFile;
     private String remoteFile;
     private String productsRootUrl;
+    private static final ExecutorService feedExecutor = Executors.newFixedThreadPool(1);
 
     public ShopifyProductSetBuilder(ShopifyClientService svc) {
         this.svc = svc;
@@ -51,9 +56,24 @@ public class ShopifyProductSetBuilder {
     }
 
     /**
-     * Produce a Gemini product feed if it has never been done before for this shopper
+     * Produce a Gemini product feed if it has never been done before for this shopper. Since the feed could be huge, so run
+     * it in background such that it will not interfere the onboarding of the Shopify app
      */
-    public String uploadFeedIfRequired(long advertiserId) throws Exception {
+    public String uploadFeedIfRequired() throws Exception {
+        feedExecutor.submit(new Callable<Boolean>() {
+            public Boolean call() {
+                try {
+                    uploadFeedTask();
+                    return true;
+                } catch (Exception e) {
+                    return false;
+                }
+            }
+        });
+        return remoteFile;
+    }
+
+    private void uploadFeedTask() throws Exception {
         // Download products from Shopify and then upload the result to FTP server for Gemini
         try (ClosableFTPClient ftpClient = new ClosableFTPClient()) {
             if (!ftpClient.exits(remoteFile)) {
@@ -77,8 +97,12 @@ public class ShopifyProductSetBuilder {
                             variants = svc.get(ShopifyProductVariantData[].class, ShopifyEndpointEnum.SHOPIFY_PROD_VARIANTS, p.getId());
                             images = svc.get(ShopifyProductImageData[].class, ShopifyEndpointEnum.SHOPIFY_PROD_IMAGES, p.getId());
 
-                            if (isEmpty(variants) || isEmpty(variants)) {
-                                log.warn("shopify product {} is missing variant and/or images", p.getId());
+                            if (ArrayUtils.isEmpty(variants)) {
+                                log.warn("shopify product {} is missing of variant objects", p.getId());
+                                continue;
+                            }
+                            if (ArrayUtils.isEmpty(images)) {
+                                log.warn("shopify product {} is missing of image objects", p.getId());
                                 continue;
                             }
 
@@ -111,12 +135,6 @@ public class ShopifyProductSetBuilder {
                 ftpClient.copyTo(localFile, remoteFile);
             }
         }
-
-        return remoteFile;
-    }
-
-    private static <T> boolean isEmpty(T[] array) {
-        return array == null || array.length == 0;
     }
 
     private static Object[] toRecordArray(ProductRecordData geminiProduct) throws Exception {
