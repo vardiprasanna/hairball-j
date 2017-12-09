@@ -126,7 +126,7 @@ public class DatabaseResource {
      */
     @GET
     @Path("backup")
-    public Response backup(@Context HttpServletRequest req) throws IOException {
+    public Response backup() throws IOException {
         java.nio.file.Path path = null;
 
         try {
