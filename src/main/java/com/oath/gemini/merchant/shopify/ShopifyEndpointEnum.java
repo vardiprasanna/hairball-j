@@ -20,6 +20,8 @@ public enum ShopifyEndpointEnum {
 
     SHOPIFY_PROD_IMAGES("products/${0}/images.json"),
 
+    SHOPIFY_PROD_SINCE("products.json?updated_at_min=${0}"),
+
     SHOPIFY_PROD_VARIANTS("products/${0}/variants.json"),
 
     SHOPIFY_SCRIPT_TAG("script_tags.json"),
