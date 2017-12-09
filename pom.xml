@@ -295,6 +295,7 @@
       </dependencies>
       <properties>
         <pom.app.host>hairball-j.herokuapp.com</pom.app.host>
+        <pom.shopify.feed.cron>0 0 0 1/1 * ? *</pom.shopify.feed.cron>
         <pom.shopify.secret.key>8284e3af0c09dc218c9db3770c742882</pom.shopify.secret.key>
         <pom.shopify.api.key>10361692342b6e6b3cc4ac6f18b8931f</pom.shopify.api.key>
         <pom.y.oauth.secret.id>be993f12ec0859c1ae70152f933bd9e0e185ae1b</pom.y.oauth.secret.id>
@@ -320,6 +321,7 @@
       </dependencies>
       <properties>
         <pom.app.host>hairball.herokuapp.com</pom.app.host>
+        <pom.shopify.feed.cron>0 0/10 * 1/1 * ? *</pom.shopify.feed.cron>
         <pom.shopify.secret.key>f2280639664b0d205f9c1c731980538f</pom.shopify.secret.key>
         <pom.shopify.api.key>92067f220643e535e3cbc65259f65683</pom.shopify.api.key>
         <pom.y.oauth.secret.id>0b596571b0ba8eba179cfa91551a19e40379c8a8</pom.y.oauth.secret.id>
