@@ -231,6 +231,7 @@ public class DatabaseService {
     /**
      * Copy named properties from source to target except those excluded fields
      */
+    @SuppressWarnings(value = { "unchecked", "rawtypes" })
     public static <T> boolean copyNonNullProperties(T targetEntity, T sourceEntity, String... excludedFields) throws Exception {
         List<String> excluded = new ArrayList<>(Arrays.asList("class", "createdDate", "updatedDate", "id"));
 
