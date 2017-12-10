@@ -296,13 +296,14 @@
       <properties>
         <pom.app.host>hairball-j.herokuapp.com</pom.app.host>
         <pom.shopify.feed.cron>0 0 0 1/1 * ? *</pom.shopify.feed.cron>
-        <!-- the pair was introduced when registered as a "Yahoo Advertising" app -->
+        <!-- the pair was introduced when registered as a "Yahoo Advertising" app
         <pom.shopify.secret.key>23a579690626c631eb4a49b4a4d7cb1f</pom.shopify.secret.key>
         <pom.shopify.api.key>62928398fafea63bad905e52e8410079</pom.shopify.api.key>
-        <!-- the pair was introduced when registered as a "Gemini" app
+         -->
+        <!-- the pair was introduced when registered as a "Gemini" app -->
         <pom.shopify.secret.key>8284e3af0c09dc218c9db3770c742882</pom.shopify.secret.key>
         <pom.shopify.api.key>10361692342b6e6b3cc4ac6f18b8931f</pom.shopify.api.key>
-         -->
+        
         <pom.y.oauth.secret.id>be993f12ec0859c1ae70152f933bd9e0e185ae1b</pom.y.oauth.secret.id>
         <pom.y.oauth.client.id>dj0yJmk9Vm01WTdJd01vS3ZSJmQ9WVdrOU1sZGhNbWxtTldNbWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmeD1iMw--</pom.y.oauth.client.id>
         <pom.db.backup.cron>0 0 0 1/1 * ? *</pom.db.backup.cron>
