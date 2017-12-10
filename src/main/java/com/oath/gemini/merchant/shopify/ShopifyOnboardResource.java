@@ -88,8 +88,8 @@ public class ShopifyOnboardResource {
             String counterHmac = ShopifyOauthHelper.generateHMac("shop=" + shop, "timestamp=" + ts);
             if (!hmac.equals(counterHmac)) {
                 int len = ShopifyOauthHelper.SECRET_KEY.length();
-                String secretKey = ShopifyOauthHelper.SECRET_KEY.substring(0, 8) + "..." + ShopifyOauthHelper.SECRET_KEY.substring(len - 4);
-                return Response.status(Status.UNAUTHORIZED).entity("<h3>a mismatched key=" + secretKey + "</h3>").build();
+                String secretKey = ShopifyOauthHelper.SECRET_KEY.substring(0, 8) + " ... " + ShopifyOauthHelper.SECRET_KEY.substring(len - 4);
+                return Response.status(Status.UNAUTHORIZED).entity("<h3>Unauthorized due to a mismatched key=" + secretKey + "</h3>").build();
             }
         } catch (Exception e) {
             return Response.serverError().build();
@@ -126,8 +126,8 @@ public class ShopifyOnboardResource {
             String counterHmac = ShopifyOauthHelper.generateHMac("code=" + code, "shop=" + shop, "state=" + state, "timestamp=" + ts);
             if (!hmac.equals(counterHmac)) {
                 int len = ShopifyOauthHelper.SECRET_KEY.length();
-                String secretKey = ShopifyOauthHelper.SECRET_KEY.substring(0, 8) + "..." + ShopifyOauthHelper.SECRET_KEY.substring(len - 4);
-                return Response.status(Status.UNAUTHORIZED).entity("<h3>a mismatched key=" + secretKey + "</h3>").build();
+                String secretKey = ShopifyOauthHelper.SECRET_KEY.substring(0, 8) + " ... " + ShopifyOauthHelper.SECRET_KEY.substring(len - 4);
+                return Response.status(Status.UNAUTHORIZED).entity("<h3>Unauthorized due to a mismatched key=" + secretKey + "</h3>").build();
             }
         } catch (Exception e) {
             log.error("failed to validate the legitimate of the call", e);
@@ -270,7 +270,7 @@ public class ShopifyOnboardResource {
             ShopifyProductSetBuilder feedBuilder = new ShopifyProductSetBuilder(ps);
 
             // Upload the product feed if it has never been done so
-            String remoteFTPFileName = feedBuilder.uploadFeedIfRequired();
+            String remoteFTPFileName = feedBuilder.uploadFeedIfRequiredAsync();
 
             // Establish a first campaign if it has never been done so
             storeCmpEntity = archeType.create(storeAcctEntity, remoteFTPFileName);
@@ -300,6 +300,7 @@ public class ShopifyOnboardResource {
     /**
      * Create if necessary, and then fetch a store-front (UI) token, which is intended to learn the topography of products
      */
+    @SuppressWarnings("unused")
     private String retrieveStoreFrontToken(ShopifyClientService ps) throws Exception {
         ShopifyStoreFrontTokensData[] storeFrontTokens = ps.get(ShopifyStoreFrontTokensData[].class,
                 ShopifyEndpointEnum.SHOPIFY_UI_TOKEN_ALL);
