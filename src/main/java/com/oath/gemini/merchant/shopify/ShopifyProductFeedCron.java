@@ -13,6 +13,9 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * @author tong on 10/1/2017
+ */
 @Slf4j
 @QuartzCronAnnotation(cron = "shopify.feed.cron", method = "update")
 public class ShopifyProductFeedCron {
