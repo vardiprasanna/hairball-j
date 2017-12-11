@@ -26,8 +26,6 @@ import com.oath.gemini.merchant.shopify.json.Tag;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URLEncoder;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import javax.annotation.Resource;
 import javax.inject.Inject;
@@ -43,7 +41,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
-import org.apache.commons.codec.DecoderException;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -84,12 +81,11 @@ public class ShopifyOnboardResource {
     @Path("welcome")
     public Response install(@Context UriInfo info, @QueryParam("hmac") String hmac, @QueryParam("shop") String shop,
             @QueryParam("timestamp") String ts) {
+        int keyEntry = -1;
+        
         try {
-            String counterHmac = ShopifyOauthHelper.generateHMac("shop=" + shop, "timestamp=" + ts);
-            if (!hmac.equals(counterHmac)) {
-                int len = ShopifyOauthHelper.SECRET_KEY.length();
-                String secretKey = ShopifyOauthHelper.SECRET_KEY.substring(0, 8) + " ... " + ShopifyOauthHelper.SECRET_KEY.substring(len - 4);
-                return Response.status(Status.UNAUTHORIZED).entity("<h3>Unauthorized due to a mismatched key=" + secretKey + "</h3>").build();
+            if ((keyEntry = ShopifyOauthHelper.matchHMac(hmac, "shop=" + shop, "timestamp=" + ts)) < 0) {
+                 return Response.status(Status.UNAUTHORIZED).entity("<h3>Unauthorized-1 due to a mismatched key</h3>").build();
             }
         } catch (Exception e) {
             return Response.serverError().build();
@@ -102,7 +98,7 @@ public class ShopifyOnboardResource {
             String path = info.getAbsolutePath().toString();
             String redirectUrl = path.substring(0, path.indexOf("shopify")) + "shopify/home";
 
-            URI uri = buildScopeRequestUrl(shop, redirectUrl);
+            URI uri = buildScopeRequestUrl(keyEntry, shop, redirectUrl);
             return Response.temporaryRedirect(uri).build();
         } catch (Exception e) {
             log.error("failed to validate the legitimate of the call", info.getAbsolutePath());
@@ -120,14 +116,12 @@ public class ShopifyOnboardResource {
     @Path("home")
     public Response home(@Context HttpServletRequest req, @QueryParam("hmac") String hmac, @QueryParam("shop") String shop,
             @QueryParam("timestamp") String ts, @QueryParam("code") String code, @QueryParam("state") String state) {
-
+        int keyEntry = -1;
+        
         // Verify the signature of the call
         try {
-            String counterHmac = ShopifyOauthHelper.generateHMac("code=" + code, "shop=" + shop, "state=" + state, "timestamp=" + ts);
-            if (!hmac.equals(counterHmac)) {
-                int len = ShopifyOauthHelper.SECRET_KEY.length();
-                String secretKey = ShopifyOauthHelper.SECRET_KEY.substring(0, 8) + " ... " + ShopifyOauthHelper.SECRET_KEY.substring(len - 4);
-                return Response.status(Status.UNAUTHORIZED).entity("<h3>Unauthorized due to a mismatched key=" + secretKey + "</h3>").build();
+            if ((keyEntry = ShopifyOauthHelper.matchHMac(hmac, "code=" + code, "shop=" + shop, "state=" + state, "timestamp=" + ts)) < 0) {
+                return Response.status(Status.UNAUTHORIZED).entity("<h3>Unauthorized-2 due to a mismatched key</h3>").build();
             }
         } catch (Exception e) {
             log.error("failed to validate the legitimate of the call", e);
@@ -136,7 +130,7 @@ public class ShopifyOnboardResource {
 
         try {
             // Ask for the access scopes if our app has not been installed yet
-            ShopifyAccessTokenData tokens = fetchAuthToken(shop, code);
+            ShopifyAccessTokenData tokens = fetchAuthToken(keyEntry, shop, code);
 
             if (tokens == null || StringUtils.isBlank(tokens.getAccessToken())) {
                 // The shopify code may have expired when user clicks the Browser's Back button to re-play an earlier on-boarding
@@ -214,20 +208,11 @@ public class ShopifyOnboardResource {
     @Path("uninstall")
     public Response uninstall(@Context HttpServletRequest req, @HeaderParam("X-Shopify-Topic") String topics,
             @HeaderParam("X-Shopify-Shop-Domain") String shop, @HeaderParam("X-Shopify-Hmac-Sha256") String hmac) {
-        String counterHmac;
+        String data = HttpUtils.getContent(req);
 
-        try {
-            String data = HttpUtils.getContent(req);
-            counterHmac = ShopifyOauthHelper.generateHMac64(data);
-        } catch (InvalidKeyException | NoSuchAlgorithmException | DecoderException e) {
-            log.error("Failed to generate a hmac when to handle the uninstallation");
-            return Response.serverError().entity(e.toString()).build();
+        if (ShopifyOauthHelper.matchHMac64(hmac, data) < 0) {
+            return Response.status(Status.UNAUTHORIZED).entity("<h3>Unauthorized uninstallation due to a mismatched key</h3>").build();
         }
-
-        if (!hmac.equals(counterHmac)) {
-            return Response.status(Status.UNAUTHORIZED).build();
-        }
-
         try {
             StoreAcctEntity acctEntity = new StoreAcctEntity();
             acctEntity.setDomain(shop);
@@ -447,13 +432,13 @@ public class ShopifyOnboardResource {
      * client_secret - The Secret Key for the app (see the credentials section of this guide). <br/>
      * code - The authorization code provided in the redirect described above. <br/>
      */
-    private static ShopifyAccessTokenData fetchAuthToken(String shop, String authCode) throws Exception {
+    private static ShopifyAccessTokenData fetchAuthToken(int keyEntry, String shop, String authCode) throws Exception {
         ShopifyClientService ps = new ShopifyClientService(shop, authCode);
         ShopifyTokenRequestData reqestBody = new ShopifyTokenRequestData();
 
         // Prepare request POST content
-        reqestBody.setClientId(ShopifyOauthHelper.API_KEY);
-        reqestBody.setClientSecret(ShopifyOauthHelper.SECRET_KEY);
+        reqestBody.setClientId(ShopifyOauthHelper.getApiKey(keyEntry));
+        reqestBody.setClientSecret(ShopifyOauthHelper.getSecreteKey(keyEntry));
         reqestBody.setCode(authCode);
         return ps.post(ShopifyAccessTokenData.class, reqestBody, ShopifyEndpointEnum.SHOPIFY_FETCH_TOKEN);
     }
@@ -512,10 +497,10 @@ public class ShopifyOnboardResource {
      * {option} - (Optional) substitute this with the value per-user if you would like to use the online access mode for API
      * requests. Leave this parameter blank (or omit it) for offline access mode (default).
      */
-    private URI buildScopeRequestUrl(String shop, String redirectUrl) throws MalformedURLException {
+    private URI buildScopeRequestUrl(int keyEntry, String shop, String redirectUrl) throws MalformedURLException {
         HashMap<String, String> params = new HashMap<>();
 
-        params.put("client_id", ShopifyOauthHelper.API_KEY);
+        params.put("client_id", ShopifyOauthHelper.getApiKey(keyEntry));
         params.put("scope", config.getString("shopify.access.scopes"));
         params.put("redirect_uri", redirectUrl);
         params.put("state", Long.toString(System.nanoTime()));
