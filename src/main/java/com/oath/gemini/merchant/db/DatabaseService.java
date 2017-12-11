@@ -59,12 +59,12 @@ public class DatabaseService {
     }
 
     @SuppressWarnings("unchecked")
-    public StoreAcctEntity findStoreAcctByAccessToken(String accessToken) {
+    public StoreAcctEntity findStoreAcctByDomain(String domain) {
         Session session = sessionFactory.openSession();
 
         try {
             Criteria criteria = session.createCriteria(StoreAcctEntity.class);
-            criteria.add(Restrictions.eq("storeAccessToken", accessToken));
+            criteria.add(Restrictions.eq("domain", domain));
             List<StoreAcctEntity> list = criteria.list();
             return (list != null && list.size() == 1 ? list.get(0) : null);
 

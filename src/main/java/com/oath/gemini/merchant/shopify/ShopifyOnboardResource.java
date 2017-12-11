@@ -85,7 +85,9 @@ public class ShopifyOnboardResource {
         
         try {
             if ((keyEntry = ShopifyOauthHelper.matchHMac(hmac, "shop=" + shop, "timestamp=" + ts)) < 0) {
-                 return Response.status(Status.UNAUTHORIZED).entity("<h3>Unauthorized-1 due to a mismatched key</h3>").build();
+                keyEntry = 0;
+                log.warn("Unmatched key from '{}'", info.getAbsolutePath());
+                // return Response.status(Status.UNAUTHORIZED).entity("<h3>Unauthorized-1 due to a mismatched key</h3>").build();
             }
         } catch (Exception e) {
             return Response.serverError().build();
@@ -140,7 +142,7 @@ public class ShopifyOnboardResource {
 
             // If Shopify's shop account does not exist, we certainly do not have his Yahoo's Refresh Token, and therefore asks him
             // to go through Yahoo's OAuth flow
-            StoreAcctEntity storeAcct = databaseService.findStoreAcctByAccessToken(tokens.getAccessToken());
+            StoreAcctEntity storeAcct = databaseService.findStoreAcctByDomain(shop);
 
             if (storeAcct != null) {
                 return setupOrRepaireIfRequired(req, shop, storeAcct.getYahooAccessToken(), storeAcct.getStoreAccessToken());
