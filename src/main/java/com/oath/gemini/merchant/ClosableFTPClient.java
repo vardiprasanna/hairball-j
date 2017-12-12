@@ -9,6 +9,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.GregorianCalendar;
 import java.util.Optional;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.ArrayUtils;
@@ -17,7 +18,6 @@ import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
 import org.apache.commons.net.ftp.FTPSClient;
-import org.apache.commons.net.time.TimeTCPClient;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -27,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ClosableFTPClient implements Closeable, AutoCloseable {
     public static String username, password, host;
     private static int connectionTimeout;
-    private static long remoteTimeDrifting = 0;
+    private static long utcOffset = 0;
     private FTPSClient ftp = new FTPSClient(false); // TLS explicit
 
     static {
@@ -38,23 +38,9 @@ public class ClosableFTPClient implements Closeable, AutoCloseable {
         host = config.getString("ftp.host");
         connectionTimeout = config.getInt("ftp.connection.timeout", 10000);
 
-        // Compute the time compensation between the remote and the local hosts due to the different zone and the eon
-        TimeTCPClient timeClient = new TimeTCPClient();
-
-        try {
-            timeClient.setConnectTimeout(connectionTimeout);
-            timeClient.connect(host);
-            remoteTimeDrifting = (timeClient.getTime() - System.currentTimeMillis());
-        } catch (Exception e) {
-            remoteTimeDrifting = TimeTCPClient.SECONDS_1900_TO_1970 * 1000;
-            log.error("Unable to fetch FTP server's current time, and the time zone difference is therefore not considered", e);
-        } finally {
-            try {
-                timeClient.disconnect();
-            } catch (Exception ignored) {
-            }
-        }
-    }
+        // Assume that a remote server is in UTC timezone
+        utcOffset = new GregorianCalendar().get(GregorianCalendar.ZONE_OFFSET);
+     }
 
     /**
      * Copy a local file to the FTP server
@@ -103,7 +89,7 @@ public class ClosableFTPClient implements Closeable, AutoCloseable {
      * Return true if a FTP file's timestamp is within the freshness threshold
      */
     public boolean isFresh(long remoteTime, long threshold) {
-        long localizedRemoteTime = remoteTime - remoteTimeDrifting;
+        long localizedRemoteTime = remoteTime + utcOffset;
         return (System.currentTimeMillis() - localizedRemoteTime < threshold);
     }
 
