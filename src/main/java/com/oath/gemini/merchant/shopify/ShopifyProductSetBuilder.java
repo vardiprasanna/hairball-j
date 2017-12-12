@@ -10,7 +10,6 @@ import java.io.FileWriter;
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -93,8 +92,8 @@ public class ShopifyProductSetBuilder {
             FTPFile ftpFile = ftpClient.find(remoteFile);
 
             if (ftpFile != null) {
-                Date lastMod = ftpFile.getTimestamp().getTime();
-                if (freshnessInMinutes <= 0 || ftpClient.isFresh(lastMod.getTime(), freshnessInMinutes * 60000L)) {
+                long lastMod = ftpFile.getTimestamp().getTimeInMillis();
+                if (freshnessInMinutes <= 0 || ftpClient.isFresh(lastMod, freshnessInMinutes * 60000L)) {
                     lastUpdated = iso8601DateFormat.format(lastMod);
                 } else {
                     log.debug("The feed='{}' is still fresh under '{}' minutes", remoteFile, freshnessInMinutes);
