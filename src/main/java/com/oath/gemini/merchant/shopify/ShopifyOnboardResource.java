@@ -79,15 +79,12 @@ public class ShopifyOnboardResource {
      */
     @GET
     @Path("welcome")
-    public Response install(@Context UriInfo info, @QueryParam("hmac") String hmac, @QueryParam("shop") String shop,
-            @QueryParam("timestamp") String ts) {
+    public Response install(@Context UriInfo info, @QueryParam("hmac") String hmac, @QueryParam("shop") String shop) {
         int keyEntry = -1;
-        
+
         try {
-            if ((keyEntry = ShopifyOauthHelper.matchHMac(hmac, "shop=" + shop, "timestamp=" + ts)) < 0) {
-                keyEntry = 0;
-                log.warn("Unmatched key from '{}'", info.getAbsolutePath());
-                // return Response.status(Status.UNAUTHORIZED).entity("<h3>Unauthorized-1 due to a mismatched key</h3>").build();
+            if ((keyEntry = ShopifyOauthHelper.matchHMac(hmac, info.getQueryParameters())) < 0) {
+                return Response.status(Status.UNAUTHORIZED).entity("<h3>Unauthorized-1 due to a mismatched key</h3>").build();
             }
         } catch (Exception e) {
             return Response.serverError().build();
@@ -116,13 +113,13 @@ public class ShopifyOnboardResource {
      */
     @GET
     @Path("home")
-    public Response home(@Context HttpServletRequest req, @QueryParam("hmac") String hmac, @QueryParam("shop") String shop,
-            @QueryParam("timestamp") String ts, @QueryParam("code") String code, @QueryParam("state") String state) {
+    public Response home(@Context UriInfo info, @Context HttpServletRequest req, @QueryParam("hmac") String hmac,
+            @QueryParam("shop") String shop, @QueryParam("code") String code, @QueryParam("state") String state) {
         int keyEntry = -1;
-        
+
         // Verify the signature of the call
         try {
-            if ((keyEntry = ShopifyOauthHelper.matchHMac(hmac, "code=" + code, "shop=" + shop, "state=" + state, "timestamp=" + ts)) < 0) {
+            if ((keyEntry = ShopifyOauthHelper.matchHMac(hmac, info.getQueryParameters())) < 0) {
                 return Response.status(Status.UNAUTHORIZED).entity("<h3>Unauthorized-2 due to a mismatched key</h3>").build();
             }
         } catch (Exception e) {
@@ -145,7 +142,7 @@ public class ShopifyOnboardResource {
             StoreAcctEntity storeAcct = databaseService.findStoreAcctByDomain(shop);
 
             if (storeAcct != null) {
-                return setupOrRepaireIfRequired(req, shop, storeAcct.getYahooAccessToken(), storeAcct.getStoreAccessToken());
+                return setupOrRepaireIfRequired(req, shop, storeAcct.getYahooAccessToken(), tokens.getAccessToken());
             } else {
                 // Redirect to Yahoo OAuth2 handler for user's Gemini access. Will will be redirected to here when OAuth2 done
                 String requestAuth = config.getString("y.oauth.auth.request.url");
