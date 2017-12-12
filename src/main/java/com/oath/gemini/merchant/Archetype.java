@@ -71,6 +71,7 @@ public class Archetype {
         ProductSetData prodSetData = newProductSet();
 
         // Initiate a product rule
+        @SuppressWarnings("unused")
         ProductRuleData prodRuleData = newProductRule(acctEntity);
 
         // Initiate an ad group if does not exist
@@ -99,7 +100,6 @@ public class Archetype {
     public void tearDown(StoreAcctEntity acctEntity) throws Exception {
         StoreCampaignEntity cmpEntity = new StoreCampaignEntity();
         cmpEntity.setStoreAcctId(acctEntity.getId());
-//        cmpEntity.setStatus(StatusEnum.ACTIVE);
 
         List<StoreCampaignEntity> cmpEntities = databaseService.findAllByAny(cmpEntity);
         if (CollectionUtils.isEmpty(cmpEntities)) {
@@ -288,21 +288,26 @@ public class Archetype {
     }
 
     private ProductRuleData newProductRule(StoreAcctEntity acctEntity) throws Exception {
-        EWSResponseData<ProductRuleData> psetResponse = null;
+        EWSResponseData<ProductRuleData> ruleResponse = ews.get(ProductRuleData.class, EWSEndpointEnum.PRODUCT_RULE_BY_ADVERTISER,
+                advertiserId);
+
+        // Do nothing if the advertiser already has a product rule
+        if (EWSResponseData.isNotEmpty(ruleResponse)) {
+            if (ruleResponse.isOk() && ruleResponse.size() > 0) {
+                return ruleResponse.get(0);
+            }
+        }
 
         try {
             ProductRuleData[] rule = { new ProductRuleData() };
             rule[0].setPixelId(acctEntity.getPixelId().longValue());
             rule[0].setAdvertiserId(advertiserId);
-            psetResponse = ews.create(ProductRuleData.class, rule, EWSEndpointEnum.PRODUCT_RULE_OPS);
+            ruleResponse = ews.create(ProductRuleData.class, rule, EWSEndpointEnum.PRODUCT_RULE_OPS);
         } catch (Exception e) {
+            log.error("Failed to create a product rule for advertiser={}", advertiserId, e);
             return null;
         }
-        if (!psetResponse.isOk()) {
-            return null;
-        }
-
-        return psetResponse.get(0);
+        return (!ruleResponse.isOk() ? null : ruleResponse.get(0));
     }
 
     private <T> T changeStatus(Class<T> clazz, T entity, StatusEnum status, EWSEndpointEnum endpoint) throws Exception {
