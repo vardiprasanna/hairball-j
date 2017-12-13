@@ -96,11 +96,6 @@ public class ShopifyOnboardResource {
         try {
             String path = info.getAbsolutePath().toString();
             String redirectUrl = path.substring(0, path.indexOf("shopify")) + "shopify/home";
-
-            // Force to use HTTPS scheme
-            if (redirectUrl.startsWith("http://") && !redirectUrl.startsWith("http://localhost")) {
-                redirectUrl = redirectUrl.replaceFirst("http:", "https:");
-            }
             URI uri = buildScopeRequestUrl(keyEntry, shop, redirectUrl);
             return Response.temporaryRedirect(uri).build();
         } catch (Exception e) {
@@ -277,18 +272,10 @@ public class ShopifyOnboardResource {
         HttpSession session = req.getSession(true);
         String cmpId = storeCmpEntity.getId().toString();
         String sig = signingService.sign("h", req.getRemoteHost());
-        String target = req.getRequestURL().toString();
+        String target = config.getString("campaign.setup.url", "/setup/campaign.html");
 
-        // Force to use HTTPS scheme
-        if (target.startsWith("http://") && !target.startsWith("http://localhost")) {
-            target = target.replaceFirst("http:", "https:");
-        }
-
-        target = target.substring(0, target.indexOf("shopify") + 7) + config.getString("campaign.setup.url", "/setup/campaign.html");
         target = buildQueries(target, "cmp", cmpId, "sig", sig);
         session.setAttribute("sig", sig);
-        
-        System.err.println("campaig url=" + target);
 
         Response.ResponseBuilder builder = Response.temporaryRedirect(URI.create(target));
         builder.header("X-Frame-Options", "ALLOWALL");
