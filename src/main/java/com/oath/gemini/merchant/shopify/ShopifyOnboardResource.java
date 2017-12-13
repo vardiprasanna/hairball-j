@@ -278,7 +278,9 @@ public class ShopifyOnboardResource {
         target = buildQueries(target, "cmp", cmpId, "sig", sig);
         session.setAttribute("sig", sig);
 
-        return Response.temporaryRedirect(URI.create(target)).build();
+        Response.ResponseBuilder builder = Response.temporaryRedirect(URI.create(target));
+        builder.header("X-Frame-Options", "ALLOWALL");
+        return builder.build();
     }
 
     /**
