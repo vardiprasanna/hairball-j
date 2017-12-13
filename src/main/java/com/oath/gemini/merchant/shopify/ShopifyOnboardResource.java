@@ -99,7 +99,7 @@ public class ShopifyOnboardResource {
 
             // Force to use HTTPS scheme
             if (redirectUrl.startsWith("http://")) {
-                redirectUrl.replaceFirst("http:", "https:");
+                redirectUrl = redirectUrl.replaceFirst("http:", "https:");
             }
             URI uri = buildScopeRequestUrl(keyEntry, shop, redirectUrl);
             System.err.println("path=" + path + ", redirect=" + redirectUrl + ", full redirect=" + uri.toString());
