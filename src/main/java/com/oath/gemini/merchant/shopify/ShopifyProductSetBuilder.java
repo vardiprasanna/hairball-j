@@ -93,7 +93,7 @@ public class ShopifyProductSetBuilder {
 
             if (ftpFile != null) {
                 long lastMod = ftpFile.getTimestamp().getTimeInMillis();
-                if (freshnessInMinutes <= 0 || ftpClient.isFresh(lastMod, freshnessInMinutes * 60000L)) {
+                if (freshnessInMinutes <= 0 || !ftpClient.isFresh(lastMod, freshnessInMinutes * 60000L)) {
                     lastUpdated = iso8601DateFormat.format(lastMod);
                 } else {
                     log.debug("The feed='{}' is still fresh under '{}' minutes", remoteFile, freshnessInMinutes);
@@ -102,11 +102,19 @@ public class ShopifyProductSetBuilder {
             }
         }
 
+        int productCount;
         if (lastUpdated == null) {
-            return uploadFeedIfRequired(ShopifyEndpointEnum.SHOPIFY_PROD_ALL);
+            productCount = uploadFeedIfRequired(ShopifyEndpointEnum.SHOPIFY_PROD_ALL);
         } else {
-            return uploadFeedIfRequired(ShopifyEndpointEnum.SHOPIFY_PROD_SINCE, lastUpdated);
+            productCount = uploadFeedIfRequired(ShopifyEndpointEnum.SHOPIFY_PROD_SINCE, lastUpdated);
         }
+
+        if (productCount == 0) {
+            // Touch the file to raise the watermark of the freshness
+            // TODO: ftpClient.touch(remoteFile);
+        }
+
+        return productCount;
     }
 
     /**
