@@ -8,7 +8,9 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Optional;
 import org.apache.commons.configuration.Configuration;
@@ -25,9 +27,10 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class ClosableFTPClient implements Closeable, AutoCloseable {
-    public static String username, password, host;
-    private static int connectionTimeout;
-    private static long utcOffset = 0;
+    private static final SimpleDateFormat ftpDateFormat = new SimpleDateFormat("YYYYMMDDhhmmss");
+    public static final String username, password, host;
+    private static final int connectionTimeout;
+    private static final long utcOffset;
     private FTPSClient ftp = new FTPSClient(false); // TLS explicit
 
     static {
@@ -40,7 +43,7 @@ public class ClosableFTPClient implements Closeable, AutoCloseable {
 
         // Assume that a remote server is in UTC timezone
         utcOffset = new GregorianCalendar().get(GregorianCalendar.ZONE_OFFSET);
-     }
+    }
 
     /**
      * Copy a local file to the FTP server
@@ -116,6 +119,14 @@ public class ClosableFTPClient implements Closeable, AutoCloseable {
 
         Optional<FTPFile> ftpFile = Arrays.stream(baseNames).filter(f -> f.getName().endsWith(baseName)).findFirst();
         return ftpFile.isPresent() ? ftpFile.get() : null;
+    }
+
+    /**
+     * Touch a file
+     */
+    public void touch(String fileName) throws Exception {
+        connect();
+        ftp.setModificationTime(fileName, ftpDateFormat.format(new Date()));
     }
 
     /**

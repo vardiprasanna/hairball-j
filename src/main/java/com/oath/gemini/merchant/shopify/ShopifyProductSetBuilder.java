@@ -102,19 +102,11 @@ public class ShopifyProductSetBuilder {
             }
         }
 
-        int productCount;
         if (lastUpdated == null) {
-            productCount = uploadFeedIfRequired(ShopifyEndpointEnum.SHOPIFY_PROD_ALL);
+            return uploadFeedIfRequired(ShopifyEndpointEnum.SHOPIFY_PROD_ALL);
         } else {
-            productCount = uploadFeedIfRequired(ShopifyEndpointEnum.SHOPIFY_PROD_SINCE, lastUpdated);
+            return uploadFeedIfRequired(ShopifyEndpointEnum.SHOPIFY_PROD_SINCE, lastUpdated);
         }
-
-        if (productCount == 0) {
-            // Touch the file to raise the watermark of the freshness
-            // TODO: ftpClient.touch(remoteFile);
-        }
-
-        return productCount;
     }
 
     /**
@@ -125,10 +117,11 @@ public class ShopifyProductSetBuilder {
     private int uploadFeedIfRequired(ShopifyEndpointEnum endpoint, Object... macros) throws Exception {
         ShopifyProductData[] products = svc.get(ShopifyProductData[].class, endpoint, macros);
 
-        if (ArrayUtils.isEmpty(products)) {
-            log.warn("No product found for the shop='{}'", svc.getShop());
-        } else {
-            try (ClosableFTPClient ftpClient = new ClosableFTPClient()) {
+        try (ClosableFTPClient ftpClient = new ClosableFTPClient()) {
+            if (ArrayUtils.isEmpty(products)) {
+                ftpClient.touch(remoteFile);
+                log.warn("No newer product found for the shop='{}'", svc.getShop());
+            } else {
                 // Copy a local file to FTP server
                 toLocalCSVFile(products);
                 ftpClient.copyTo(localFile, remoteFile);
