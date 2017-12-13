@@ -10,6 +10,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.inject.Inject;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,6 +23,8 @@ public class ShopifyProductFeedCron {
     @Inject
     DatabaseService databaseService;
     private static final ExecutorService feedExecutor = Executors.newFixedThreadPool(1);
+    @Inject
+    private Configuration config;
 
     public void update() throws Exception {
         StoreSysEntity sysEntity = databaseService.findStoreSysByDoman("www.shopify.com");
@@ -60,7 +63,8 @@ public class ShopifyProductFeedCron {
 
         public Integer call() {
             try {
-                return builder.uploadFeedDelta(120);
+                int interval = config.getInt("shopify.feed.pull.frequency", 120);
+                return builder.uploadFeedDelta(interval);
             } catch (Exception e) {
                 log.error("Failed to fetch the update of products. It will be retried at next cron run");
             }
