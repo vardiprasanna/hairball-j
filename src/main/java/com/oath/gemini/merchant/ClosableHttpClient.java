@@ -1,5 +1,6 @@
 package com.oath.gemini.merchant;
 
+import static com.oath.gemini.merchant.HttpUtils.buildQueries;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -13,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
@@ -206,37 +206,6 @@ public class ClosableHttpClient extends HttpClient implements Closeable, AutoClo
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    /**
-     * number of queries should be even, with a name followed by its value
-     */
-    public static String buildQueries(String path, String... queries) {
-        if (queries != null && (queries.length & 1) == 0) {
-            UriBuilder uriBuilder = UriBuilder.fromUri(path);
-            for (int i = 0; i < queries.length; i += 2) {
-                if (StringUtils.isBlank(queries[i])) {
-                    log.error("the {}-th param key is null", i);
-                } else if (StringUtils.isBlank(queries[i + 1])) {
-                    uriBuilder.queryParam(queries[i], "");
-                } else {
-                    uriBuilder.queryParam(queries[i], queries[i + 1]);
-                }
-            }
-            path = uriBuilder.toString();
-        }
-        return path;
-    }
-
-    public static String buildQueries(String path, Map<String, String> queries) {
-        if (queries != null && queries.size() > 0) {
-            UriBuilder uriBuilder = UriBuilder.fromUri(path);
-            for (Map.Entry<String, String> entry : queries.entrySet()) {
-                uriBuilder.queryParam(entry.getKey(), entry.getValue());
-            }
-            path = uriBuilder.toString();
-        }
-        return path;
     }
 
     private static String replacePositionedParams(String path, Object... macros) {
