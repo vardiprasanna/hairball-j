@@ -96,8 +96,8 @@ public class ShopifyOnboardResource {
         try {
             String path = info.getAbsolutePath().toString();
             String redirectUrl = path.substring(0, path.indexOf("shopify")) + "shopify/home";
-
             URI uri = buildScopeRequestUrl(keyEntry, shop, redirectUrl);
+            System.err.println("path=" + path + ", redirect=" + redirectUrl + ", full redirect=" + uri.toString());
             return Response.temporaryRedirect(uri).build();
         } catch (Exception e) {
             log.error("failed to validate the legitimate of the call", info.getAbsolutePath());
