@@ -1,6 +1,6 @@
 package com.oath.gemini.merchant.shopify;
 
-import static com.oath.gemini.merchant.ClosableHttpClient.buildQueries;
+import static com.oath.gemini.merchant.HttpUtils.buildQueries;
 import com.oath.gemini.merchant.Archetype;
 import com.oath.gemini.merchant.HttpUtils;
 import com.oath.gemini.merchant.db.DatabaseService;
