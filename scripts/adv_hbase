@@ -1,0 +1,30 @@
+#!/bin/bash
+
+if [ "$1" == "" ]; then
+  echo "Missing a table indictor - either adv or ad; For example: ./adv_hbase adv"
+  exit 0;
+elif [ "$1" != "adv" -a "$1" != "ad" ]; then
+  echo "Unknown table name. It must be either adv or ad"
+  exit 0;
+fi
+
+table='cow_prod:PROD_COW_ADVERTISER'
+url="webSiteUrl"
+fout=$1.`date +%m%d%y-%H%M%S`
+ftmp=$fout.'tmp'
+
+if [ "$1" == "ad" ]; then
+  table="cow_prod:PROD_COW_AD"
+  url="landingUrl"
+fi
+
+#echo 'scan "'$table'",{LIMIT => 1, COLUMNS => "d", FILTER => "ValueFilter(=, '\''substring:\"status\":\"ON\"'\'')"}' | hbase shell 2> /dev/null 
+
+echo 'scan "'$table'",{COLUMNS => "d", FILTER => "ValueFilter(=, '\''substring:\"status\":\"ON\"'\'')"}' | hbase shell 2> /dev/null > $fout
+sed -n 's/^.*"domainObjectId":\([0-9]\+\).*"webSiteUrl":\("https\?:\/\/[^"\?\/,]*"\|"[^"\?\/,]*"\).*$/"id":\1, "url":\2/p' $fout | sed y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/ > $ftmp
+sed -n 's/^.*"webSiteUrl":\("https\?:\/\/[^"\?\/,]*"\|"[^"\?\/,]*"\).*"domainObjectId":\([0-9]\+\).*$/"id":\2, "url":\1/p' $fout | sed y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/ >> $ftmp
+sort -f -k 2 $ftmp > $fout'-clean'
+rm $ftmp
+
+ 
+#echo 'scan "'$table'",{COLUMNS => "d", FILTER => "ValueFilter(=, '\''substring:\"status\":\"ON\"'\'')"}' | hbase shell 2> /dev/null | (sed -n 's/^.*"'$url'":\("https\?:\/\/[^"\?\/]*"\).*"domainObjectId":\([0-9]\+\).*$/"id":\2, "url":\1/p'; sed -n 's/^.*"domainObjectId":\([0-9]\+\).*"'$url'":\("https\?:\/\/[^"\?\/]*"\).*$/"id":\1, "url":\2/p') > $fout && sort -f -k 2 $fout | uniq -f 1 -i -u > $fout-clean
