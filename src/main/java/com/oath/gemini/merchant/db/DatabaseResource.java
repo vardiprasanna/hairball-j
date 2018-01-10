@@ -1,5 +1,6 @@
 package com.oath.gemini.merchant.db;
 
+import static com.oath.gemini.merchant.HttpUtils.badRequest;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -7,7 +8,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.oath.gemini.merchant.ClosableFTPClient;
-import com.oath.gemini.merchant.HttpStatus;
 import com.oath.gemini.merchant.cron.QuartzCronAnnotation;
 import com.oath.gemini.merchant.ews.EWSAccessTokenData;
 import com.oath.gemini.merchant.ews.EWSAuthenticationService;
@@ -43,10 +43,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.hibernate.SessionFactory;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -66,8 +64,6 @@ public class DatabaseResource {
     DatabaseService databaseService;
     @Inject
     EWSAuthenticationService ewsAuthService;
-    @Inject
-    protected SessionFactory sessionFactory;
 
     @RolesAllowed({ "SIG", "YBY", "localhost" })
     @GET
@@ -197,33 +193,6 @@ public class DatabaseResource {
     private <T> T listOne(Class<T> entityClass, String id) {
         List<T> list = listAll(entityClass, id);
         return (list != null && list.size() == 1 ? list.get(0) : null);
-    }
-
-    private Response badRequest(String format, Object... params) {
-        return badRequest(Status.BAD_REQUEST.getStatusCode(), null, format, params);
-    }
-
-    private Response badRequest(EWSResponseData<?> response, String format, Object... params) {
-        return badRequest(response.getStatus(), response.getErrors(), format, params);
-    }
-
-    private Response badRequest(int status, String detail, String format, Object... params) {
-        log.error(format, params);
-
-        StringBuilder sb = new StringBuilder(format);
-        HttpStatus error = new HttpStatus();
-
-        for (Object m : params) {
-            sb.append(m);
-        }
-
-        error.setStatus(status);
-        error.setBrief(sb.toString());
-
-        if (StringUtils.isNotEmpty(detail)) {
-            error.setMessage(detail);
-        }
-        return Response.status(status).entity(error).build();
     }
 
     /**

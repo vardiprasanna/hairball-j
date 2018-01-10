@@ -1,10 +1,13 @@
 package com.oath.gemini.merchant;
 
+import com.oath.gemini.merchant.ews.EWSResponseData;
 import java.util.Enumeration;
 import java.util.Map;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.Response.Status;
 import org.apache.commons.lang3.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -83,5 +86,32 @@ public class HttpUtils {
             path = uriBuilder.toString();
         }
         return path;
+    }
+
+    public static Response badRequest(String format, Object... params) {
+        return badRequest(Status.BAD_REQUEST.getStatusCode(), null, format, params);
+    }
+
+    public static Response badRequest(EWSResponseData<?> response, String format, Object... params) {
+        return badRequest(response.getStatus(), response.getErrors(), format, params);
+    }
+
+    public static Response badRequest(int status, String detail, String format, Object... params) {
+        log.error(format, params);
+
+        StringBuilder sb = new StringBuilder(format);
+        HttpStatus error = new HttpStatus();
+
+        for (Object m : params) {
+            sb.append(m);
+        }
+
+        error.setStatus(status);
+        error.setBrief(sb.toString());
+
+        if (StringUtils.isNotEmpty(detail)) {
+            error.setMessage(detail);
+        }
+        return Response.status(status).entity(error).build();
     }
 }
