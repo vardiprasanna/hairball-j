@@ -118,4 +118,11 @@ public class EWSConstant {
     public enum PrdFeedTypeEnum {
         DPA_ONE_TIME, DPA_RECURRING;
     }
+
+    /////////////////////////////////////////////////////////////////
+    // Reporting Asyn job specific //////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    public enum ReportingJobStatusEnum {
+        submitted, running, failed, completed, killed;
+    }
 }

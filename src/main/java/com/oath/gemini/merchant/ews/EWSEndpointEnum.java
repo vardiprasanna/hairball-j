@@ -21,7 +21,10 @@ public enum EWSEndpointEnum {
 
     // https://developer.yahoo.com/gemini/guide/dynamic-product-ads/dpa-product-sets/
     PRODUCT_SET_OPS("productset"), PRODUCT_SET_BY_ID("productset/${0}"), PRODUCT_SET_BY_ADVERTISER(
-            "productset?advertiserId=${0}"), PRODUCT_SET_BY_ADGROUP("productset?adgroupId=${0}");
+            "productset?advertiserId=${0}"), PRODUCT_SET_BY_ADGROUP("productset?adgroupId=${0}"),
+
+    // https://developer.yahoo.com/gemini/guide/reporting/
+    REPORT_JOB_SUBMISSION("reports/custom"), REPORT_JOB_STATUS("reports/custom/${0}?advertiserId=${1}");
     private String url = "";
 
     EWSEndpointEnum(String subpath) {
