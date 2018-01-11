@@ -213,7 +213,7 @@ public class ClosableHttpClient extends HttpClient implements Closeable, AutoClo
 
         if (tgt != null && macros != null) {
             for (int i = 0; i < macros.length; i++) {
-                tgt = tgt.replace("${" + i + "}", macros[0].toString());
+                tgt = tgt.replace("${" + i + "}", macros[i].toString());
             }
         }
         return tgt;
