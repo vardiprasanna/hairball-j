@@ -57,6 +57,13 @@ public class EWSClientService {
     }
 
     /**
+     * Start an async report job
+     */
+    public <T> EWSResponseData<T> job(Class<T> responseType, Object requestBody, EWSEndpointEnum path, Object... params) throws Exception {
+        return invoke(responseType, requestBody, HttpMethod.POST, path, params);
+    }
+
+    /**
      * A main Gemini service function
      */
     @SuppressWarnings("unchecked")
