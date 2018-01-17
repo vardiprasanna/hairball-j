@@ -1,13 +1,15 @@
 package com.oath.gemini.merchant;
 
 import com.oath.gemini.merchant.ews.EWSResponseData;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Enumeration;
 import java.util.Map;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriBuilder;
 import org.apache.commons.lang3.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -88,6 +90,20 @@ public class HttpUtils {
         return path;
     }
 
+    public static String forceToUseHttps(String url) throws URISyntaxException {
+        if (url.startsWith("http://")) {
+            System.err.format("force to overwrite a non-SSL='%s'", url);
+            UriBuilder builder = UriBuilder.fromUri(new URI(url));
+            builder.scheme("https");
+            builder.port(-1); // use a default SSL port
+            url = builder.build().toString();
+        }
+        return url;
+    }
+
+    /**
+     * Dump a request for debugging purpose
+     */
     public static Response badRequest(String format, Object... params) {
         return badRequest(Status.BAD_REQUEST.getStatusCode(), null, format, params);
     }

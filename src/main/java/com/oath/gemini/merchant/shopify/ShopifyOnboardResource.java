@@ -95,7 +95,7 @@ public class ShopifyOnboardResource {
          */
         try {
             String path = info.getAbsolutePath().toString();
-            String redirectUrl = path.substring(0, path.indexOf("shopify")) + "shopify/home";
+            String redirectUrl = HttpUtils.forceToUseHttps(path.substring(0, path.indexOf("shopify")) + "shopify/home");
             URI uri = buildScopeRequestUrl(keyEntry, shop, redirectUrl);
             return Response.temporaryRedirect(uri).build();
         } catch (Exception e) {
@@ -143,10 +143,12 @@ public class ShopifyOnboardResource {
             if (storeAcct != null) {
                 return setupOrRepaireIfRequired(req, shop, storeAcct.getYahooAccessToken(), tokens.getAccessToken());
             } else {
-                // Redirect to Yahoo OAuth2 handler for user's Gemini access. Will will be redirected to here when OAuth2 done
+                // Redirect to Yahoo OAuth2 handler for user's Gemini access. Will be redirected to here when OAuth2 is done
+                // Note: ensure SSL because SSL may have been terminated before a traffic server reaches to us
                 String requestAuth = config.getString("y.oauth.auth.request.url");
                 String rd = new URI(req.getScheme(), config.getString("app.host"), "/g/shopify/ews", null).toString();
 
+                rd = HttpUtils.forceToUseHttps(rd);
                 rd = buildQueries(rd, "_mc", tokens.getAccessToken());
                 rd = buildQueries(rd, "shop", shop);
 
@@ -269,11 +271,16 @@ public class ShopifyOnboardResource {
         registerWebhook(ps, req);
 
         // All done. Take a user to this application's campaign configuration page such as budget, price, date range, etc
+        // Note: ensure SSL because SSL may have been terminated before a traffic server reaches to us
         HttpSession session = req.getSession(true);
         String cmpId = storeCmpEntity.getId().toString();
         String sig = signingService.sign("h", req.getRemoteHost());
-        String target = config.getString("campaign.setup.url", "/setup/campaign.html");
 
+        StringBuffer urlBuffer = req.getRequestURL();
+        int endPath = urlBuffer.indexOf("/", 8); // skip "https://" or "http://"
+        String target = HttpUtils.forceToUseHttps(endPath > 0 ? urlBuffer.substring(0, endPath) : urlBuffer.toString());
+
+        target += config.getString("campaign.setup.url", "/setup/campaign.html");
         target = buildQueries(target, "cmp", cmpId, "sig", sig);
         session.setAttribute("sig", sig);
 
