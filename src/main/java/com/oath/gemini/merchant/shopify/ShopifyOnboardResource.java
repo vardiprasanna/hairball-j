@@ -174,7 +174,7 @@ public class ShopifyOnboardResource {
         }
 
         try {
-            String rd = new URI(req.getScheme(), config.getString("app.host"), "/g/shopify/ews", null).toString();
+            String rd = new URI("https"/*req.getScheme()*/, config.getString("app.host"), "/g/shopify/ews", null).toString();
             EWSAccessTokenData tokens = ewsAuthService.getAccessTokenFromAuthCode(code, rd);
 
             // Redirect user to a campaign setup page
@@ -281,7 +281,7 @@ public class ShopifyOnboardResource {
         String target = HttpUtils.forceToUseHttps(endPath > 0 ? urlBuffer.substring(0, endPath) : urlBuffer.toString());
 
         target += config.getString("campaign.setup.url", "/setup/campaign.html");
-        target = buildQueries(target, "cmp", cmpId, "sig", sig);
+        target = buildQueries(target, "cmp", cmpId, "adv", storeAcctEntity.getGeminiNativeAcctId().toString(), "sig", sig);
         session.setAttribute("sig", sig);
 
         Response.ResponseBuilder builder = Response.temporaryRedirect(URI.create(target));
