@@ -6,6 +6,7 @@ import com.oath.gemini.merchant.db.StoreAcctEntity;
 import com.oath.gemini.merchant.db.StoreCampaignEntity;
 import com.oath.gemini.merchant.db.StoreOwnerEntity;
 import com.oath.gemini.merchant.db.StoreSysEntity;
+import com.oath.gemini.merchant.ews.EWSClientResource;
 import com.oath.gemini.merchant.shopify.ShopifyOnboardResource;
 import java.io.File;
 import java.io.IOException;
@@ -64,6 +65,7 @@ public class App extends ResourceConfig {
         super.register(JacksonFeature.class);
         super.register(ShopifyOnboardResource.class);
         super.register(DatabaseResource.class);
+        super.register(EWSClientResource.class);
         super.register(AppFeatureBinder.class);
         super.register(QuartzFeature.class);
         super.register(RolesAllowedDynamicFeature.class);
