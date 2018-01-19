@@ -5,7 +5,13 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.oath.gemini.merchant.ClosableHttpClient;
+import com.oath.gemini.merchant.HttpStatus;
 import com.oath.gemini.merchant.db.DatabaseService;
+import com.oath.gemini.merchant.db.StoreAcctEntity;
+import com.oath.gemini.merchant.db.StoreCampaignEntity;
+import com.oath.gemini.merchant.ews.EWSConstant.ReportingJobStatusEnum;
+import com.oath.gemini.merchant.ews.json.CampaignData;
+import com.oath.gemini.merchant.fe.UICampaignDTO;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
@@ -13,26 +19,28 @@ import javax.annotation.Resource;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.http.HttpHeader;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * It is an internal service for UI
  * 
  * @author tong on 1/1/2018
  */
+@Slf4j
 @Singleton
 @Resource
 @Produces(MediaType.APPLICATION_JSON)
@@ -48,27 +56,64 @@ public class EWSClientResource {
 
     @RolesAllowed({ "localhost" })
     @GET
-    @Path("campaign/{id:.*}")
-    public Response getCampaign() {
-        return Response.serverError().entity("A placeholder").build();
+    @Path("campaign/{cmpId}")
+    public Response getCampaign(@PathParam("cmpId") long id) {
+        HttpStatus httpStatus = new HttpStatus();
+
+        try {
+            StoreCampaignEntity storeCampaign = databaseService.findStoreCampaignByGeminiCampaignId(id);
+            StoreAcctEntity storeAcct = databaseService.findByEntityId(StoreAcctEntity.class, storeCampaign.getStoreAcctId());
+            EWSAccessTokenData tokens = ewsAuthService.getAccessTokenFromRefreshToken(storeAcct.getYahooAccessToken());
+            EWSClientService ews = new EWSClientService(tokens);
+            EWSResponseData<CampaignData> campaignResponse = ews.get(CampaignData.class, EWSEndpointEnum.CAMPAIGN_BY_ID, id);
+
+            if (!campaignResponse.isOk() || campaignResponse.getObjects() == null || campaignResponse.getObjects().length != 1) {
+                String error = "Failed to find a campaign={}" + id;
+
+                log.error(error);
+                httpStatus.setStatus(404);
+                httpStatus.setBrief(error);
+                return Response.status(Status.NOT_FOUND).entity(httpStatus).build();
+            }
+
+            CampaignData cmpData = campaignResponse.get(0);
+            UICampaignDTO uiCmpDTO = new UICampaignDTO(storeCampaign);
+            uiCmpDTO.setStatus(cmpData.getStatus());
+
+            return Response.ok(uiCmpDTO).build();
+        } catch (Exception e) {
+            String error = "Failed to fetch the campaign=" + id;
+
+            log.error(error);
+            httpStatus.setStatus(-1);
+            httpStatus.setBrief(error);
+            httpStatus.setMessage(e.getMessage());
+            return Response.serverError().entity(httpStatus).build();
+        }
     }
 
     @RolesAllowed({ "localhost" })
     @POST
-    @Path("reporting")
-    public Response report(@Context HttpServletRequest req, String query) {
+    @Path("reporting/{cmpId}")
+    public Response getReport(@PathParam("cmpId") long id, String payload) {
+        return Response.ok(data).build();
+
+        /**
         EWSResponseData<EWSReportingJobData> ewsResponseData;
         Response response = Response.ok(data).build();
+        HttpStatus httpStatus = new HttpStatus();
 
-        /** TODO
         try {
-            EWSAccessTokenData tokens = null; // ewsAuthService.getAccessTokenFromRefreshToken(storeAcct.getYahooAccessToken());
+            StoreCampaignEntity storeCampaign = databaseService.findStoreCampaignByGeminiCampaignId(id);
+            StoreAcctEntity storeAcct = databaseService.findByEntityId(StoreAcctEntity.class, storeCampaign.getStoreAcctId());
+            EWSAccessTokenData tokens = ewsAuthService.getAccessTokenFromRefreshToken(storeAcct.getYahooAccessToken());
             EWSClientService ews = new EWSClientService(tokens);
-            ewsResponseData = ews.job(EWSReportingJobData.class, query, EWSEndpointEnum.REPORT_JOB_SUBMISSION);
+            ewsResponseData = ews.job(EWSReportingJobData.class, payload, EWSEndpointEnum.REPORT_JOB_SUBMISSION);
             int maxWaitInSeconds = config.getInt("", 30);
+            EWSReportingJobData jobStatus = null;
 
             _exit: for (int i = 0; ewsResponseData.isOk() && i < maxWaitInSeconds; i++) {
-                EWSReportingJobData jobStatus = ewsResponseData.get(0);
+                jobStatus = ewsResponseData.get(0);
 
                 switch (jobStatus.getStatus()) {
                 case completed:
@@ -77,23 +122,40 @@ public class EWSClientResource {
                 case submitted:
                 case running:
                     Thread.sleep(1000);
-                    ewsResponseData = ews.get(EWSReportingJobData.class, EWSEndpointEnum.REPORT_JOB_STATUS, jobStatus.getJobId(), 1648887);
+                    ewsResponseData = ews.get(EWSReportingJobData.class, EWSEndpointEnum.REPORT_JOB_STATUS, jobStatus.getJobId(),
+                            storeAcct.getGeminiNativeAcctId());
                     break;
                 case failed:
                 case killed:
-                    response = Response.serverError().entity("The report fetching is " + jobStatus.getStatus().toString()).build();
+                    String error = "Fetching a report with campaign=" + id + ": " + jobStatus.getJobResponse();
+
+                    log.error(error);
+                    httpStatus.setStatus(-1);
+                    httpStatus.setBrief(jobStatus.getStatus().toString());
+                    httpStatus.setMessage(error);
                     break _exit;
                 }
             }
             if (!ewsResponseData.isOk()) {
-                response = Response.serverError().entity(ewsResponseData.getMessage()).build();
+                httpStatus = ewsResponseData;
+            } else if (jobStatus == null || jobStatus.getStatus() != ReportingJobStatusEnum.completed) {
+                String error = "timed out after " + maxWaitInSeconds + " seconds";
+
+                log.warn(error);
+                httpStatus.setStatus(-1);
+                httpStatus.setBrief(error);
             }
         } catch (Exception e) {
-            response = Response.serverError().entity(e.getMessage()).build();
-        }
-        */
+            String error = "Failed to fetch a report with campaign=" + id;
 
-        return response;
+            log.error(error);
+            httpStatus.setStatus(-1);
+            httpStatus.setBrief(error);
+            httpStatus.setMessage(e.getMessage());
+        }
+
+        return (httpStatus.isOk() ? response : Response.serverError().entity(httpStatus).build());
+        */
     }
 
     /**
@@ -124,5 +186,5 @@ public class EWSClientResource {
     }
 
     public static String query = "{\"cube\":\"performance_stats\",\"fields\":[{\\\"field\\\":\\\"Day\\\"},{\"field\":\"Advertiser ID\"},{\"field\":\"Campaign ID\"},{\"field\":\"Impressions\"},{\"field\":\"Clicks\"},{\"field\":\"Conversions\"},{\"field\":\"Spend\"},{\"field\":\"Average CPC\"},{\"field\":\"Average CPM\"},{\"field\":\"Source\"}],\"filters\":[{\"field\":\"Advertiser ID\",\"operator\":\"=\",\"value\":1648887},{\"field\":\"Campaign ID\",\"operator\":\"IN\",\"values\":[363525108]},{\"field\":\"Day\",\"operator\":\"between\",\"from\":\"2018-01-11\",\"to\":\"2018-01-11\"}]}";
-    public static String data = "[[\"Advertiser ID\",\"Campaign ID\",\"Impressions\",\"Clicks\",\"Conversions\",\"Spend\",\"Average CPC\",\"Average CPM\",\"Source\"],[\"2017-12-10\",1648887,363115331,13,0,5,0,0,0,1],[\"2017-12-11\",1648887,363525108,15,3,27,0.2399999946,0.0799999982,15.9999996424,1]]";
+    public static String data = "[[\"Day\",\"Advertiser ID\",\"Campaign ID\",\"Impressions\",\"Clicks\",\"Conversions\",\"Spend\",\"Average CPC\",\"Average CPM\",\"Source\"],[\"2018-01-10\",1648887,363115331,13,0,5,1.7,0,0,1],[\"2018-01-11\",1648887,363525108,15,3,27,3.14,0.0799999982,15.9999996424,1]]";
 }
