@@ -1,0 +1,22 @@
+div.campaign-config {
+  padding: 0.5em;
+}
+
+input.form-control {
+  width: 10em;
+  margin-left: 1em;
+  margin-right: 1em;
+}
+
+input[type=button].btn {
+  background-color: #428bca;
+  color: white;
+}
+
+input.ng-valid {
+  border-left: 5px solid #42a948;
+}
+
+input.ng-invalid {
+  border-left: 5px solid #a94442;
+}

@@ -1,0 +1,50 @@
+.campaign-chart-option {
+  float: right;
+}
+
+.campaign-chart-loading {
+  font-size: 150%;
+  padding: 1em 0 4em 1em;
+}
+
+.campaign-chart-empty {
+  color: lightgray;
+  text-align: center;
+  display: block;
+}
+
+#dropdownMenuLink {
+  color: black;
+  text-decoration: none;
+  border-bottom: 1px dashed lightblue;
+}
+
+i.report-date-icon {
+  margin: 0 0.25em;
+  background-color: lightblue;
+}
+
+i.report-empty-icon {
+  display: block;
+  font-size: 400%;
+  margin-top: 1em;
+}
+
+a:hover {
+  color: blue;
+  background-color: lightblue;
+}
+
+a[class*="seleccted-report-opt"]:hover {
+  color: lightgray;
+  background-color: transparent;
+}
+
+a.seleccted-report-opt {
+  color: lightgray;
+}
+
+.selected-report-label {
+  margin: 0 0.25em;
+  font-weight: 700;
+}
