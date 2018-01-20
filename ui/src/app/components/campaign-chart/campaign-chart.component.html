@@ -1,28 +1,32 @@
-<div [hidden]="!report_loaded">
-  <div class="campaign-chart-option container">
-    <div class="campaign-chart-option dropdown dropleft">
-      <span class="selected-report-label">{{ report_choices[current_report.report_choice_idx].label }}:</span>
-      <a class="dropdown-togglex " href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown"
-         aria-haspopup="true" aria-expanded="false">
-        {{ current_report.stats_x_start | date:'mediumDate' }} - {{ current_report.stats_x_end | date:'mediumDate' }}
+<div class="campaign-chart-option container" [hidden]="!report_loaded || report_loaded_err">
+  <div class="campaign-chart-option dropdown dropleft">
+    <span class="selected-report-label">{{ report_choices[current_report.report_choice_idx].label }}:</span>
+    <a class="dropdown-togglex " href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown"
+       aria-haspopup="true" aria-expanded="false">
+      {{ current_report.stats_x_start | date:'mediumDate' }} - {{ current_report.stats_x_end | date:'mediumDate' }}
+    </a>
+    <i class="fa fa-calendar report-date-icon" aria-hidden="true"></i>
+    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+      <a *ngFor="let option of report_choices" class="dropdown-item" [class.seleccted-report-opt]="option.selected"
+         href="#" (click)="selectReport($event)">{{ option.label }}
       </a>
-      <i class="fa fa-calendar report-date-icon" aria-hidden="true"></i>
-      <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-        <a *ngFor="let option of report_choices" class="dropdown-item" [class.seleccted-report-opt]="option.selected"
-           href="#" (click)="selectReport($event)">{{ option.label }}
-        </a>
-      </div>
     </div>
   </div>
-
-  <div #chartTarget>
-  </div>
 </div>
-<div *ngIf="false && report_loaded && report_empty" class="campaign-chart-empty">
-  <i class="fa fa-line-chart report-empty-icon" aria-hidden="true"></i>
+
+<div #chartTarget [hidden]="report_empty">
+</div>
+
+<div *ngIf="report_loaded && report_empty && !report_loaded_err" class="campaign-chart-empty">
+  <i class="report-empty-icon fa fa-line-chart" aria-hidden="true"></i>
   <div style="margin: 2em 0">There is no data available for the selected time period</div>
 </div>
 
 <div *ngIf="!report_loaded" class="campaign-chart-loading">
   <div>Loading the report...</div>
+</div>
+
+<!-- Display error -->
+<div *ngIf="report_loaded && report_loaded_err" class="alert alert-danger" role="alert">
+  <strong>Doh!</strong> {{ report_loaded_err }}
 </div>

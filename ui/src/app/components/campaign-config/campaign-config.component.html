@@ -1,4 +1,4 @@
-<form #campaignForm="ngForm" *ngIf="campaign_loaded">
+<form #campaignForm="ngForm" *ngIf="campaign_loaded && !campaign_loaded_err">
   <div class="campaign-config panel panel-default">
     <div class="panel-body">
       <div class="form-group">
@@ -19,3 +19,7 @@
     </div>
   </div>
 </form>
+
+<div *ngIf="campaign_loaded && campaign_loaded_err" class="alert alert-danger" role="alert">
+  <strong>Doh!</strong> {{ campaign_loaded_err }}
+</div>

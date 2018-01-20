@@ -27,27 +27,21 @@ export class CampaignConfigComponent implements OnInit {
       query = '?' + query;
     }
 
-    try {
-      this.ewsService.getCampaign(this.campaignId, query).then(cmp => {
-        console.log('raw campaign: ' + JSON.stringify(cmp));
+    this.ewsService.getCampaign(this.campaignId, query).then(cmp => {
+      this.campaign = {
+        budget: cmp.budget,
+        cpc: cmp.price,
+        start_date: new Date(cmp.startDateInMilli),
+        end_date: new Date(cmp.endDateInMilli),
+        is_running: (cmp.status === 'ACTIVE')
+      };
 
-        this.campaign = {
-          budget: cmp.budget,
-          cpc: cmp.price,
-          start_date: new Date(cmp.startDateInMilli),
-          end_date: new Date(cmp.endDateInMilli),
-          is_running: (cmp.status === 'ACTIVE')
-        };
-
-        this.campaign_loaded_err = null;
-      }, err => {
-        this.campaign_loaded_err = JSON.stringify(err);
-      });
-    } catch (err) {
-      this.campaign_loaded_err = JSON.stringify(err);
-    } finally {
       this.campaign_loaded = true;
-    }
+      this.campaign_loaded_err = null;
+    }, err => {
+      this.campaign_loaded = true;
+      this.campaign_loaded_err = (err.message ? err.message : JSON.stringify(err));
+    });
   }
 
   public updateCost($event) {

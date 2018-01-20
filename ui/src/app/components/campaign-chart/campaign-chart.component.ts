@@ -120,20 +120,18 @@ export class CampaignChartComponent implements OnInit, AfterContentInit, OnDestr
     const opt: ReportOption = this.current_report;
     const query = this.stats.prepareQuery(opt.advertiserId, opt.campaignId, opt.rollup, opt.stats_x_start, opt.stats_x_end);
 
-    try {
-      this.ewsService.getMetric(this.campaignId, query).then(rpt => {
-        this.stats.reset(rpt);
-        this.initChart(opt);
-        this.report_loaded_err = null;
-      }, err => {
-        this.report_loaded_err = JSON.stringify(err);
-      });
-    } catch (err) {
-      this.report_loaded_err = JSON.stringify(err);
-    } finally {
+    this.ewsService.getMetric(this.campaignId, query).then(rpt => {
+      this.stats.reset(rpt);
+      this.initChart(opt);
+
       this.report_empty = (this.stats.dataRows == null || this.stats.dataRows.length === 0);
       this.report_loaded = true;
-    }
+      this.report_loaded_err = null;
+    }, err => {
+      this.report_empty = true;
+      this.report_loaded = true;
+      this.report_loaded_err = (err.message ? err.message : JSON.stringify(err));
+    });
   }
 
   ngAfterContentInit() {
