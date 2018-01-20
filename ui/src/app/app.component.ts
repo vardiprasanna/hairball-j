@@ -10,6 +10,7 @@ import { ActivatedRoute } from '@angular/router';
 export class AppComponent implements OnInit {
   cmpId: number;
   advId: number;
+  app_loaded = false;
 
   constructor(private route: ActivatedRoute) {
   }
@@ -23,6 +24,7 @@ export class AppComponent implements OnInit {
   ngOnInit() {
     this.cmpId = this.getCampaignIdParam();
     this.advId = this.getAdvertiserIdParam();
+    this.app_loaded = true;
   }
 
   private getAdvertiserIdParam(): number {

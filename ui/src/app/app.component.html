@@ -2,7 +2,7 @@
   <div class="app-header">
     <span class="app-header-label">Yahoo Gemini DPA</span> --- automatically manage your product ads
   </div>
-  <div class="app-body">
+  <div class="app-body" [hidden]="!app_loaded">
     <div class="app-section-campaign">
       <app-campaign-config [campaignId]="cmpId" [advertiserId]="advId"></app-campaign-config>
     </div>
