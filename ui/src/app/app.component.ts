@@ -14,33 +14,29 @@ export class AppComponent implements OnInit {
   constructor(private route: ActivatedRoute) {
   }
 
+  static getQueryIntParam(reg): number {
+    const query = window.location.search;
+    const val = reg.exec(query);
+    return (val && val.length >= 1) ? Number.parseInt(val[1]) : null;
+  }
+
   ngOnInit() {
     this.cmpId = this.getCampaignIdParam();
     this.advId = this.getAdvertiserIdParam();
   }
 
-  private getQueryParam(pattern) {
-
-  }
-
   private getAdvertiserIdParam(): number {
-    const reg = /[?/&;,]?adv=([0-9]+)[&;,]?.*$/
-    const query = window.location.search;
-    const advertiserIds = reg.exec(query);
-
-    if (advertiserIds && advertiserIds.length >= 1) {
-      return Number.parseInt(advertiserIds[1]);
+    const advertiserId = AppComponent.getQueryIntParam(/[?/&;,]?adv=([0-9]+)[&;,]?.*$/);
+    if (advertiserId) {
+      return advertiserId;
     }
     return 1643580; // TODO
   }
 
   private getCampaignIdParam(): number {
-    const reg = /[?/&;,]?cmp=([0-9]+)[&;,]?.*$/
-    const query = window.location.search;
-    const campaignIds = reg.exec(query);
-
-    if (campaignIds && campaignIds.length >= 1) {
-      return Number.parseInt(campaignIds[1]);
+    const campaignId = AppComponent.getQueryIntParam(/[?/&;,]?cmp=([0-9]+)[&;,]?.*$/);
+    if (campaignId) {
+      return campaignId;
     }
     return 363491351; // TODO;
   }
