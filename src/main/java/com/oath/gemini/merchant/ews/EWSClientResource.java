@@ -47,6 +47,12 @@ import lombok.extern.slf4j.Slf4j;
 @JsonInclude(Include.NON_NULL)
 @Path("ui")
 public class EWSClientResource {
+    // Used to categorize an error
+    public static final int ERR_GENERAL = -1;
+    public static final int ERR_LOCAL_DB = -2;
+    public static final int ERR_AUTH = -3;
+    public static final int ERR_EWS = -4;
+
     @Inject
     DatabaseService databaseService;
     @Inject
@@ -58,67 +64,97 @@ public class EWSClientResource {
     @GET
     @Path("campaign/{cmpId}")
     public Response getCampaign(@PathParam("cmpId") long id) {
-        HttpStatus httpStatus = new HttpStatus();
+        StoreCampaignEntity storeCampaign;
+        StoreAcctEntity storeAcct;
 
+        // Fetch the info stored locally in this app
         try {
-            StoreCampaignEntity storeCampaign = databaseService.findStoreCampaignByGeminiCampaignId(id);
-            StoreAcctEntity storeAcct = databaseService.findByEntityId(StoreAcctEntity.class, storeCampaign.getStoreAcctId());
-            EWSAccessTokenData tokens = ewsAuthService.getAccessTokenFromRefreshToken(storeAcct.getYahooAccessToken());
+            storeCampaign = databaseService.findStoreCampaignByGeminiCampaignId(id);
+            if (storeCampaign == null) {
+                return errorResponse(ERR_LOCAL_DB, Status.NOT_FOUND, "No campaign found with this id=%s", id);
+            }
+            storeAcct = databaseService.findByEntityId(StoreAcctEntity.class, storeCampaign.getStoreAcctId());
+            if (storeAcct == null) {
+                return errorResponse(ERR_LOCAL_DB, Status.NOT_FOUND, "No account found with this campaign id=%s", id);
+            }
+        } catch (Exception e) {
+            return errorResponse(ERR_LOCAL_DB, Status.INTERNAL_SERVER_ERROR, "Failed to fetch the campaign=%s: %s", id, e.getMessage());
+        }
+
+        // Fetch the access token to be used to invoke Gemini
+        EWSAccessTokenData tokens;
+        try {
+            tokens = ewsAuthService.getAccessTokenFromRefreshToken(storeAcct.getYahooAccessToken());
+        } catch (Exception e) {
+            return errorResponse(ERR_AUTH, Status.INTERNAL_SERVER_ERROR, "Failed to authenticate: %s", e.getMessage());
+        }
+
+        // Fill the campaign object for UI consumption
+        EWSResponseData<CampaignData> campaignResponse;
+        try {
             EWSClientService ews = new EWSClientService(tokens);
-            EWSResponseData<CampaignData> campaignResponse = ews.get(CampaignData.class, EWSEndpointEnum.CAMPAIGN_BY_ID, id);
+            campaignResponse = ews.get(CampaignData.class, EWSEndpointEnum.CAMPAIGN_BY_ID, id);
 
             if (!campaignResponse.isOk() || campaignResponse.getObjects() == null || campaignResponse.getObjects().length != 1) {
-                String error = "Failed to find a campaign={}" + id;
-
-                log.error(error);
-                httpStatus.setStatus(404);
-                httpStatus.setBrief(error);
-                return Response.status(Status.NOT_FOUND).entity(httpStatus).build();
+                return errorResponse(ERR_EWS, Status.NOT_FOUND, "No campaign found in Gemini with this id=%s", id);
             }
-
-            CampaignData cmpData = campaignResponse.get(0);
-            UICampaignDTO uiCmpDTO = new UICampaignDTO(storeCampaign);
-            uiCmpDTO.setStatus(cmpData.getStatus());
-
-            return Response.ok(uiCmpDTO).build();
         } catch (Exception e) {
-            String error = "Failed to fetch the campaign=" + id;
-
-            log.error(error);
-            httpStatus.setStatus(-1);
-            httpStatus.setBrief(error);
-            httpStatus.setMessage(e.getMessage());
-            return Response.serverError().entity(httpStatus).build();
+            return errorResponse(ERR_EWS, Status.INTERNAL_SERVER_ERROR, "Failed to access Gemini: %s", e.getMessage());
         }
+
+        CampaignData cmpData = campaignResponse.get(0);
+        UICampaignDTO uiCmpDTO = new UICampaignDTO(storeCampaign);
+        uiCmpDTO.setStatus(cmpData.getStatus());
+        return Response.ok(uiCmpDTO).build();
     }
 
     @RolesAllowed({ "localhost" })
     @POST
     @Path("reporting/{cmpId}")
     public Response getReport(@PathParam("cmpId") long id, String payload) {
-        return Response.ok(data).build();
+        if (true) {
+            return Response.ok(data).build();
+        }
 
-        /**
+        StoreCampaignEntity storeCampaign;
+        StoreAcctEntity storeAcct;
+
+        // Fetch the info stored locally in this app
+        try {
+            storeCampaign = databaseService.findStoreCampaignByGeminiCampaignId(id);
+            if (storeCampaign == null) {
+                return errorResponse(ERR_LOCAL_DB, Status.NOT_FOUND, "No campaign found with this id=%s", id);
+            }
+            storeAcct = databaseService.findByEntityId(StoreAcctEntity.class, storeCampaign.getStoreAcctId());
+            if (storeAcct == null) {
+                return errorResponse(ERR_LOCAL_DB, Status.NOT_FOUND, "No account found with this campaign id=%s", id);
+            }
+        } catch (Exception e) {
+            return errorResponse(ERR_LOCAL_DB, Status.INTERNAL_SERVER_ERROR, "Failed to fetch the campaign=%s: %s", id, e.getMessage());
+        }
+
+        // Fetch the access token to be used to invoke Gemini
+        EWSAccessTokenData tokens;
+        try {
+            tokens = ewsAuthService.getAccessTokenFromRefreshToken(storeAcct.getYahooAccessToken());
+        } catch (Exception e) {
+            return errorResponse(ERR_AUTH, Status.INTERNAL_SERVER_ERROR, "Failed to authenticate: %s", e.getMessage());
+        }
+
         EWSResponseData<EWSReportingJobData> ewsResponseData;
-        Response response = Response.ok(data).build();
-        HttpStatus httpStatus = new HttpStatus();
+        int maxWaitInSeconds = config.getInt("", 10);
 
         try {
-            StoreCampaignEntity storeCampaign = databaseService.findStoreCampaignByGeminiCampaignId(id);
-            StoreAcctEntity storeAcct = databaseService.findByEntityId(StoreAcctEntity.class, storeCampaign.getStoreAcctId());
-            EWSAccessTokenData tokens = ewsAuthService.getAccessTokenFromRefreshToken(storeAcct.getYahooAccessToken());
             EWSClientService ews = new EWSClientService(tokens);
             ewsResponseData = ews.job(EWSReportingJobData.class, payload, EWSEndpointEnum.REPORT_JOB_SUBMISSION);
-            int maxWaitInSeconds = config.getInt("", 30);
             EWSReportingJobData jobStatus = null;
 
-            _exit: for (int i = 0; ewsResponseData.isOk() && i < maxWaitInSeconds; i++) {
+            for (int i = 0; ewsResponseData.isOk() && i < maxWaitInSeconds; i++) {
                 jobStatus = ewsResponseData.get(0);
 
                 switch (jobStatus.getStatus()) {
                 case completed:
-                    response = Response.ok(downloadReport(jobStatus.getJobResponse())).build();
-                    break _exit;
+                    return Response.ok(downloadReport(jobStatus.getJobResponse())).build();
                 case submitted:
                 case running:
                     Thread.sleep(1000);
@@ -126,36 +162,21 @@ public class EWSClientResource {
                             storeAcct.getGeminiNativeAcctId());
                     break;
                 case failed:
+                    return errorResponse(ERR_EWS, Status.INTERNAL_SERVER_ERROR, "Failed to fetch a report for campaign=%s", id);
                 case killed:
-                    String error = "Fetching a report with campaign=" + id + ": " + jobStatus.getJobResponse();
-
-                    log.error(error);
-                    httpStatus.setStatus(-1);
-                    httpStatus.setBrief(jobStatus.getStatus().toString());
-                    httpStatus.setMessage(error);
-                    break _exit;
+                    return errorResponse(ERR_EWS, Status.INTERNAL_SERVER_ERROR, "Killed to fetch a report for campaign=%s", id);
                 }
             }
             if (!ewsResponseData.isOk()) {
-                httpStatus = ewsResponseData;
+                return errorResponse(ERR_EWS, Status.INTERNAL_SERVER_ERROR, "Failed to access a Gemini report", ewsResponseData.getBrief());
             } else if (jobStatus == null || jobStatus.getStatus() != ReportingJobStatusEnum.completed) {
-                String error = "timed out after " + maxWaitInSeconds + " seconds";
-
-                log.warn(error);
-                httpStatus.setStatus(-1);
-                httpStatus.setBrief(error);
+                return errorResponse(ERR_EWS, Status.INTERNAL_SERVER_ERROR, "timed out after %d seconds", maxWaitInSeconds);
             }
         } catch (Exception e) {
-            String error = "Failed to fetch a report with campaign=" + id;
-
-            log.error(error);
-            httpStatus.setStatus(-1);
-            httpStatus.setBrief(error);
-            httpStatus.setMessage(e.getMessage());
+            return errorResponse(ERR_EWS, Status.INTERNAL_SERVER_ERROR, "Failed to access a Gemini report: %s", e.getMessage());
         }
 
-        return (httpStatus.isOk() ? response : Response.serverError().entity(httpStatus).build());
-        */
+        return Response.status(Status.NO_CONTENT).build();
     }
 
     /**
@@ -183,6 +204,18 @@ public class EWSClientResource {
             }
             return data;
         }
+    }
+
+    private static Response errorResponse(int category, Response.Status status, String brief, Object... args) {
+        HttpStatus httpStatus = new HttpStatus();
+
+        if (args != null && args.length > 0) {
+            brief = String.format(brief, args);
+        }
+        log.error(brief);
+        httpStatus.setStatus(category);
+        httpStatus.setBrief(brief);
+        return Response.status(status).entity(httpStatus).build();
     }
 
     public static String query = "{\"cube\":\"performance_stats\",\"fields\":[{\\\"field\\\":\\\"Day\\\"},{\"field\":\"Advertiser ID\"},{\"field\":\"Campaign ID\"},{\"field\":\"Impressions\"},{\"field\":\"Clicks\"},{\"field\":\"Conversions\"},{\"field\":\"Spend\"},{\"field\":\"Average CPC\"},{\"field\":\"Average CPM\"},{\"field\":\"Source\"}],\"filters\":[{\"field\":\"Advertiser ID\",\"operator\":\"=\",\"value\":1648887},{\"field\":\"Campaign ID\",\"operator\":\"IN\",\"values\":[363525108]},{\"field\":\"Day\",\"operator\":\"between\",\"from\":\"2018-01-11\",\"to\":\"2018-01-11\"}]}";

@@ -80,6 +80,7 @@ export class CampaignChartComponent implements OnInit, AfterContentInit, OnDestr
 
   current_report: ReportOption;
   report_choices: any = report_choices; // define a local to work around angular's static var access
+  report_loaded_err: any;
   report_loaded = false;
   report_empty = true;
   stats: Metric;
@@ -119,14 +120,20 @@ export class CampaignChartComponent implements OnInit, AfterContentInit, OnDestr
     const opt: ReportOption = this.current_report;
     const query = this.stats.prepareQuery(opt.advertiserId, opt.campaignId, opt.rollup, opt.stats_x_start, opt.stats_x_end);
 
-    this.ewsService.getMetric(this.campaignId, query).then(rpt => {
-      this.stats.reset(rpt);
-      this.initChart(opt);
-
-      console.log('report data: ' + JSON.stringify(rpt));
+    try {
+      this.ewsService.getMetric(this.campaignId, query).then(rpt => {
+        this.stats.reset(rpt);
+        this.initChart(opt);
+        this.report_loaded_err = null;
+      }, err => {
+        this.report_loaded_err = JSON.stringify(err);
+      });
+    } catch (err) {
+      this.report_loaded_err = JSON.stringify(err);
+    } finally {
       this.report_empty = (this.stats.dataRows == null || this.stats.dataRows.length === 0);
       this.report_loaded = true;
-    });
+    }
   }
 
   ngAfterContentInit() {

@@ -15,6 +15,7 @@ export class CampaignConfigComponent implements OnInit {
 
   campaign: Campaign;
   campaign_loaded = false;
+  campaign_loaded_err: any;
 
   constructor(private ewsService: CampaignService) {
     this.campaign = new Campaign();
@@ -26,19 +27,27 @@ export class CampaignConfigComponent implements OnInit {
       query = '?' + query;
     }
 
-    this.ewsService.getCampaign(this.campaignId, query).then(cmp => {
-      console.log('raw campaign: ' + JSON.stringify(cmp));
+    try {
+      this.ewsService.getCampaign(this.campaignId, query).then(cmp => {
+        console.log('raw campaign: ' + JSON.stringify(cmp));
 
-      this.campaign = {
-        budget: cmp.budget,
-        cpc: cmp.price,
-        start_date: new Date(cmp.startDateInMilli),
-        end_date: new Date(cmp.endDateInMilli),
-        is_running: (cmp.status === 'ACTIVE')
-      };
+        this.campaign = {
+          budget: cmp.budget,
+          cpc: cmp.price,
+          start_date: new Date(cmp.startDateInMilli),
+          end_date: new Date(cmp.endDateInMilli),
+          is_running: (cmp.status === 'ACTIVE')
+        };
+
+        this.campaign_loaded_err = null;
+      }, err => {
+        this.campaign_loaded_err = JSON.stringify(err);
+      });
+    } catch (err) {
+      this.campaign_loaded_err = JSON.stringify(err);
+    } finally {
       this.campaign_loaded = true;
-      console.log('campaign: ' + JSON.stringify(this.campaign));
-    }); // .catch(this.handleError);
+    }
   }
 
   public updateCost($event) {
