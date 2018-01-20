@@ -154,7 +154,7 @@ export class CampaignChartComponent implements OnInit, AfterContentInit, OnDestr
       return; // no change
     }
     for (; new_report_index < report_choices.length; new_report_index++) {
-      if (report_choices[new_report_index].label.match(new_report_opt)) {
+      if (report_choices[new_report_index].label === new_report_opt) {
         break;
       }
     }
