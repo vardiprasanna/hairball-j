@@ -1,0 +1,25 @@
+<form #campaignForm="ngForm" *ngIf="campaign_loaded && !campaign_loaded_err">
+  <div class="campaign-config panel panel-default">
+    <div class="panel-body">
+      <div class="form-group">
+        <label>Budget:</label>
+        <input required class="form-control" type="number" name="budget"
+               [(ngModel)]="campaign.budget" placeholder="max spend">
+      </div>
+      <div class="form-group">
+        <label>Cost Per Click:</label>
+        <input required class="form-control" type="number" name="cpc"
+               [(ngModel)]="campaign.cpc" placeholder="unit price">
+      </div>
+
+      <!-- toggle start and stop a campaign -->
+      <div class="input-group">
+        <input type="button" class="btn" [disabled]="!campaignForm.valid" [value]="campaign.is_running ? 'Stop' : 'Start'" (click)="updateCost()"/>
+      </div>
+    </div>
+  </div>
+</form>
+
+<div *ngIf="campaign_loaded && campaign_loaded_err" class="alert alert-danger" role="alert">
+  <strong>Doh!</strong> {{ campaign_loaded_err }}
+</div>
