@@ -8,6 +8,9 @@ import com.oath.gemini.merchant.ews.json.CampaignData;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * @author tong on 1/1/2018
+ */
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
