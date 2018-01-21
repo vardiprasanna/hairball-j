@@ -85,7 +85,7 @@ export class CampaignChartComponent implements OnInit, AfterContentInit, OnDestr
   report_empty = true;
   stats: Metric;
 
-  constructor(private ewsService: CampaignService) {
+  constructor(private campaignService: CampaignService) {
   }
 
   private static subtractDays(srcDate: Date, days: number): Date {
@@ -120,7 +120,7 @@ export class CampaignChartComponent implements OnInit, AfterContentInit, OnDestr
     const opt: ReportOption = this.current_report;
     const query = this.stats.prepareQuery(opt.advertiserId, opt.campaignId, opt.rollup, opt.stats_x_start, opt.stats_x_end);
 
-    this.ewsService.getMetric(this.campaignId, query).then(rpt => {
+    this.campaignService.getMetric(this.campaignId, query).then(rpt => {
       this.stats.reset(rpt);
       this.initChart(opt);
 
@@ -229,7 +229,7 @@ export class CampaignChartComponent implements OnInit, AfterContentInit, OnDestr
       new_report.rollup, new_report.stats_x_start, new_report.stats_x_end);
 
     // Load a new report, and update a current report options afterward
-    this.ewsService.getMetric(this.campaignId, query).then(rpt => {
+    this.campaignService.getMetric(this.campaignId, query).then(rpt => {
       this.stats.reset(rpt);
       this.updateChart(new_report);
 
