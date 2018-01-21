@@ -17,7 +17,7 @@ export class CampaignConfigComponent implements OnInit {
   campaign_loaded = false;
   campaign_loaded_err: any;
 
-  constructor(private ewsService: CampaignService) {
+  constructor(private campaignService: CampaignService) {
     this.campaign = new Campaign();
   }
 
@@ -27,7 +27,7 @@ export class CampaignConfigComponent implements OnInit {
       query = '?' + query;
     }
 
-    this.ewsService.getCampaign(this.campaignId, query).then(cmp => {
+    this.campaignService.getCampaign(this.campaignId, query).then(cmp => {
       this.campaign = {
         budget: cmp.budget,
         cpc: cmp.price,
