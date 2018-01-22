@@ -1,0 +1,27 @@
+.app-root {
+  margin: 0em 50px;
+}
+
+.app-header {
+  margin-top: 2em;
+  margin-bottom: 1em;
+}
+
+.app-header-label {
+  font-size: 200%;
+  font-weight: 700;
+}
+
+.app-section-campaign {
+  margin-bottom: 2em;
+  background-color: white;
+  border: 1px solid lightgray;
+  box-shadow: 6px 3px 5px gray;
+}
+
+.app-section-chart {
+  margin: 0em;
+  background-color: white;
+  border: 1px solid lightgray;
+  box-shadow: 6px 3px 5px gray;
+}
