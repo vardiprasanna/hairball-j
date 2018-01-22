@@ -87,7 +87,7 @@ public class ShopifyOnboardResource {
                 return Response.status(Status.UNAUTHORIZED).entity("<h3>Unauthorized-1 due to a mismatched key</h3>").build();
             }
         } catch (Exception e) {
-            return Response.serverError().build();
+            return Response.serverError().entity("Unauthorized-1 due to a mismatched key").build();
         }
 
         /**
@@ -95,11 +95,11 @@ public class ShopifyOnboardResource {
          */
         try {
             String path = info.getAbsolutePath().toString();
-            String redirectUrl = HttpUtils.forceToUseHttps(path.substring(0, path.indexOf("shopify")) + "shopify/home");
+            String redirectUrl = HttpUtils.forceToUseHttps(path.substring(0, path.indexOf("/shopify/")) + "/shopify/home");
             URI uri = buildScopeRequestUrl(keyEntry, shop, redirectUrl);
             return Response.temporaryRedirect(uri).build();
         } catch (Exception e) {
-            log.error("failed to validate the legitimate of the call", info.getAbsolutePath());
+            log.error("failed for the legitimacy of the call", info.getAbsolutePath());
             return Response.serverError().entity(e.toString()).build();
         }
     }
@@ -122,8 +122,8 @@ public class ShopifyOnboardResource {
                 return Response.status(Status.UNAUTHORIZED).entity("<h3>Unauthorized-2 due to a mismatched key</h3>").build();
             }
         } catch (Exception e) {
-            log.error("failed to validate the legitimate of the call", e);
-            return Response.serverError().build();
+            log.error("failed for the legitimacy of the call", e);
+            return Response.serverError().entity("failed for the legitimacy of the call").build();
         }
 
         try {
@@ -133,7 +133,7 @@ public class ShopifyOnboardResource {
             if (tokens == null || StringUtils.isBlank(tokens.getAccessToken())) {
                 // The shopify code may have expired when user clicks the Browser's Back button to re-play an earlier on-boarding
                 log.error("a shopify code '{}' likely has expired", code);
-                return Response.status(Status.BAD_REQUEST).build();
+                return Response.status(Status.BAD_REQUEST).entity("a shopify code has expired").build();
             }
 
             // If Shopify's shop account does not exist, we certainly do not have his Yahoo's Refresh Token, and therefore asks him
@@ -413,7 +413,7 @@ public class ShopifyOnboardResource {
         ShopifyWebHookData webhook = new ShopifyWebHookData();
         String address = req.getRequestURL().toString();
 
-        webhook.setAddress(address.substring(0, address.indexOf("shopify")) + "shopify/uninstall");
+        webhook.setAddress(address.substring(0, address.indexOf("/shopify/")) + "/shopify/uninstall");
         webhook.setTopic("app/uninstalled");
 
         if (webhooks != null) {

@@ -297,10 +297,10 @@
         </dependency>
       </dependencies>
       <properties>
-        <pom.app.host>hairball-j.herokuapp.com</pom.app.host>
+        <pom.app.host>gemini-shopify.herokuapp.com</pom.app.host>
         <pom.shopify.feed.cron>0 0 0 1/1 * ? *</pom.shopify.feed.cron>
-        <pom.y.oauth.secret.id>be993f12ec0859c1ae70152f933bd9e0e185ae1b</pom.y.oauth.secret.id>
-        <pom.y.oauth.client.id>dj0yJmk9Vm01WTdJd01vS3ZSJmQ9WVdrOU1sZGhNbWxtTldNbWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmeD1iMw--</pom.y.oauth.client.id>
+        <pom.y.oauth.secret.id>0bc808a9b4e251c7345fdfc2269cdd206fe81d97</pom.y.oauth.secret.id>
+        <pom.y.oauth.client.id>dj0yJmk9YTl4bFUxYXJYSFlpJmQ9WVdrOWVHTTFkMkprTm1jbWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmeD02OQ--</pom.y.oauth.client.id>
         <pom.db.backup.cron>0 0 0 1/1 * ? *</pom.db.backup.cron>
         <pom.log.level>WARN</pom.log.level>
       </properties>
