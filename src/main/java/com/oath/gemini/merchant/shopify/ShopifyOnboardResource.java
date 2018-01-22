@@ -81,7 +81,7 @@ public class ShopifyOnboardResource {
     @Path("welcome")
     public Response install(@Context UriInfo info, @QueryParam("hmac") String hmac, @QueryParam("shop") String shop) {
         int keyEntry = -1;
-
+        System.err.println("The welcome 1");
         try {
             if ((keyEntry = ShopifyOauthHelper.matchHMac(hmac, info.getQueryParameters())) < 0) {
                 return Response.status(Status.UNAUTHORIZED).entity("<h3>Unauthorized-1 due to a mismatched key</h3>").build();
@@ -89,7 +89,7 @@ public class ShopifyOnboardResource {
         } catch (Exception e) {
             return Response.serverError().entity("Unauthorized-1 due to a mismatched key").build();
         }
-
+        System.err.println("The welcome 2");
         /**
          * Redirect to the store owner for the grant of the access scopes
          */
