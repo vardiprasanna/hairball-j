@@ -95,7 +95,7 @@ public class ShopifyOnboardResource {
          */
         try {
             String path = info.getAbsolutePath().toString();
-            String redirectUrl = HttpUtils.forceToUseHttps(path.substring(0, path.indexOf("shopify")) + "shopify/home");
+            String redirectUrl = HttpUtils.forceToUseHttps(path.substring(0, path.indexOf("/shopify/")) + "/shopify/home");
             URI uri = buildScopeRequestUrl(keyEntry, shop, redirectUrl);
             System.err.println("The welcome will be redirected to " + uri.toString());
             return Response.temporaryRedirect(uri).build();
@@ -415,7 +415,7 @@ public class ShopifyOnboardResource {
         ShopifyWebHookData webhook = new ShopifyWebHookData();
         String address = req.getRequestURL().toString();
 
-        webhook.setAddress(address.substring(0, address.indexOf("shopify")) + "shopify/uninstall");
+        webhook.setAddress(address.substring(0, address.indexOf("/shopify/")) + "/shopify/uninstall");
         webhook.setTopic("app/uninstalled");
 
         if (webhooks != null) {
