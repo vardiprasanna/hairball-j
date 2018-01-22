@@ -87,7 +87,7 @@ public class ShopifyOnboardResource {
                 return Response.status(Status.UNAUTHORIZED).entity("<h3>Unauthorized-1 due to a mismatched key</h3>").build();
             }
         } catch (Exception e) {
-            return Response.serverError().build();
+            return Response.serverError().entity("Unauthorized-1 due to a mismatched key").build();
         }
 
         /**
@@ -97,9 +97,10 @@ public class ShopifyOnboardResource {
             String path = info.getAbsolutePath().toString();
             String redirectUrl = HttpUtils.forceToUseHttps(path.substring(0, path.indexOf("shopify")) + "shopify/home");
             URI uri = buildScopeRequestUrl(keyEntry, shop, redirectUrl);
+            System.err.println("The welcome will be redirected to " + uri.toString());
             return Response.temporaryRedirect(uri).build();
         } catch (Exception e) {
-            log.error("failed to validate the legitimate of the call", info.getAbsolutePath());
+            log.error("failed for the legitimacy of the call", info.getAbsolutePath());
             return Response.serverError().entity(e.toString()).build();
         }
     }
@@ -115,17 +116,17 @@ public class ShopifyOnboardResource {
     public Response home(@Context UriInfo info, @Context HttpServletRequest req, @QueryParam("hmac") String hmac,
             @QueryParam("shop") String shop, @QueryParam("code") String code, @QueryParam("state") String state) {
         int keyEntry = -1;
-
+        System.err.println("The home 1");
         // Verify the signature of the call
         try {
             if ((keyEntry = ShopifyOauthHelper.matchHMac(hmac, info.getQueryParameters())) < 0) {
                 return Response.status(Status.UNAUTHORIZED).entity("<h3>Unauthorized-2 due to a mismatched key</h3>").build();
             }
         } catch (Exception e) {
-            log.error("failed to validate the legitimate of the call", e);
-            return Response.serverError().build();
+            log.error("failed for the legitimacy of the call", e);
+            return Response.serverError().entity("failed for the legitimacy of the call").build();
         }
-
+        System.err.println("The home 2");
         try {
             // Ask for the access scopes if our app has not been installed yet
             ShopifyAccessTokenData tokens = fetchAuthToken(keyEntry, shop, code);
@@ -133,13 +134,13 @@ public class ShopifyOnboardResource {
             if (tokens == null || StringUtils.isBlank(tokens.getAccessToken())) {
                 // The shopify code may have expired when user clicks the Browser's Back button to re-play an earlier on-boarding
                 log.error("a shopify code '{}' likely has expired", code);
-                return Response.status(Status.BAD_REQUEST).build();
+                return Response.status(Status.BAD_REQUEST).entity("a shopify code has expired").build();
             }
 
             // If Shopify's shop account does not exist, we certainly do not have his Yahoo's Refresh Token, and therefore asks him
             // to go through Yahoo's OAuth flow
             StoreAcctEntity storeAcct = databaseService.findStoreAcctByDomain(shop);
-
+            System.err.println("The home 3: " + storeAcct);
             if (storeAcct != null) {
                 return setupOrRepaireIfRequired(req, shop, storeAcct.getYahooAccessToken(), tokens.getAccessToken());
             } else {
@@ -153,6 +154,7 @@ public class ShopifyOnboardResource {
                 rd = buildQueries(rd, "shop", shop);
 
                 requestAuth = requestAuth.replace("${y.oauth.redirect}", URLEncoder.encode(rd, "UTF-8"));
+                System.err.println("The home will be redirected to " + requestAuth.toString());
                 return Response.temporaryRedirect(URI.create(requestAuth)).build();
             }
         } catch (Exception e) {
