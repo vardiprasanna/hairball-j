@@ -141,20 +141,25 @@ public class ShopifyOnboardResource {
             StoreAcctEntity storeAcct = databaseService.findStoreAcctByDomain(shop);
 
             if (storeAcct != null) {
-                return setupOrRepaireIfRequired(req, shop, storeAcct.getYahooAccessToken(), tokens.getAccessToken());
-            } else {
-                // Redirect to Yahoo OAuth2 handler for user's Gemini access. Will be redirected to here when OAuth2 is done
-                // Note: ensure SSL because SSL may have been terminated before a traffic server reaches to us
-                String requestAuth = config.getString("y.oauth.auth.request.url");
-                String rd = new URI(req.getScheme(), config.getString("app.host"), "/g/shopify/ews", null).toString();
-
-                rd = HttpUtils.forceToUseHttps(rd);
-                rd = buildQueries(rd, "_mc", tokens.getAccessToken());
-                rd = buildQueries(rd, "shop", shop);
-
-                requestAuth = requestAuth.replace("${y.oauth.redirect}", URLEncoder.encode(rd, "UTF-8"));
-                return Response.temporaryRedirect(URI.create(requestAuth)).build();
+                EWSAccessTokenData ewsTokens = ewsAuthService.getAccessTokenFromRefreshToken(storeAcct.getYahooAccessToken());
+                // If the refresh token is invalid, user needs to be authenticated again
+                if (ewsTokens.isOk()) {
+                    return setupOrRepaireIfRequired(req, shop, ewsTokens, tokens.getAccessToken());
+                }
             }
+
+            // Redirect to Yahoo OAuth2 handler for user's Gemini access. Will be redirected to here when OAuth2 is done
+            // Note: ensure SSL because SSL may have been terminated before a traffic server reaches to us
+            String requestAuth = config.getString("y.oauth.auth.request.url");
+            String rd = new URI(req.getScheme(), config.getString("app.host"), "/g/shopify/ews", null).toString();
+
+            rd = HttpUtils.forceToUseHttps(rd);
+            rd = buildQueries(rd, "_mc", tokens.getAccessToken());
+            rd = buildQueries(rd, "shop", shop);
+
+            requestAuth = requestAuth.replace("${y.oauth.redirect}", URLEncoder.encode(rd, "UTF-8"));
+            return Response.temporaryRedirect(URI.create(requestAuth)).build();
+
         } catch (Exception e) {
             log.error("failed to validate the legitimate of the call", req.getRequestURI());
             return Response.serverError().entity(e.toString()).build();
@@ -179,8 +184,7 @@ public class ShopifyOnboardResource {
 
             // Redirect user to a campaign setup page
             if (tokens != null && tokens.getRefreshToken() != null) {
-                String refreshToken = tokens.getRefreshToken();
-                return setupOrRepaireIfRequired(req, shop, refreshToken, _mc);
+                return setupOrRepaireIfRequired(req, shop, tokens, _mc);
             } else {
                 log.error("invalid EWS authorization code, which could have expired");
                 return Response.status(Status.UNAUTHORIZED).entity("failed to retrieve EWS oAuth token").build();
@@ -240,12 +244,11 @@ public class ShopifyOnboardResource {
     /**
      * Configure a shopper's campaign, product feed if necessary
      */
-    private Response setupOrRepaireIfRequired(HttpServletRequest req, String shop, String gRefreshToken, String shopifyRefreshToken)
+    private Response setupOrRepaireIfRequired(HttpServletRequest req, String shop, EWSAccessTokenData tokens, String shopifyRefreshToken)
             throws Exception {
 
         // By now, we have both Shopify and Yahoo access tokens. Let's persist this info locally
         ShopifyClientService ps = new ShopifyClientService(shop, shopifyRefreshToken);
-        EWSAccessTokenData tokens = ewsAuthService.getAccessTokenFromRefreshToken(gRefreshToken);
         EWSClientService ews = new EWSClientService(tokens);
         StoreAcctEntity storeAcctEntity = registerStoreAccountIfRequired(ps, ews);
         StoreCampaignEntity storeCmpEntity = null; // TODO databaseService.findByAcctId(StoreCampaignEntity.class, storeAcctEntity.getId());
