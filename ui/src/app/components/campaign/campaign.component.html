@@ -1,0 +1,8 @@
+<div class="app-body" [hidden]="!app_loaded">
+  <div class="app-section-campaign">
+    <app-campaign-config [campaignId]="cmpId" [advertiserId]="advId"></app-campaign-config>
+  </div>
+  <div class="app-section-chart">
+    <app-campaign-chart [campaignId]="cmpId" [advertiserId]="advId"></app-campaign-chart>
+  </div>
+</div>
