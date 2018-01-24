@@ -12,7 +12,7 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.configuration.Configuration;
 
 /**
- * It signs a host alone with the query parameters
+ * It signs a host along with the query parameters
  * 
  * @author tong 10/1/2017
  */
