@@ -62,6 +62,26 @@ public class EWSClientResource {
 
     @RolesAllowed({ "localhost" })
     @GET
+    @Path("account/{id}")
+    public Response getAccount(@PathParam("id") int id) {
+        StoreAcctEntity storeAcct;
+
+        // Fetch the info stored locally in this app
+        try {
+            storeAcct = new StoreAcctEntity();
+            storeAcct.setGeminiNativeAcctId(id);
+            storeAcct = databaseService.findByAny(storeAcct);
+            if (storeAcct == null) {
+                return errorResponse(ERR_LOCAL_DB, Status.NOT_FOUND, "No account found with this campaign id=%s", id);
+            }
+        } catch (Exception e) {
+            return errorResponse(ERR_LOCAL_DB, Status.INTERNAL_SERVER_ERROR, "Failed to fetch the campaign=%s: %s", id, e.getMessage());
+        }
+        return Response.ok().entity(storeAcct).build();
+    }
+
+    @RolesAllowed({ "localhost" })
+    @GET
     @Path("campaign/{cmpId}")
     public Response getCampaign(@PathParam("cmpId") long id) {
         StoreCampaignEntity storeCampaign;
@@ -85,6 +105,9 @@ public class EWSClientResource {
         EWSAccessTokenData tokens;
         try {
             tokens = ewsAuthService.getAccessTokenFromRefreshToken(storeAcct.getYahooAccessToken());
+            if (!tokens.isOk()) {
+                return errorResponse(ERR_AUTH, Status.INTERNAL_SERVER_ERROR, "Failed to authenticate: %s", tokens.getMessage());
+            }
         } catch (Exception e) {
             return errorResponse(ERR_AUTH, Status.INTERNAL_SERVER_ERROR, "Failed to authenticate: %s", e.getMessage());
         }
