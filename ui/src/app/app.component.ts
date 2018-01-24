@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Router } from '@angular/router';
+import { CampaignService } from './services/campaign.service';
+import { Account } from './model/account';
 
 @Component({
   selector: 'app-root',
@@ -8,11 +10,9 @@ import { ActivatedRoute } from '@angular/router';
 })
 
 export class AppComponent implements OnInit {
-  cmpId: number;
-  advId: number;
   app_loaded = false;
 
-  constructor(private route: ActivatedRoute) {
+  constructor(private router: Router, private campaignService: CampaignService) {
   }
 
   static getQueryIntParam(reg): number {
@@ -22,9 +22,58 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.cmpId = this.getCampaignIdParam();
-    this.advId = this.getAdvertiserIdParam();
+    const campaignId = this.getCampaignIdParam();
+    const advertiserId = this.getAdvertiserIdParam();
+
+    // Use a locally cached account if necessary
+    if (!campaignId && !advertiserId) {
+      let account: any;
+
+      if (window.sessionStorage) {
+        account = window.sessionStorage.getItem('geminiDpaApp');
+      }
+      if (!account && window.localStorage) {
+        account = window.sessionStorage.getItem('geminiDpaApp');
+      }
+      if (account) {
+        try {
+          this.campaignService.account = JSON.parse(account);
+        } catch (err) {
+          console.log(err.getMessages());
+        }
+      }
+      return this.loginIfRequired();
+    }
+
+    // Check whether an account can be retrieved via URL parameters
+    this.campaignService.getAccount(advertiserId).then(acct => {
+      if (acct) {
+        try {
+          const storedAccount: Account = {
+            store_access_token: acct.store_access_token,
+            yahoo_access_token: acct.yahooAccessToken,
+            store_native_acct_id: acct.store_native_acct_id,
+            gemini_native_acct_id: acct.gemini_native_acct_id
+          };
+
+          this.campaignService.account = storedAccount;
+        } catch (e) {
+          console.log(e);
+        }
+      }
+      this.loginIfRequired();
+
+    }, err => {
+      this.loginIfRequired();
+      console.log(err.message ? err.message : JSON.stringify(err));
+    });
+  }
+
+  private loginIfRequired(): void {
     this.app_loaded = true;
+    if (!this.campaignService.account) {
+      this.router.navigateByUrl('login');
+    }
   }
 
   private getAdvertiserIdParam(): number {
