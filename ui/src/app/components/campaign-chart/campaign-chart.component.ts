@@ -141,7 +141,7 @@ export class CampaignChartComponent implements OnInit, AfterContentInit, OnDestr
     this.chart = null;
   }
 
-  selectReport(event: Event) {
+  selectReport(event: Event): boolean {
     const new_report_opt = event.srcElement.innerHTML.trim();
     let old_report_name = null;
     let new_report_index = 0;
@@ -151,7 +151,7 @@ export class CampaignChartComponent implements OnInit, AfterContentInit, OnDestr
     }
     if (old_report_name === new_report_opt) {
       console.log('no change');
-      return; // no change
+      return false; // no change
     }
     for (; new_report_index < report_choices.length; new_report_index++) {
       if (report_choices[new_report_index].label === new_report_opt) {
@@ -160,7 +160,7 @@ export class CampaignChartComponent implements OnInit, AfterContentInit, OnDestr
     }
     if (new_report_index === report_choices.length) {
       console.log('unknow report selection: ' + new_report_opt);
-      return;
+      return false;
     }
 
     let end_date = new Date();
@@ -238,6 +238,8 @@ export class CampaignChartComponent implements OnInit, AfterContentInit, OnDestr
       report_choices[new_report.report_choice_idx].selected = true;
       this.current_report = new_report;
     });
+
+    return false;
   }
 
   private updateChart(report_opt: ReportOption) {
