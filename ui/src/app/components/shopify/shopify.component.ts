@@ -32,20 +32,15 @@ export class ShopifyComponent implements OnInit {
             console.log('shopify account: ' + JSON.stringify(this.campaignService.account));
 
             // Redirect to login page if the account is invalid
-            if (this.hasValidTokens()) {
-              this.router.navigateByUrl('g/campaign');
+            if (this.campaignService.isAccountReady()) {
+              this.router.navigateByUrl('campaign');
             } else {
-              this.router.navigateByUrl('g/login');
+              this.router.navigateByUrl('login');
             }
           });
         }
       });
 
     subscription.unsubscribe();
-  }
-
-  hasValidTokens(): boolean {
-    const acct: Account = this.campaignService.account;
-    return (acct && acct.hasValidTokens());
   }
 }
