@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Params } from '@angular/router';
 import { Account } from '../model/account';
 import { Campaign } from '../model/campaign';
 
 @Injectable()
 export class CampaignService {
-  account: Account;
-  base_uri: string;
+  private _account: Account;
+  private base_uri: string;
 
   constructor(private http: HttpClient) {
     console.log('campaign service creation');
@@ -17,7 +18,22 @@ export class CampaignService {
     this.base_uri = 'http://localhost:4080'; // TODO
   }
 
-  getAccount(id: number, query?: string): Promise<any> {
+  set account(acct: Account) {
+    this._account = new Account(acct);
+  }
+
+  get account(): Account {
+    return this._account;
+  }
+
+  queryAccount(query: Params): Promise<Account> {
+    const path = '/g/ui/account/shopify';
+    return this.http
+      .get<Account>(this.base_uri + path, {params: query})
+      .toPromise();
+  }
+
+  getAccount(id: number, query?: string): Promise<Account> {
     const path = '/g/ui/account/' + id;
     return this.http
       .get<Account>(this.base_uri + path)
