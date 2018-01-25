@@ -1,4 +1,4 @@
-<div class="app-body" *ngIf="campaign_loaded">
+<div class="app-body" *ngIf="campaign_loaded && !campaign_loaded_err">
   <div class="app-section-campaign">
     <app-campaign-config [campaignId]="cmpId" [advertiserId]="advId"></app-campaign-config>
   </div>
