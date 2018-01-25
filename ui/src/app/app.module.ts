@@ -28,20 +28,20 @@ import { ShopifyComponent } from './components/shopify/shopify.component';
     HttpClientModule,
     RouterModule.forRoot([
       {
-        path: 'g/campaign',
+        path: 'campaign',
         component: CampaignComponent,
       },
       {
-        path: 'g/login',
+        path: 'login',
         component: LoginComponent,
       },
       {
-        path: 'g/shopify',
+        path: 'shopify',
         component: ShopifyComponent,
       },
       {
         path: '',
-        redirectTo: 'g/campaign',
+        redirectTo: 'campaign',
         pathMatch: 'full'
       }
     ], {enableTracing: false})

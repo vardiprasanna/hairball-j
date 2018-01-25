@@ -61,7 +61,7 @@ export class AppComponent implements OnInit {
   private loginIfRequired(): void {
     this.app_loaded = true;
     if (!this.campaignService.account) {
-   //   this.router.navigateByUrl('g/login');
+   //   this.router.navigateByUrl('login');
     }
   }
 
