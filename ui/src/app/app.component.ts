@@ -48,18 +48,7 @@ export class AppComponent implements OnInit {
     // Check whether an account can be retrieved via URL parameters
     this.campaignService.getAccount(advertiserId).then(acct => {
       if (acct) {
-        try {
-          const storedAccount: Account = {
-            store_access_token: acct.store_access_token,
-            yahoo_access_token: acct.yahooAccessToken,
-            store_native_acct_id: acct.store_native_acct_id,
-            gemini_native_acct_id: acct.gemini_native_acct_id
-          };
-
-          this.campaignService.account = storedAccount;
-        } catch (e) {
-          console.log(e);
-        }
+          this.campaignService.account = acct;
       }
       this.loginIfRequired();
 
@@ -72,7 +61,7 @@ export class AppComponent implements OnInit {
   private loginIfRequired(): void {
     this.app_loaded = true;
     if (!this.campaignService.account) {
-      this.router.navigateByUrl('login');
+   //   this.router.navigateByUrl('g/login');
     }
   }
 
