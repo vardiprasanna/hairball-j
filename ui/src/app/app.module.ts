@@ -10,6 +10,7 @@ import { CampaignChartComponent } from './components/campaign-chart/campaign-cha
 import { CampaignConfigComponent } from './components/campaign-config/campaign-config.component';
 import { CampaignComponent } from './components/campaign/campaign.component';
 import { LoginComponent } from './components/login/login.component';
+import { ShopifyComponent } from './components/shopify/shopify.component';
 
 @NgModule({
 
@@ -19,6 +20,7 @@ import { LoginComponent } from './components/login/login.component';
     CampaignConfigComponent,
     CampaignComponent,
     LoginComponent,
+    ShopifyComponent,
   ],
   imports: [
     BrowserModule,
@@ -26,16 +28,20 @@ import { LoginComponent } from './components/login/login.component';
     HttpClientModule,
     RouterModule.forRoot([
       {
-        path: 'campaign',
+        path: 'g/campaign',
         component: CampaignComponent,
       },
       {
-        path: 'login',
+        path: 'g/login',
         component: LoginComponent,
       },
       {
+        path: 'g/shopify',
+        component: ShopifyComponent,
+      },
+      {
         path: '',
-        redirectTo: '/campaign',
+        redirectTo: 'g/campaign',
         pathMatch: 'full'
       }
     ], {enableTracing: false})
