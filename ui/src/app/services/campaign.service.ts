@@ -26,6 +26,10 @@ export class CampaignService {
     return this._account;
   }
 
+  isAccountReady() {
+    return this._account && this._account.hasValidTokens();
+  }
+
   queryAccount(query: Params): Promise<Account> {
     const path = '/g/ui/account/shopify';
     return this.http
