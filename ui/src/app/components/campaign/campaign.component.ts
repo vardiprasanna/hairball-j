@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+
+import { CampaignService } from '../../services/campaign.service';
 import { CampaignChartComponent } from '../campaign-chart/campaign-chart.component';
 import { CampaignConfigComponent } from '../campaign-config/campaign-config.component';
 
@@ -12,40 +14,20 @@ import { CampaignConfigComponent } from '../campaign-config/campaign-config.comp
 export class CampaignComponent implements OnInit {
   cmpId: number;
   advId: number;
-  app_loaded = false;
+  campaign_loaded = false;
+  campaign_loaded_err: any;
 
-  constructor(private router: Router) {
-  }
-
-  static getQueryIntParam(reg): number {
-    const query = window.location.search;
-    const val = reg.exec(query);
-    return (val && val.length >= 1) ? Number.parseInt(val[1]) : null;
+  constructor(private router: Router, private campaignService: CampaignService) {
   }
 
   ngOnInit() {
-    this.cmpId = this.getCampaignIdParam();
-    this.advId = this.getAdvertiserIdParam();
-    this.app_loaded = true;
-
-    if (!(this.cmpId && this.advId)) {
+    if (!this.campaignService.isAccountReady()) {
       this.router.navigateByUrl('login');
+      this.campaign_loaded_err = 'not signed in or account is invalid';
+    } else {
+      this.advId = this.campaignService.account.adv_id;
+      this.cmpId = 363491351; // TODO;
     }
-  }
-
-  private getAdvertiserIdParam(): number {
-    const advertiserId = CampaignComponent.getQueryIntParam(/[?/&;,]?adv=([0-9]+)[&;,]?.*$/);
-    if (advertiserId) {
-      return advertiserId;
-    }
-    return 1643580; // TODO
-  }
-
-  private getCampaignIdParam(): number {
-    const campaignId = CampaignComponent.getQueryIntParam(/[?/&;,]?cmp=([0-9]+)[&;,]?.*$/);
-    if (campaignId) {
-      return campaignId;
-    }
-    return 363491351; // TODO;
+    this.campaign_loaded = true;
   }
 }
