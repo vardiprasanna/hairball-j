@@ -14,8 +14,8 @@ export class CampaignConfigComponent implements OnInit {
   advertiserId: number;
 
   campaign: Campaign;
-  campaign_loaded = false;
-  campaign_loaded_err: any;
+  campaign_config_loaded = false;
+  campaign_config_loaded_err: any;
 
   constructor(private campaignService: CampaignService) {
     this.campaign = new Campaign();
@@ -36,11 +36,11 @@ export class CampaignConfigComponent implements OnInit {
         is_running: (cmp.status === 'ACTIVE')
       };
 
-      this.campaign_loaded = true;
-      this.campaign_loaded_err = null;
+      this.campaign_config_loaded = true;
+      this.campaign_config_loaded_err = null;
     }, err => {
-      this.campaign_loaded = true;
-      this.campaign_loaded_err = (err.message ? err.message : JSON.stringify(err));
+      this.campaign_config_loaded = true;
+      this.campaign_config_loaded_err = (err.message ? err.message : JSON.stringify(err));
     });
   }
 
