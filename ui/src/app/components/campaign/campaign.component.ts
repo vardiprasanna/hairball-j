@@ -29,7 +29,7 @@ export class CampaignComponent implements OnInit {
     this.app_loaded = true;
 
     if (!(this.cmpId && this.advId)) {
-      this.router.navigateByUrl('g/login');
+      this.router.navigateByUrl('login');
     }
   }
 
