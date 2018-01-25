@@ -16,6 +16,9 @@ import lombok.Setter;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class UIAccountDTO {
+    public UIAccountDTO() {
+    }
+
     public UIAccountDTO(StoreAcctEntity acctEntity) {
         this.name = acctEntity.getName();
         this.geminiNativeAcctId = acctEntity.getGeminiNativeAcctId();
@@ -23,13 +26,13 @@ public class UIAccountDTO {
         this.yahooAccessToken = acctEntity.getYahooAccessToken();
     }
 
-    @JsonProperty(value = "adv_status", required = true)
+    @JsonProperty(value = "adv_status")
     private EWSConstant.StatusEnum status = EWSConstant.StatusEnum.ACTIVE;
 
-    @JsonProperty(value = "adv_name", required = true)
+    @JsonProperty(value = "adv_name")
     private String name;
 
-    @JsonProperty(value = "adv_id", required = true)
+    @JsonProperty(value = "adv_id")
     private Integer geminiNativeAcctId;
 
     @JsonProperty(value = "store_access_token")
