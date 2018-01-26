@@ -10,11 +10,9 @@ import com.oath.gemini.merchant.db.DatabaseService;
 import com.oath.gemini.merchant.db.StoreAcctEntity;
 import com.oath.gemini.merchant.db.StoreCampaignEntity;
 import com.oath.gemini.merchant.ews.EWSConstant.ReportingJobStatusEnum;
-import com.oath.gemini.merchant.ews.json.AdvertiserData;
 import com.oath.gemini.merchant.ews.json.CampaignData;
 import com.oath.gemini.merchant.fe.UIAccountDTO;
 import com.oath.gemini.merchant.fe.UICampaignDTO;
-import com.oath.gemini.merchant.shopify.ShopifyOauthHelper;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
@@ -27,12 +25,9 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriInfo;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
@@ -67,7 +62,7 @@ public class EWSClientResource {
     private Configuration config;
 
     /**
-     * Return an account object if the url represents a valid Shopify user
+     * Return an account object with a given Gemini id
      */
     @RolesAllowed({ "localhost" })
     @GET
@@ -87,27 +82,7 @@ public class EWSClientResource {
             return errorResponse(ERR_LOCAL_DB, Status.INTERNAL_SERVER_ERROR, "Failed to fetch the campaign=%s: %s", id, e.getMessage());
         }
 
-        UIAccountDTO result = createAccountDTO(storeAcct);
-        return Response.ok(result).build();
-    }
-
-    /**
-     * Return an account object if the url represents a valid Shopify user
-     */
-    @GET
-    @Path("account/shopify")
-    public Response getShopifyAccount(@Context UriInfo info, @QueryParam("hmac") String hmac, @QueryParam("shop") String shop) {
-        try {
-            if (ShopifyOauthHelper.matchHMac(hmac, info.getQueryParameters()) < 0) {
-                return Response.status(Status.UNAUTHORIZED).entity("<h3>Unauthorized-1 due to a mismatched key</h3>").build();
-            }
-        } catch (Exception e) {
-            return Response.serverError().entity("Unauthorized-1 due to a mismatched key").build();
-        }
-
-        StoreAcctEntity storeAcct = databaseService.findStoreAcctByDomain(shop);
-        UIAccountDTO result = createAccountDTO(storeAcct);
-        return Response.ok(result).build();
+        return Response.ok(new UIAccountDTO(storeAcct)).build();
     }
 
     @RolesAllowed({ "localhost" })
@@ -230,25 +205,6 @@ public class EWSClientResource {
         }
 
         return Response.status(Status.NO_CONTENT).build();
-    }
-
-    private UIAccountDTO createAccountDTO(StoreAcctEntity storeAcct) {
-        UIAccountDTO acct = new UIAccountDTO(storeAcct);
-
-        // Check whether Yahoo refresh token is still good
-        try {
-            EWSAccessTokenData tokens = ewsAuthService.getAccessTokenFromRefreshToken(storeAcct.getYahooAccessToken());
-            EWSClientService ews = new EWSClientService(tokens);
-            EWSResponseData<AdvertiserData> advResponse = ews.get(AdvertiserData.class, EWSEndpointEnum.ADVERTISER);
-
-            if (!EWSResponseData.isEmpty(advResponse)) {
-                acct.setIsYahooTokenValid(true);
-            }
-        } catch (Exception e) {
-        }
-
-        // TODO: Check whether Shopify refresh token is still good
-        return acct;
     }
 
     /**
