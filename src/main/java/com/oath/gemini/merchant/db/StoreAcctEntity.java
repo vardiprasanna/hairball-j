@@ -47,5 +47,5 @@ public class StoreAcctEntity extends StoreBaseEntity {
     private Integer geminiNativeAcctId;
 
     @Column(name = "pixel_id", nullable = false)
-    private Integer pixelId;
+    private Long pixelId;
 }

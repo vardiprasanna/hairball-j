@@ -17,6 +17,7 @@ import com.oath.gemini.merchant.ews.json.CampaignData;
 import com.oath.gemini.merchant.ews.json.ProductFeedData;
 import com.oath.gemini.merchant.ews.json.ProductRuleData;
 import com.oath.gemini.merchant.ews.json.ProductSetData;
+import com.oath.gemini.merchant.ews.json.DOT_TAG;
 import com.oath.gemini.merchant.shopify.ShopifyClientService;
 import java.math.BigDecimal;
 import java.sql.Date;
@@ -24,6 +25,8 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import com.oath.gemini.merchant.shopify.json.Tag;
+import lombok.Setter;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -38,6 +41,9 @@ public class Archetype {
     private DatabaseService databaseService;
     private EWSClientService ews;
     private String entityAutoGenName;
+
+    @Setter
+    private DOT_TAG pixel;
 
     @Getter
     private long advertiserId;
@@ -176,6 +182,7 @@ public class Archetype {
             for (CampaignData c : cmpResponse.getObjects()) {
                 if (c.getCampaignName().contains(entityAutoGenName) && c.getStatus() != EWSConstant.StatusEnum.DELETED) {
                     cmpData = changeStatus(CampaignData.class, c, StatusEnum.ACTIVE, EWSEndpointEnum.CAMPAIGN_OPS);
+                    //cmpData = c;
                     break;
                 }
             }
@@ -199,6 +206,32 @@ public class Archetype {
         return cmpData;
     }
 
+    /*
+    Extract the dot Tags and create one if it doesn't exist
+    */
+    public DOT_TAG  extractDotTag() throws Exception {
+        EWSResponseData<DOT_TAG > tagEWSResponseData = ews.get(DOT_TAG.class,EWSEndpointEnum.DOT_TAG_BY_ADVERTISER, advertiserId);
+        if(EWSResponseData.isNotEmpty(tagEWSResponseData)){
+            for(DOT_TAG tag1 : tagEWSResponseData.getObjects()){
+                if(tag1.isDefaultPixel()){
+                    setPixel(tag1);
+                    break;
+                }
+            }
+        }
+
+        // if the tag doesn't exist for the advertisers create new one
+        if (pixel == null) {
+            // Let Gemini know how to access this Tag
+            DOT_TAG dt = new DOT_TAG();
+            dt.setAdvertiserId(advertiserId);
+            dt.setName("default dot tag for "+ advertiserId);
+            dt.setDefaultPixel(true);
+            tagEWSResponseData = ews.create(DOT_TAG.class, dt, EWSEndpointEnum.DOT_TAG_BY_ADVERTISER,advertiserId);
+            pixel = tagEWSResponseData.get(0);
+        }
+        return pixel;
+    }
     private AdGroupData newAdGroup(CampaignData cmp, ProductSetData pset) throws Exception {
         EWSResponseData<AdGroupData> adGroupResponse = ews.get(AdGroupData.class, EWSEndpointEnum.ADGROUP_BY_CAMPAIGN, cmp.getId());
         AdGroupData adGroupData = null;

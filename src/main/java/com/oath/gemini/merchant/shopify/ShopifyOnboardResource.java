@@ -419,6 +419,7 @@ public class ShopifyOnboardResource {
         StoreSysEntity storeSysEntity = registerStoreSystemIfRequired();
         String refreshToken = ews.getTokens().getRefreshToken();
         Long geminiNativeAcctId = advResponse.get(0).getId();
+        Archetype archeType = new Archetype(ps, ews, databaseService);
 
         // Check whether this shop already exists
         StoreAcctEntity oldStoreAcct = new StoreAcctEntity();
@@ -442,7 +443,7 @@ public class ShopifyOnboardResource {
             newStoreAcct.setStoreSysId(storeSysEntity.getId());
             newStoreAcct.setStoreNativeAcctId(Long.toString(shop.getId()));
             newStoreAcct.setGeminiNativeAcctId(geminiNativeAcctId.intValue());
-            newStoreAcct.setPixelId(1234);
+            newStoreAcct.setPixelId(archeType.extractDotTag().getId());
             databaseService.save(newStoreAcct);
             return newStoreAcct;
         } else {
