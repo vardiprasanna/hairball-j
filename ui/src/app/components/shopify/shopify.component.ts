@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, Params } from '@angular/router';
 
 import { CampaignService } from '../../services/campaign.service';
 import { Account } from '../../model/account';
@@ -22,25 +22,39 @@ export class ShopifyComponent implements OnInit {
       .subscribe(params => {
 
         if (params != null) {
-          // console.log('next query: ' + JSON.stringify(params));
-          this.campaignService.queryAccount(params).then(acct => {
-            this.campaignService.account  = acct;
-          }, err => {
-            this.shopify_loaded_err = (err.message ? err.message : JSON.stringify(err));
-          }).then(() => {
-            this.shopify_loaded = true;
-            console.log('shopify account: ' + JSON.stringify(this.campaignService.account));
+          console.log('next query: ' + JSON.stringify(params));
 
-            // Redirect to login page if the account is invalid
-            if (this.campaignService.isAccountReady()) {
-              this.router.navigateByUrl('campaign');
-            } else {
-              this.router.navigateByUrl('login');
+          if (!params['shop']) {
+            this.shopify_loaded = true;
+            this.router.navigateByUrl('login');
+          }
+          if (params['hmac']) {
+            // This happens when the call orignates from Shopify
+            this.routeShopify(this.campaignService.queryShopify(params));
+          } else {
+            // Yahoo oAuth will come here after either user grant or deny our Gemini access
+            if (params['error']) {
+              this.shopify_loaded_err = params['error']; // TODO - pass this error to login page
+            } else if (params['code']) {
+              // This happens when the call orignates from Shopify
+              this.routeShopify(this.campaignService.loginShopify(params));
             }
-          });
+          }
         }
       });
 
     subscription.unsubscribe();
+  }
+
+  private routeShopify(invoker: Promise<Account>): void {
+    invoker.then(acct => {
+      this.campaignService.account = acct;
+    }, err => {
+      this.shopify_loaded_err = (err.message ? err.message : JSON.stringify(err));
+    }).then(() => {
+      this.shopify_loaded = true;
+      const loc = (this.campaignService.isAccountReady() ? 'campaign' : 'login');
+      this.router.navigateByUrl(loc, {skipLocationChange: false});
+    });
   }
 }
