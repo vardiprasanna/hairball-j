@@ -13,6 +13,7 @@ import com.oath.gemini.merchant.ews.EWSClientService;
 import com.oath.gemini.merchant.ews.EWSEndpointEnum;
 import com.oath.gemini.merchant.ews.EWSResponseData;
 import com.oath.gemini.merchant.ews.json.AdvertiserData;
+import com.oath.gemini.merchant.fe.UIAccountDTO;
 import com.oath.gemini.merchant.security.SigningService;
 import com.oath.gemini.merchant.shopify.json.ShopifyAccessTokenData;
 import com.oath.gemini.merchant.shopify.json.ShopifyScriptTagData;
@@ -179,7 +180,7 @@ public class ShopifyOnboardResource {
         }
 
         try {
-            String rd = new URI("https"/*req.getScheme()*/, config.getString("app.host"), "/g/shopify/ews", null).toString();
+            String rd = new URI("https"/* req.getScheme() */, config.getString("app.host"), "/g/shopify/ews", null).toString();
             EWSAccessTokenData tokens = ewsAuthService.getAccessTokenFromAuthCode(code, rd);
 
             // Redirect user to a campaign setup page
@@ -239,6 +240,77 @@ public class ShopifyOnboardResource {
         }
 
         return Response.ok().build();
+    }
+
+    /**
+     * UI wants to fetch an account DTO object if the url represents a valid Shopify user
+     */
+    @GET
+    @Path("query")
+    public Response queryShopifyAccount(@Context UriInfo info, @QueryParam("hmac") String hmac, @QueryParam("shop") String shop) {
+        try {
+            if (ShopifyOauthHelper.matchHMac(hmac, info.getQueryParameters()) < 0) {
+                return Response.status(Status.UNAUTHORIZED).entity("<h3>Unauthorized-1 due to a mismatched key</h3>").build();
+            }
+        } catch (Exception e) {
+            return Response.serverError().entity("Unauthorized-1 due to a mismatched key").build();
+        }
+
+        StoreAcctEntity storeAcct = databaseService.findStoreAcctByDomain(shop);
+        return (storeAcct != null ? Response.ok(mapToAccountDTO(storeAcct)) : Response.noContent()).build();
+    }
+
+    /**
+     * UI wants to fetch an account DTO object where the code is Yahoo's oAuth authentication code after a user signs in
+     */
+    @GET
+    @Path("login")
+    public Response loginShopify(@Context HttpServletRequest req, @QueryParam("code") String oauthCode, @QueryParam("shop") String shop) {
+        EWSAccessTokenData tokens;
+
+        try {
+            String rd = new URI("https"/* req.getScheme() */, config.getString("app.host"), "/g/shopify/ews", null).toString();
+            tokens = ewsAuthService.getAccessTokenFromAuthCode(oauthCode, rd);
+
+            // Redirect user to a campaign setup page
+            if (tokens == null || tokens.getRefreshToken() == null) {
+                log.error("invalid EWS authorization code, which could have expired");
+                return Response.status(Status.UNAUTHORIZED).entity("failed to retrieve EWS oAuth token").build();
+            }
+        } catch (Exception e) {
+            log.error("failed to validate the legitimate of the call", req.getRequestURI());
+            return Response.serverError().entity(e.getMessage() != null ? e.getMessage() : e.toString()).build();
+        }
+
+        StoreAcctEntity storeAcct = databaseService.findStoreAcctByDomain(shop);
+
+        if (storeAcct == null) {
+            storeAcct = new StoreAcctEntity();
+            storeAcct.setYahooAccessToken(tokens.getRefreshToken());
+        }
+        return Response.ok(mapToAccountDTO(storeAcct)).build();
+    }
+
+    private UIAccountDTO mapToAccountDTO(StoreAcctEntity storeAcct) {
+        UIAccountDTO acct = new UIAccountDTO(storeAcct);
+
+        try {
+            // Check whether Yahoo refresh token is still good
+            EWSAccessTokenData tokens = ewsAuthService.getAccessTokenFromRefreshToken(storeAcct.getYahooAccessToken());
+            acct.setIsYahooTokenValid(true);
+
+            // Check whether the token is still good for accessing a Gemini account.
+            EWSClientService ews = new EWSClientService(tokens);
+            EWSResponseData<AdvertiserData> advResponse = ews.get(AdvertiserData.class, EWSEndpointEnum.ADVERTISER);
+
+            if (!EWSResponseData.isEmpty(advResponse)) {
+                // TODO - pass this info back to UI
+            }
+        } catch (Exception e) {
+        }
+
+        // TODO: Check whether Shopify refresh token is still good
+        return acct;
     }
 
     /**
