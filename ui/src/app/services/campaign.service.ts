@@ -15,7 +15,7 @@ export class CampaignService {
     const base_len = href.indexOf('/', 8);
 
     this.base_uri = href.substr(0, base_len);
-    this.base_uri = 'http://localhost:4080'; // TODO
+    this.base_uri = 'http://localhost:4088'; // TODO
   }
 
   set account(acct: Account) {
@@ -30,8 +30,15 @@ export class CampaignService {
     return this._account && this._account.hasValidTokens();
   }
 
-  queryAccount(query: Params): Promise<Account> {
-    const path = '/g/ui/account/shopify';
+  queryShopify(query: Params): Promise<Account> {
+    const path = '/g/shopify/query';
+    return this.http
+      .get<Account>(this.base_uri + path, {params: query})
+      .toPromise();
+  }
+
+  loginShopify(query: Params): Promise<Account> {
+    const path = '/g/shopify/login';
     return this.http
       .get<Account>(this.base_uri + path, {params: query})
       .toPromise();
