@@ -182,7 +182,6 @@ public class Archetype {
             for (CampaignData c : cmpResponse.getObjects()) {
                 if (c.getCampaignName().contains(entityAutoGenName) && c.getStatus() != EWSConstant.StatusEnum.DELETED) {
                     cmpData = changeStatus(CampaignData.class, c, StatusEnum.ACTIVE, EWSEndpointEnum.CAMPAIGN_OPS);
-                    //cmpData = c;
                     break;
                 }
             }
