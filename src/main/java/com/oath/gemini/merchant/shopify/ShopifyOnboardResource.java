@@ -73,6 +73,25 @@ public class ShopifyOnboardResource {
     private Configuration config;
 
     /**
+     * POST https://{shop}.myshopify.com/admin/oauth/access_token with the following parameters provided in the body of the
+     * request:
+     * <p>
+     * client_id - The API Key for the app (see the credentials section of this guide). <br/>
+     * client_secret - The Secret Key for the app (see the credentials section of this guide). <br/>
+     * code - The authorization code provided in the redirect described above. <br/>
+     */
+    private static ShopifyAccessTokenData fetchAuthToken(int keyEntry, String shop, String authCode) throws Exception {
+        ShopifyClientService ps = new ShopifyClientService(shop, authCode);
+        ShopifyTokenRequestData reqestBody = new ShopifyTokenRequestData();
+
+        // Prepare request POST content
+        reqestBody.setClientId(ShopifyOauthHelper.getApiKey(keyEntry));
+        reqestBody.setClientSecret(ShopifyOauthHelper.getSecreteKey(keyEntry));
+        reqestBody.setCode(authCode);
+        return ps.post(ShopifyAccessTokenData.class, reqestBody, ShopifyEndpointEnum.SHOPIFY_FETCH_TOKEN);
+    }
+
+    /**
      * The user reaches here when he either initiates the installation of our app or clicks the app in Shopify admin console
      * <p>
      * A sample URL initiated from Shopify is: <br/>
@@ -508,25 +527,6 @@ public class ShopifyOnboardResource {
         } catch (Exception e) {
             log.warn("Failed to register '{}' for the event '{}'", webhook.getAddress(), webhook.getTopic(), e);
         }
-    }
-
-    /**
-     * POST https://{shop}.myshopify.com/admin/oauth/access_token with the following parameters provided in the body of the
-     * request:
-     * <p>
-     * client_id - The API Key for the app (see the credentials section of this guide). <br/>
-     * client_secret - The Secret Key for the app (see the credentials section of this guide). <br/>
-     * code - The authorization code provided in the redirect described above. <br/>
-     */
-    private static ShopifyAccessTokenData fetchAuthToken(int keyEntry, String shop, String authCode) throws Exception {
-        ShopifyClientService ps = new ShopifyClientService(shop, authCode);
-        ShopifyTokenRequestData reqestBody = new ShopifyTokenRequestData();
-
-        // Prepare request POST content
-        reqestBody.setClientId(ShopifyOauthHelper.getApiKey(keyEntry));
-        reqestBody.setClientSecret(ShopifyOauthHelper.getSecreteKey(keyEntry));
-        reqestBody.setCode(authCode);
-        return ps.post(ShopifyAccessTokenData.class, reqestBody, ShopifyEndpointEnum.SHOPIFY_FETCH_TOKEN);
     }
 
     /**
