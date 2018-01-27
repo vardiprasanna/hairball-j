@@ -1,2 +1,19 @@
 /* You can add global styles to this file, and also import other style files */
 @import "~@angular/material/prebuilt-themes/indigo-pink.css";
+
+body {
+  font-family: Roboto, Arial, sans-serif;
+  margin: 0;
+}
+
+.gemini-popup-container {
+  background-color: inherit;
+  margin: 0;
+}
+
+.gemini-popup-warning .mat-dialog-container {
+  border-top: 4px solid darkred;
+  border-radius: 8px;
+  vertical-align: top;
+  text-align: center;
+}
