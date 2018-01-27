@@ -9,6 +9,7 @@ import com.oath.gemini.merchant.ews.EWSConstant.PrdFeedTypeEnum;
 import com.oath.gemini.merchant.ews.EWSConstant.StatusEnum;
 import com.oath.gemini.merchant.ews.EWSEndpointEnum;
 import com.oath.gemini.merchant.ews.EWSResponseData;
+<<<<<<< HEAD
 import com.oath.gemini.merchant.ews.json.AdGroupData;
 import com.oath.gemini.merchant.ews.json.AdvertiserData;
 import com.oath.gemini.merchant.ews.json.BidSetArrayData;
@@ -17,6 +18,10 @@ import com.oath.gemini.merchant.ews.json.CampaignData;
 import com.oath.gemini.merchant.ews.json.ProductFeedData;
 import com.oath.gemini.merchant.ews.json.ProductRuleData;
 import com.oath.gemini.merchant.ews.json.ProductSetData;
+=======
+import com.oath.gemini.merchant.ews.json.*;
+import com.oath.gemini.merchant.ews.json.DotTag;
+>>>>>>> moving extract tag from archetype to shopify
 import com.oath.gemini.merchant.shopify.ShopifyClientService;
 import java.math.BigDecimal;
 import java.sql.Date;
@@ -39,6 +44,12 @@ public class Archetype {
     private EWSClientService ews;
     private String entityAutoGenName;
 
+<<<<<<< HEAD
+=======
+    @Setter
+    private DotTag pixel;
+
+>>>>>>> moving extract tag from archetype to shopify
     @Getter
     private long advertiserId;
 
@@ -199,6 +210,35 @@ public class Archetype {
         return cmpData;
     }
 
+<<<<<<< HEAD
+=======
+    /*
+    Extract the dot Tags and create one if it doesn't exist
+    */
+    public DotTag  extractDotTag() throws Exception {
+        EWSResponseData<DotTag > tagEWSResponseData = ews.get(DotTag.class,EWSEndpointEnum.DOT_TAG_BY_ADVERTISER, advertiserId);
+        if(EWSResponseData.isNotEmpty(tagEWSResponseData)){
+            for(DotTag tag1 : tagEWSResponseData.getObjects()){
+                if(tag1.isDefaultPixel()){
+                    setPixel(tag1);
+                    break;
+                }
+            }
+        }
+
+        // if the tag doesn't exist for the advertisers create new one
+        if (pixel == null) {
+            // Let Gemini know how to access this Tag
+            DotTag dt = new DotTag();
+            dt.setAdvertiserId(advertiserId);
+            dt.setName("default dot tag for "+ advertiserId);
+            dt.setDefaultPixel(true);
+            tagEWSResponseData = ews.create(DotTag.class, dt, EWSEndpointEnum.DOT_TAG_BY_ADVERTISER,advertiserId);
+            pixel = tagEWSResponseData.get(0);
+        }
+        return pixel;
+    }
+>>>>>>> moving extract tag from archetype to shopify
     private AdGroupData newAdGroup(CampaignData cmp, ProductSetData pset) throws Exception {
         EWSResponseData<AdGroupData> adGroupResponse = ews.get(AdGroupData.class, EWSEndpointEnum.ADGROUP_BY_CAMPAIGN, cmp.getId());
         AdGroupData adGroupData = null;
