@@ -14,7 +14,7 @@ import lombok.Setter;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 
-public class DotTag {
+public class DotTagData {
     @JsonProperty(required = true)
     private Long id;
 
@@ -30,3 +30,4 @@ public class DotTag {
     @JsonProperty(required = true)
     private boolean defaultPixel;
 }
+
