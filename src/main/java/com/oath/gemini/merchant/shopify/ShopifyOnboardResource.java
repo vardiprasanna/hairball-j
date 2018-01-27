@@ -530,10 +530,10 @@ public class ShopifyOnboardResource {
      *Extract the dot Tags and create one if it doesn't exist
      */
     public DotTag extractDotTag(EWSClientService ews, Long advertiserId) throws Exception {
-        DotTag pixel =null;
-        EWSResponseData<DotTag > tagEWSResponseData = ews.get(DotTag.class,EWSEndpointEnum.DOT_TAG_BY_ADVERTISER, advertiserId);
-        if(EWSResponseData.isNotEmpty(tagEWSResponseData)){
-            for(DotTag tag1 : tagEWSResponseData.getObjects()){
+        DotTag pixel = null;
+        EWSResponseData<DotTag > tagEWSResponseData = ews.get(DotTag.class, EWSEndpointEnum.DOT_TAG_BY_ADVERTISER, advertiserId);
+        if (EWSResponseData.isNotEmpty(tagEWSResponseData)){
+            for (DotTag tag1 : tagEWSResponseData.getObjects()) {
                 if(tag1.isDefaultPixel()){
                     pixel = tag1;
                     break;
