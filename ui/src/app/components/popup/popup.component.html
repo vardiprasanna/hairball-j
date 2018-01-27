@@ -1,0 +1,17 @@
+<div class="mat-app-background gemini-popup-container">
+  <!-- show an optional title or subject title -->
+  <mat-dialog-title *ngIf="messageConfig.title">{{messageConfig.title}}</mat-dialog-title>
+  <div class="gemini-popup-content">
+    <mat-dialog-content>{{messageConfig.content}}</mat-dialog-content>
+  </div>
+
+  <!-- show the buttons sufficed by a caller -->
+  <mat-dialog-actions *ngIf="messageConfig.buttons">
+    <button *ngFor="let btn of messageConfig.buttons" mat-button [mat-dialog-close]="btn.value">{{btn.label}}</button>
+  </mat-dialog-actions>
+
+  <!-- show a default close button -->
+  <mat-dialog-actions *ngIf="!messageConfig.buttons">
+    <button mat-raised-button mat-dialog-close>OK</button>
+  </mat-dialog-actions>
+</div>
