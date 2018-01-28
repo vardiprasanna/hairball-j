@@ -1,27 +1,47 @@
 .app-root {
-  margin: 0em 50px;
+  margin: 0 50px;
+  background-color: white;
+}
+
+.app-header-group {
+  margin-top: 10px;
+  width: 100%;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.app-header-group:last-child {
+  color: #461aa0;
 }
 
 .app-header {
-  margin-top: 2em;
-  margin-bottom: 1em;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: flex-end;
+}
+
+.app-header-sub {
+  font-size: 90%;
+  font-weight: bold;
+  padding-left: 20px;
+  color: #461aa0;
+}
+
+.app-header-contact {
+  text-decoration: underline overline #461aa0;
+  padding: 0 10px;
+  color: #461aa0;
 }
 
 .app-header-label {
-  font-size: 200%;
-  font-weight: 700;
+  background-image: url(../assets/yahoo-logo.png);
+  background-repeat: no-repeat;
+  min-height: 40px;
+  min-width: 170px;
 }
 
-.app-section-campaign {
-  margin-bottom: 2em;
-  background-color: white;
-  border: 1px solid lightgray;
-  box-shadow: 6px 3px 5px gray;
-}
-
-.app-section-chart {
-  margin: 0em;
-  background-color: white;
-  border: 1px solid lightgray;
-  box-shadow: 6px 3px 5px gray;
+.app-header-label + div {
+  color: #461aa0;
 }

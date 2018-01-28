@@ -1,6 +1,6 @@
 <form #campaignForm="ngForm" *ngIf="campaign_config_loaded && !campaign_config_loaded_err">
   <div class="campaign-config panel panel-default">
-    <div class="panel-body">
+    <div class="campaign-config-body panel-body">
       <div class="form-group">
         <label>Budget:</label>
         <input required class="form-control" type="number" name="budget"
@@ -11,11 +11,13 @@
         <input required class="form-control" type="number" name="cpc"
                [(ngModel)]="campaign.cpc" placeholder="unit price">
       </div>
+    </div>
 
-      <!-- toggle start and stop a campaign -->
-      <div class="input-group">
-        <input type="button" class="btn" [disabled]="!campaignForm.valid" [value]="campaign.is_running ? 'Stop' : 'Start'" (click)="updateCost()"/>
-      </div>
+    <!-- toggle start and stop a campaign -->
+    <div class="gemini-button-group">
+      <button class="gemini-button" [disabled]="!campaignForm.valid" (click)="updateCost()">
+        {{ campaign.is_running ? 'Stop' : 'Start' }}
+      </button>
     </div>
   </div>
 </form>
