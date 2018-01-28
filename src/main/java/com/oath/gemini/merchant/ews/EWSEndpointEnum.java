@@ -23,8 +23,8 @@ public enum EWSEndpointEnum {
     PRODUCT_SET_OPS("productset"), PRODUCT_SET_BY_ID("productset/${0}"), PRODUCT_SET_BY_ADVERTISER(
             "productset?advertiserId=${0}"), PRODUCT_SET_BY_ADGROUP("productset?adgroupId=${0}"),
 
-    //https://developer.yahoo.com/gemini/guide/audience-management/how-to-utilize-dot-tags-conversion-rules/
-    DOT_TAG("tag/"),DOT_TAG_BY_PIXEL_ID("tag/?id=${0}&details=true"),DOT_TAG_BY_ADVERTISER("tag/?advertiserId=${0}"),
+    // https://developer.yahoo.com/gemini/guide/audience-management/how-to-utilize-dot-tags-conversion-rules/
+    DOT_TAG_OPS("tag/"), DOT_TAG_BY_ID("tag/?id=${0}&details=true"), DOT_TAG_BY_ADVERTISER("tag/?advertiserId=${0}"),
 
     // https://developer.yahoo.com/gemini/guide/reporting/
     REPORT_JOB_SUBMISSION("reports/custom"), REPORT_JOB_STATUS("reports/custom/${0}?advertiserId=${1}");
