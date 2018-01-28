@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Params } from '@angular/router';
 import { Account } from '../model/account';
 import { Campaign } from '../model/campaign';
+import { environment } from '../../environments/environment';
 
 @Injectable()
 export class CampaignService {
@@ -10,12 +11,14 @@ export class CampaignService {
   private base_uri: string;
 
   constructor(private http: HttpClient) {
-    console.log('campaign service creation');
-    const href = window.location.href;
-    const base_len = href.indexOf('/', 8);
+    this.base_uri = environment.ewsBaseUrl;
 
-    this.base_uri = href.substr(0, base_len);
-    this.base_uri = 'http://localhost:4088'; // TODO
+    // Figure out the base from where this app is running
+    if (!this.base_uri) {
+      const href = window.location.href;
+      const base_len = href.indexOf('/', 8);
+      this.base_uri = href.substr(0, base_len);
+    }
   }
 
   set account(acct: Account) {

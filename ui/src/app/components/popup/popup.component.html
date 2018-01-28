@@ -6,12 +6,16 @@
   </div>
 
   <!-- show the buttons sufficed by a caller -->
-  <mat-dialog-actions *ngIf="messageConfig.buttons">
-    <button *ngFor="let btn of messageConfig.buttons" mat-button [mat-dialog-close]="btn.value">{{btn.label}}</button>
-  </mat-dialog-actions>
+  <div class="gemini-button-group">
+    <mat-dialog-actions *ngIf="messageConfig.buttons">
+      <button *ngFor="let btn of messageConfig.buttons; let i=index" class="gemini-button" tabindex="i" [mat-dialog-close]="btn.value">
+        {{btn.label}}
+      </button>
+    </mat-dialog-actions>
 
-  <!-- show a default close button -->
-  <mat-dialog-actions *ngIf="!messageConfig.buttons">
-    <button mat-raised-button mat-dialog-close>OK</button>
-  </mat-dialog-actions>
+    <!-- show a default close button -->
+    <mat-dialog-actions *ngIf="!messageConfig.buttons">
+      <button class="gemini-button" mat-dialog-close>OK</button>
+    </mat-dialog-actions>
+  </div>
 </div>

@@ -4,6 +4,10 @@ div.gemini-popup-content {
   font-size: 125%;
 }
 
+button.gemini-button {
+  margin: 0 10px;
+}
+
 button.mat-button {
   border: 1px solid darkgray;
   border-radius: 6px;
