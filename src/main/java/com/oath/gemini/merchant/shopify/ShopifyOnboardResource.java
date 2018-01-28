@@ -13,6 +13,7 @@ import com.oath.gemini.merchant.ews.EWSClientService;
 import com.oath.gemini.merchant.ews.EWSEndpointEnum;
 import com.oath.gemini.merchant.ews.EWSResponseData;
 import com.oath.gemini.merchant.ews.json.AdvertiserData;
+import com.oath.gemini.merchant.ews.json.DotTagData;
 import com.oath.gemini.merchant.fe.UIAccountDTO;
 import com.oath.gemini.merchant.security.SigningService;
 import com.oath.gemini.merchant.shopify.json.ShopifyAccessTokenData;
@@ -49,7 +50,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * When a store owner adds our app, it will go through the steps supported in this class. See the flow:
  * https://github.com/Shopify/omniauth-shopify-oauth2/wiki/Shopify-OAuth
- * 
+ *
  * @see the onboard flow - https://github.com/Shopify/omniauth-shopify-oauth2/wiki/Shopify-OAuth
  * @see more detail - https://help.shopify.com/api/getting-started/authentication/oauth#confirming-installation
  * @author tong on 10/1/2017
@@ -70,10 +71,10 @@ public class ShopifyOnboardResource {
 
     /**
      * The user reaches here when he either initiates the installation of our app or clicks the app in Shopify admin console
-     * 
+     *
      * A sample URL initiated from Shopify is: <br/>
      * http://localhost:4080/g/shopify/welcome?hmac=b63bcb2732d8d9a7b1cfa1624afdc92f36d456c32c0903de221978862626f8cb&shop=dpa-bridge.myshopify.com&timestamp=1503618688"
-     * 
+     *
      * @return redirect to Shopify for asking the grant of the access scopes <br/>
      *         A sample URL initiated by this app is: <br/>
      *         https://dpa-bridge.myshopify.com/admin/oauth/authorize?client_id=62928398fafea63bad905e52e8410079&scope=read_orders&redirect_uri=http://localhost:4080/g/shopify/home&state=32087351187222&grant_options[]=tong,chen
@@ -107,14 +108,14 @@ public class ShopifyOnboardResource {
 
     /**
      * The user is redirected to here when he either grants us the access of his Shopify data. <br/>
-     * 
+     *
      * A sample URL initiated from Shopify is: <br/>
      * http://localhost:4080/g/shopify/home?code=22805a9745d6f27ea0b989818670976c&hmac=9b1d163afc0ea825e121505920d2f223cd90f89f98e027f6c21cb70d5a5fe2ce&shop=dpa-bridge.myshopify.com&timestamp=1503786189
      */
     @GET
     @Path("home")
     public Response home(@Context UriInfo info, @Context HttpServletRequest req, @QueryParam("hmac") String hmac,
-            @QueryParam("shop") String shop, @QueryParam("code") String code, @QueryParam("state") String state) {
+                         @QueryParam("shop") String shop, @QueryParam("code") String code, @QueryParam("state") String state) {
         int keyEntry = -1;
 
         // Verify the signature of the call
@@ -173,7 +174,7 @@ public class ShopifyOnboardResource {
     @GET
     @Path("ews")
     public Response approve(@Context HttpServletRequest req, @DefaultValue("") @QueryParam("code") String code,
-            @QueryParam("shop") String shop, @DefaultValue("") @QueryParam("_mc") String _mc) {
+                            @QueryParam("shop") String shop, @DefaultValue("") @QueryParam("_mc") String _mc) {
         if (StringUtils.isBlank(code)) {
             // TODO: indicate that the user denies our access request
             return Response.ok("Aborted!").build();
@@ -198,12 +199,12 @@ public class ShopifyOnboardResource {
 
     /**
      * When a shop owner uninstalls this app, Shopify will notify us via the server side call
-     * 
+     *
      * <pre>
      * Your webhook acknowledges that it received data by sending a 200 OK response. Any response outside of the 200 range
      * will let Shopify know that you did not receive your webhook, including 301 Redirect. Shopify does not follow
      * redirects for webhook notifications and will consider a redirection as an error response.
-     * 
+     *
      * Shopify has implemented a 5-second timeout period and a retry period for subscriptions. We wait 5 seconds for a
      * response to each request, and if there isn't one or we get an error, we retry the connection to a total of 19 times
      * over the next 48 hours. A webhook will be deleted if there are 19 consecutive failures for the exact same webhook.
@@ -212,7 +213,7 @@ public class ShopifyOnboardResource {
      */
     @Path("uninstall")
     public Response uninstall(@Context HttpServletRequest req, @HeaderParam("X-Shopify-Topic") String topics,
-            @HeaderParam("X-Shopify-Shop-Domain") String shop, @HeaderParam("X-Shopify-Hmac-Sha256") String hmac) {
+                              @HeaderParam("X-Shopify-Shop-Domain") String shop, @HeaderParam("X-Shopify-Hmac-Sha256") String hmac) {
         String data = HttpUtils.getContent(req);
 
         if (ShopifyOauthHelper.matchHMac64(hmac, data) < 0) {
@@ -442,7 +443,7 @@ public class ShopifyOnboardResource {
             newStoreAcct.setStoreSysId(storeSysEntity.getId());
             newStoreAcct.setStoreNativeAcctId(Long.toString(shop.getId()));
             newStoreAcct.setGeminiNativeAcctId(geminiNativeAcctId.intValue());
-            newStoreAcct.setPixelId(1234);
+            newStoreAcct.setPixelId(extractDotTag(ews, geminiNativeAcctId).getId().intValue());
             databaseService.save(newStoreAcct);
             return newStoreAcct;
         } else {
@@ -463,7 +464,7 @@ public class ShopifyOnboardResource {
      * To register campaign info if we haven't done so; otherwise update an existing entity
      */
     private StoreCampaignEntity registerStoreCampaignIfRequired(ShopifyClientService ps, EWSClientService ews,
-            StoreCampaignEntity cmpEntity) throws Exception {
+                                                                StoreCampaignEntity cmpEntity) throws Exception {
         StoreCampaignEntity storedEntity = databaseService.findStoreCampaignByGeminiCampaignId(cmpEntity.getCampaignId());
 
         if (storedEntity == null) {
@@ -509,7 +510,7 @@ public class ShopifyOnboardResource {
     /**
      * POST https://{shop}.myshopify.com/admin/oauth/access_token with the following parameters provided in the body of the
      * request:
-     * 
+     *
      * client_id - The API Key for the app (see the credentials section of this guide). <br/>
      * client_secret - The Secret Key for the app (see the credentials section of this guide). <br/>
      * code - The authorization code provided in the redirect described above. <br/>
@@ -523,6 +524,38 @@ public class ShopifyOnboardResource {
         reqestBody.setClientSecret(ShopifyOauthHelper.getSecreteKey(keyEntry));
         reqestBody.setCode(authCode);
         return ps.post(ShopifyAccessTokenData.class, reqestBody, ShopifyEndpointEnum.SHOPIFY_FETCH_TOKEN);
+    }
+
+    /**
+     * Extract the dot Tags and create one if it doesn't exist
+     */
+    public DotTagData extractDotTag(EWSClientService ews, Long advertiserId) throws Exception {
+        DotTagData pixel = null;
+        EWSResponseData<DotTagData> tagEWSResponseData = ews.get(DotTagData.class, EWSEndpointEnum.DOT_TAG_BY_ADVERTISER, advertiserId);
+        if (EWSResponseData.isNotEmpty(tagEWSResponseData)) {
+            for (DotTagData tag1 : tagEWSResponseData.getObjects()) {
+                if (tag1.isDefaultPixel()) {
+                    pixel = tag1;
+                    break;
+                }
+            }
+        }
+
+        // if the tag doesn't exist for the advertisers create new one
+        if (pixel == null) {
+            // Let Gemini know how to access this Tag
+            DotTagData dt = new DotTagData();
+            dt.setAdvertiserId(advertiserId);
+            dt.setName("default dot tag for " + advertiserId);
+            dt.setDefaultPixel(true);
+            dt.setId(1234L);
+            pixel = dt;
+
+            //To DO test the creation of DOT Tag once again for Missing mdm id for advertiser
+            //tagEWSResponseData = ews.create(DotTag.class, dt, EWSEndpointEnum.DOT_TAG_BY_ADVERTISER, advertiserId);
+            //pixel = tagEWSResponseData.get(0);
+        }
+        return pixel;
     }
 
     /**
@@ -561,21 +594,21 @@ public class ShopifyOnboardResource {
     /**
      * https://{shop}.myshopify.com/admin/oauth/authorize?client_id={api_key}&scope={scopes}&redirect_uri={redirect_uri}&state={nonce}&grant_options[]={option}
      * With these substitutions made:
-     * 
+     *
      * {shop} - substitute this with the name of the user’s shop. <br/>
      * {api_key} - substitute this with the app’s API Key. <br/>
      * {scopes} - substitute this with a comma-separated list of scopes. For example, to write orders and read customers use
      * scope=write_orders,read_customers. https://help.shopify.com/api/getting-started/authentication/oauth#scopes <br/>
-     * 
+     *
      * {redirect_uri} - (Required) substitute this with the URL where you want to redirect the users after they authorize
      * the client. The complete URL specified here must be identical to one of the Application Redirect URLs. Note: in older
      * applications, this parameter was optional, and redirected to the Application Callback URL when no other value was
      * specified. <br/>
-     * 
+     *
      * {nonce} - a randomly selected value provided by your application, which is unique for each authorization request.
      * During the OAuth callback phase, your application must check that this value matches the one you provided during
      * authorization. This mechanism is important for the security of your application. <br/>
-     * 
+     *
      * {option} - (Optional) substitute this with the value per-user if you would like to use the online access mode for API
      * requests. Leave this parameter blank (or omit it) for offline access mode (default).
      */
