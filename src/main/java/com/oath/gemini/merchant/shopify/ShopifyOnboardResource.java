@@ -1,7 +1,6 @@
 package com.oath.gemini.merchant.shopify;
 
 import static com.oath.gemini.merchant.HttpUtils.buildQueries;
-
 import com.oath.gemini.merchant.Archetype;
 import com.oath.gemini.merchant.HttpUtils;
 import com.oath.gemini.merchant.db.DatabaseService;
@@ -26,7 +25,6 @@ import com.oath.gemini.merchant.shopify.json.ShopifyTokenRequestData;
 import com.oath.gemini.merchant.shopify.json.ShopifyWebHookData;
 import com.oath.gemini.merchant.shopify.json.ShopifyWebHooksData;
 import com.oath.gemini.merchant.shopify.json.Tag;
-
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -45,7 +43,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
-
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -54,9 +51,9 @@ import lombok.extern.slf4j.Slf4j;
  * When a store owner adds our app, it will go through the steps supported in this class. See the flow:
  * https://github.com/Shopify/omniauth-shopify-oauth2/wiki/Shopify-OAuth
  *
- * @author tong on 10/1/2017
  * @see the onboard flow - https://github.com/Shopify/omniauth-shopify-oauth2/wiki/Shopify-OAuth
  * @see more detail - https://help.shopify.com/api/getting-started/authentication/oauth#confirming-installation
+ * @author tong on 10/1/2017
  */
 @Slf4j
 @Singleton
@@ -73,33 +70,14 @@ public class ShopifyOnboardResource {
     private Configuration config;
 
     /**
-     * POST https://{shop}.myshopify.com/admin/oauth/access_token with the following parameters provided in the body of the
-     * request:
-     * <p>
-     * client_id - The API Key for the app (see the credentials section of this guide). <br/>
-     * client_secret - The Secret Key for the app (see the credentials section of this guide). <br/>
-     * code - The authorization code provided in the redirect described above. <br/>
-     */
-    private static ShopifyAccessTokenData fetchAuthToken(int keyEntry, String shop, String authCode) throws Exception {
-        ShopifyClientService ps = new ShopifyClientService(shop, authCode);
-        ShopifyTokenRequestData reqestBody = new ShopifyTokenRequestData();
-
-        // Prepare request POST content
-        reqestBody.setClientId(ShopifyOauthHelper.getApiKey(keyEntry));
-        reqestBody.setClientSecret(ShopifyOauthHelper.getSecreteKey(keyEntry));
-        reqestBody.setCode(authCode);
-        return ps.post(ShopifyAccessTokenData.class, reqestBody, ShopifyEndpointEnum.SHOPIFY_FETCH_TOKEN);
-    }
-
-    /**
      * The user reaches here when he either initiates the installation of our app or clicks the app in Shopify admin console
-     * <p>
+     *
      * A sample URL initiated from Shopify is: <br/>
      * http://localhost:4080/g/shopify/welcome?hmac=b63bcb2732d8d9a7b1cfa1624afdc92f36d456c32c0903de221978862626f8cb&shop=dpa-bridge.myshopify.com&timestamp=1503618688"
      *
      * @return redirect to Shopify for asking the grant of the access scopes <br/>
-     * A sample URL initiated by this app is: <br/>
-     * https://dpa-bridge.myshopify.com/admin/oauth/authorize?client_id=62928398fafea63bad905e52e8410079&scope=read_orders&redirect_uri=http://localhost:4080/g/shopify/home&state=32087351187222&grant_options[]=tong,chen
+     *         A sample URL initiated by this app is: <br/>
+     *         https://dpa-bridge.myshopify.com/admin/oauth/authorize?client_id=62928398fafea63bad905e52e8410079&scope=read_orders&redirect_uri=http://localhost:4080/g/shopify/home&state=32087351187222&grant_options[]=tong,chen
      */
     @GET
     @Path("welcome")
@@ -130,7 +108,7 @@ public class ShopifyOnboardResource {
 
     /**
      * The user is redirected to here when he either grants us the access of his Shopify data. <br/>
-     * <p>
+     *
      * A sample URL initiated from Shopify is: <br/>
      * http://localhost:4080/g/shopify/home?code=22805a9745d6f27ea0b989818670976c&hmac=9b1d163afc0ea825e121505920d2f223cd90f89f98e027f6c21cb70d5a5fe2ce&shop=dpa-bridge.myshopify.com&timestamp=1503786189
      */
@@ -221,7 +199,7 @@ public class ShopifyOnboardResource {
 
     /**
      * When a shop owner uninstalls this app, Shopify will notify us via the server side call
-     * <p>
+     *
      * <pre>
      * Your webhook acknowledges that it received data by sending a 200 OK response. Any response outside of the 200 range
      * will let Shopify know that you did not receive your webhook, including 301 Redirect. Shopify does not follow
@@ -530,6 +508,25 @@ public class ShopifyOnboardResource {
     }
 
     /**
+     * POST https://{shop}.myshopify.com/admin/oauth/access_token with the following parameters provided in the body of the
+     * request:
+     *
+     * client_id - The API Key for the app (see the credentials section of this guide). <br/>
+     * client_secret - The Secret Key for the app (see the credentials section of this guide). <br/>
+     * code - The authorization code provided in the redirect described above. <br/>
+     */
+    private static ShopifyAccessTokenData fetchAuthToken(int keyEntry, String shop, String authCode) throws Exception {
+        ShopifyClientService ps = new ShopifyClientService(shop, authCode);
+        ShopifyTokenRequestData reqestBody = new ShopifyTokenRequestData();
+
+        // Prepare request POST content
+        reqestBody.setClientId(ShopifyOauthHelper.getApiKey(keyEntry));
+        reqestBody.setClientSecret(ShopifyOauthHelper.getSecreteKey(keyEntry));
+        reqestBody.setCode(authCode);
+        return ps.post(ShopifyAccessTokenData.class, reqestBody, ShopifyEndpointEnum.SHOPIFY_FETCH_TOKEN);
+    }
+
+    /**
      * Extract the dot Tags and create one if it doesn't exist
      */
     public DotTagData extractDotTag(EWSClientService ews, Long advertiserId) throws Exception {
@@ -597,21 +594,21 @@ public class ShopifyOnboardResource {
     /**
      * https://{shop}.myshopify.com/admin/oauth/authorize?client_id={api_key}&scope={scopes}&redirect_uri={redirect_uri}&state={nonce}&grant_options[]={option}
      * With these substitutions made:
-     * <p>
+     *
      * {shop} - substitute this with the name of the user’s shop. <br/>
      * {api_key} - substitute this with the app’s API Key. <br/>
      * {scopes} - substitute this with a comma-separated list of scopes. For example, to write orders and read customers use
      * scope=write_orders,read_customers. https://help.shopify.com/api/getting-started/authentication/oauth#scopes <br/>
-     * <p>
+     *
      * {redirect_uri} - (Required) substitute this with the URL where you want to redirect the users after they authorize
      * the client. The complete URL specified here must be identical to one of the Application Redirect URLs. Note: in older
      * applications, this parameter was optional, and redirected to the Application Callback URL when no other value was
      * specified. <br/>
-     * <p>
+     *
      * {nonce} - a randomly selected value provided by your application, which is unique for each authorization request.
      * During the OAuth callback phase, your application must check that this value matches the one you provided during
      * authorization. This mechanism is important for the security of your application. <br/>
-     * <p>
+     *
      * {option} - (Optional) substitute this with the value per-user if you would like to use the online access mode for API
      * requests. Leave this parameter blank (or omit it) for offline access mode (default).
      */
