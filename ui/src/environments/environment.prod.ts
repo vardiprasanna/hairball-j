@@ -1,3 +1,6 @@
 export const environment = {
-  production: true
+  production: true,
+  ewsBaseUrl: 'http://localhost:4080/',
+
+
 };

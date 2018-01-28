@@ -4,7 +4,8 @@ import { MessageService } from '../../services/message.service';
 import { Subscription } from 'rxjs/Subscription';
 import { TimerObservable } from 'rxjs/observable/TimerObservable';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { PopupComponent, ButtonConfig } from '../popup/popup.component';
+import { ButtonConfig } from '../popup/popup.component';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -46,13 +47,22 @@ export class LoginComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Launch Yahoo OAuth in a new window if we are embedded; otherwise launch it in our own window
+   * @param {Event} event
+   * @returns {boolean}
+   */
   signIn(event: Event): boolean {
     this.oath_win_hdl = window.open(this.oauth_win_url);
     return false;
   }
 
+  /**
+   * Launch Gemini in a new window for a user to create an account
+   * @param {Event} event
+   * @returns {boolean}
+   */
   signUp(event: Event): boolean {
-    this.messageService.push('testing 134');
     const buttons: ButtonConfig[] = [
       {
         label: 'Cancel',
@@ -63,10 +73,16 @@ export class LoginComponent implements OnInit, OnDestroy {
         value: 'confirm'
       }];
 
-    const dialogRef: MatDialogRef<any> = this.messageService.show(null, buttons);
+    const dialogRef: MatDialogRef<any> = this.messageService.show(environment.geminiSigUpMessage, buttons);
     if (dialogRef) {
-      dialogRef.afterClosed().subscribe(c => console.log('Hmm, closed!' + JSON.stringify(c)));
+      dialogRef.afterClosed().subscribe(c => {
+          if (c === 'confirm') {
+            window.open(environment.geminiHomeUrl, 'gemini_shopify_signup');
+          }
+        }
+      );
     }
     return false;
   }
 }
+
