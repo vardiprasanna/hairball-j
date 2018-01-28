@@ -1,3 +1,22 @@
-<p>
-  login works!
-</p>
+<div class="login-container">
+  <div class="login-content">
+    <div>
+      <i class="fa fa-exclamation-circle" aria-hidden="true"></i>
+    </div>
+    <div>
+You need to have a Yahoo Gemini account in order to use this application. You can sign up a new Gemini account, and then resume this installation.
+    </div>
+  </div>
+  <div class="gemini-button-group">
+    <div>
+      <button class="gemini-button" (click)="signUp($event)" autofocus="true">
+        <i class="fa fa-sign-in" aria-hidden="true" style="margin-right: 10px"></i>Sign Up
+      </button>
+    </div>
+    <div>
+      <button class="gemini-button" (click)="signIn($event)">
+        Sign In
+      </button>
+    </div>
+  </div>
+</div>

@@ -12,8 +12,33 @@ body {
 }
 
 .gemini-popup-warning .mat-dialog-container {
-  border-top: 4px solid darkred;
+  border-top: 4px solid #461aa0;
   border-radius: 8px;
   vertical-align: top;
   text-align: center;
+}
+
+
+.gemini-button-group {
+  display: inline-flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: start;
+  align-content: center;
+}
+
+.gemini-button {
+  padding: 5px 20px;
+  color: #461aa0;
+  border-color: #461aa0;
+  border-radius: 6px;
+}
+
+.gemini-button:focus {
+  outline: 5px auto #461aa0;
+}
+
+.gemini-button:hover {
+  cursor: pointer;
+  outline: 5px auto #461aa0;
 }

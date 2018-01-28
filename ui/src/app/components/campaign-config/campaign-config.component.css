@@ -2,15 +2,29 @@ div.campaign-config {
   padding: 0.5em;
 }
 
+div.campaign-config-body {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: start;
+  align-content: flex-start;
+}
+
+div.campaign-config-body > div {
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
 input.form-control {
   width: 10em;
   margin-left: 1em;
   margin-right: 1em;
 }
 
-input[type=button].btn {
-  background-color: #428bca;
-  color: white;
+div[class=gemini-button-group] {
+  padding-left: 10px;
+  margin-top: 30px;
+  padding-bottom: 10px;
 }
 
 input.ng-valid {
