@@ -14,7 +14,7 @@ import com.oath.gemini.merchant.ews.EWSClientService;
 import com.oath.gemini.merchant.ews.EWSEndpointEnum;
 import com.oath.gemini.merchant.ews.EWSResponseData;
 import com.oath.gemini.merchant.ews.json.AdvertiserData;
-import com.oath.gemini.merchant.ews.json.DotTag;
+import com.oath.gemini.merchant.ews.json.DotTagData;
 import com.oath.gemini.merchant.fe.UIAccountDTO;
 import com.oath.gemini.merchant.security.SigningService;
 import com.oath.gemini.merchant.shopify.json.ShopifyAccessTokenData;
@@ -532,11 +532,11 @@ public class ShopifyOnboardResource {
     /**
      * Extract the dot Tags and create one if it doesn't exist
      */
-    public DotTag extractDotTag(EWSClientService ews, Long advertiserId) throws Exception {
-        DotTag pixel = null;
-        EWSResponseData<DotTag> tagEWSResponseData = ews.get(DotTag.class, EWSEndpointEnum.DOT_TAG_BY_ADVERTISER, advertiserId);
+    public DotTagData extractDotTag(EWSClientService ews, Long advertiserId) throws Exception {
+        DotTagData pixel = null;
+        EWSResponseData<DotTagData> tagEWSResponseData = ews.get(DotTagData.class, EWSEndpointEnum.DOT_TAG_BY_ADVERTISER, advertiserId);
         if (EWSResponseData.isNotEmpty(tagEWSResponseData)) {
-            for (DotTag tag1 : tagEWSResponseData.getObjects()) {
+            for (DotTagData tag1 : tagEWSResponseData.getObjects()) {
                 if (tag1.isDefaultPixel()) {
                     pixel = tag1;
                     break;
@@ -547,7 +547,7 @@ public class ShopifyOnboardResource {
         // if the tag doesn't exist for the advertisers create new one
         if (pixel == null) {
             // Let Gemini know how to access this Tag
-            DotTag dt = new DotTag();
+            DotTagData dt = new DotTagData();
             dt.setAdvertiserId(advertiserId);
             dt.setName("default dot tag for " + advertiserId);
             dt.setDefaultPixel(true);
@@ -557,7 +557,6 @@ public class ShopifyOnboardResource {
             //To DO test the creation of DOT Tag once again for Missing mdm id for advertiser
             //tagEWSResponseData = ews.create(DotTag.class, dt, EWSEndpointEnum.DOT_TAG_BY_ADVERTISER, advertiserId);
             //pixel = tagEWSResponseData.get(0);
-
         }
         return pixel;
     }
