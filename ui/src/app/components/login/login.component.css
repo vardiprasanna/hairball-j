@@ -1,0 +1,33 @@
+.login-container {
+  margin-top: 100px;
+  margin-left: 40px;
+}
+
+.login-content {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: start;
+  align-items: flex-start;
+  max-width: 600px;
+  margin: 0 10px;
+}
+
+.login-content > div:first-child {
+  margin: 10px;
+  color: #461aa0;
+  font-size: 200%;
+}
+
+.login-content > div {
+  margin: 10px;
+  font-size: 125%;
+}
+
+div[class=gemini-button-group] {
+  padding-left: 10px;
+  margin-top: 30px;
+}
+
+.gemini-button-group > div {
+  margin: 0 10px;
+}

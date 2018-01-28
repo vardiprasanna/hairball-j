@@ -1,0 +1,17 @@
+.campaign-container {
+  margin-top: 40px;
+}
+
+.campaign-section-config {
+  margin-bottom: 2em;
+  background-color: white;
+  border: 1px solid lightgray;
+  box-shadow: 6px 3px 5px gray;
+}
+
+.campaign-section-chart {
+  margin: 0em;
+  background-color: white;
+  border: 1px solid lightgray;
+  box-shadow: 6px 3px 5px gray;
+}

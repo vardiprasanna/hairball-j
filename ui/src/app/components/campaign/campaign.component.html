@@ -1,8 +1,8 @@
-<div class="app-body" *ngIf="campaign_loaded && !campaign_loaded_err">
-  <div class="app-section-campaign">
+<div class="campaign-container" *ngIf="campaign_loaded && !campaign_loaded_err">
+  <div class="campaign-section-config">
     <app-campaign-config [campaignId]="cmpId" [advertiserId]="advId"></app-campaign-config>
   </div>
-  <div class="app-section-chart">
+  <div class="campaign-section-chart">
     <app-campaign-chart [campaignId]="cmpId" [advertiserId]="advId"></app-campaign-chart>
   </div>
 </div>
