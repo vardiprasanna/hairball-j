@@ -10,6 +10,7 @@ import com.oath.gemini.merchant.db.DatabaseService;
 import com.oath.gemini.merchant.db.StoreAcctEntity;
 import com.oath.gemini.merchant.db.StoreCampaignEntity;
 import com.oath.gemini.merchant.ews.EWSConstant.ReportingJobStatusEnum;
+import com.oath.gemini.merchant.ews.json.AdvertiserData;
 import com.oath.gemini.merchant.ews.json.CampaignData;
 import com.oath.gemini.merchant.fe.UIAccountDTO;
 import com.oath.gemini.merchant.fe.UICampaignDTO;
@@ -121,10 +122,11 @@ public class EWSClientResource {
         EWSResponseData<CampaignData> campaignResponse;
         try {
             EWSClientService ews = new EWSClientService(tokens);
+            EWSResponseData<AdvertiserData> advResponse = ews.get(AdvertiserData.class, EWSEndpointEnum.ADVERTISER);
             campaignResponse = ews.get(CampaignData.class, EWSEndpointEnum.CAMPAIGN_BY_ID, id);
 
             if (!campaignResponse.isOk() || campaignResponse.getObjects() == null || campaignResponse.getObjects().length != 1) {
-                return errorResponse(ERR_EWS, Status.NOT_FOUND, "No campaign found in Gemini with this id=%s", id);
+                return errorResponse(ERR_EWS, Status.fromStatusCode(campaignResponse.getStatus()), "No campaign found in Gemini with this id=%s", id);
             }
         } catch (Exception e) {
             return errorResponse(ERR_EWS, Status.INTERNAL_SERVER_ERROR, "Failed to access Gemini: %s", e.getMessage());
