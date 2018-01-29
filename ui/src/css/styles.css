@@ -35,10 +35,14 @@ body {
 }
 
 .gemini-button:focus {
+  -moz-outline-radius: 6px;
   outline: 5px auto #461aa0;
+  outline-width: medium;
 }
 
 .gemini-button:hover {
+  -moz-outline-radius: 6px;
   cursor: pointer;
   outline: 5px auto #461aa0;
+  outline-width: medium;
 }
