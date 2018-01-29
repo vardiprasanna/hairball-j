@@ -1,9 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CampaignService } from '../../services/campaign.service';
 import { MessageService } from '../../services/message.service';
 import { Subscription } from 'rxjs/Subscription';
 import { TimerObservable } from 'rxjs/observable/TimerObservable';
-import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { MatDialogRef } from '@angular/material/dialog';
 import { ButtonConfig } from '../popup/popup.component';
 import { environment } from '../../../environments/environment';
 
@@ -16,7 +15,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   oath_win_hdl: any;
   subscription: Subscription;
 
-  constructor(private campaignService: CampaignService, private messageService: MessageService, private dialog: MatDialog) {
+  constructor(private messageService: MessageService) {
   }
 
   ngOnInit() {
