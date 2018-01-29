@@ -13,8 +13,13 @@ import java.io.IOException;
 import java.util.EnumSet;
 import java.util.Iterator;
 import javax.servlet.DispatcherType;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.rewrite.handler.RedirectPatternRule;
+import org.eclipse.jetty.rewrite.handler.RewriteHandler;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
@@ -94,6 +99,10 @@ public class App extends ResourceConfig {
         // handles js, css, and html resources
         ResourceHandler UIResourceHandler = buildUIResourceHandler();
         handlerCollection.addHandler(UIResourceHandler);
+
+        // Angular resource rewriter
+        RewriteHandler rewriteHandler = buildRewriteHandler();
+        handlerCollection.addHandler(rewriteHandler);
 
         ServletContextHandler servletContextHandler = new ServletContextHandler(jetty, "/", ServletContextHandler.SESSIONS);
         servletContextHandler.addServlet(new ServletFormHolder(new ServletContainer(this)), "/g/*");
@@ -185,6 +194,38 @@ public class App extends ResourceConfig {
         return resourceHandler;
     }
 
+    /**
+     * The integration with Angular routings, that is, re-route any unknown UI resources under a given end-point.
+     */
+    private RewriteHandler buildRewriteHandler() {
+        RewriteHandler rewriteHandler = new RewriteHandler();
+        RedirectPatternRule rule = new RedirectPatternRule() {
+            public String matchAndApply(String target, HttpServletRequest request, HttpServletResponse response) throws IOException {
+                if (target.startsWith("/f/")) {
+                    String query = request.getQueryString();
+                    String path = request.getPathInfo();
+                    String redirectTo;
+
+                    if (path.startsWith("/")) {
+                        path = path.substring(1);
+                    }
+                    if (StringUtils.isBlank(query)) {
+                        redirectTo = HttpUtils.buildQueries("/index.html", "route", path);
+                    } else {
+                        redirectTo = HttpUtils.buildQueries("/index.html?" + query, "route", path);
+                    }
+                    this.setLocation(redirectTo);
+                    return apply(target, request, response);
+                }
+                return null;
+            }
+        };
+
+        rule.setTerminating(true);
+        rewriteHandler.addRule(rule);
+        return rewriteHandler;
+    }
+
     public void start() throws Exception {
         jetty.start();
         jetty.join();
@@ -202,7 +243,7 @@ public class App extends ResourceConfig {
         for (int i = 0; i < args.length; i++) {
             if (args[i].endsWith("-port") && (i < args.length - 1)) {
                 port = Integer.parseInt(args[i + 1]);
-                System.out.println("overriding port=" + port);
+                System.out.println("overriding port to=" + port);
                 break;
             }
         }
