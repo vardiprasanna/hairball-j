@@ -26,7 +26,7 @@ export class ShopifyComponent implements OnInit {
 
           if (!params['shop']) {
             this.shopify_loaded = true;
-            this.router.navigateByUrl('login');
+            this.router.navigateByUrl('f/login');
           }
           if (params['hmac']) {
             // This happens when the call orignates from Shopify
@@ -53,7 +53,7 @@ export class ShopifyComponent implements OnInit {
       this.shopify_loaded_err = (err.message ? err.message : JSON.stringify(err));
     }).then(() => {
       this.shopify_loaded = true;
-      const loc = (this.campaignService.isAccountReady() ? 'campaign' : 'login');
+      const loc = (this.campaignService.isAccountReady() ? 'f/campaign' : 'f/login');
       this.router.navigateByUrl(loc, {skipLocationChange: false});
     });
   }

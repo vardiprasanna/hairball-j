@@ -22,11 +22,11 @@ export class CampaignComponent implements OnInit {
 
   ngOnInit() {
     if (!this.campaignService.isAccountReady()) {
-      this.router.navigateByUrl('login');
+      this.router.navigateByUrl('f/login');
       this.campaign_loaded_err = 'not signed in or account is invalid';
     } else {
       this.advId = this.campaignService.account.adv_id;
-      this.cmpId = 363491351; // TODO;
+      this.cmpId = 364670647; // TODO;
     }
     this.campaign_loaded = true;
   }

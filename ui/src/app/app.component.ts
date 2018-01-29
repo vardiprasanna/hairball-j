@@ -1,7 +1,6 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
 import { CampaignService } from './services/campaign.service';
-import { Account } from './model/account';
 
 @Component({
   selector: 'app-root',
@@ -9,10 +8,11 @@ import { Account } from './model/account';
   styleUrls: ['./app.component.css']
 })
 
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
+  subscription: any;
   app_loaded = false;
 
-  constructor(private router: Router, private campaignService: CampaignService) {
+  constructor(private router: Router, private route: ActivatedRoute, private campaignService: CampaignService) {
   }
 
   static getQueryIntParam(reg): number {
@@ -22,6 +22,30 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
+    this._ngOnInit();
+    this.subscription = this.route
+      .queryParams
+      .subscribe(params => {
+        if (params != null) {
+          console.log('next query in app.component: ' + JSON.stringify(params));
+          const redirect = params['route'];
+          // this.app_loaded = true;
+
+          if (redirect) {
+            this.router.navigateByUrl(redirect);
+          }
+        }
+      });
+  }
+
+  ngOnDestroy() {
+    this.subscription.unsubscribe();
+  }
+
+  /**
+   * TODO - use 'router' for parameters; and persist the account in storage
+   */
+  _ngOnInit() {
     const campaignId = this.getCampaignIdParam();
     const advertiserId = this.getAdvertiserIdParam();
 
@@ -48,7 +72,8 @@ export class AppComponent implements OnInit {
     // Check whether an account can be retrieved via URL parameters
     this.campaignService.getAccount(advertiserId).then(acct => {
       if (acct) {
-          this.campaignService.account = acct;
+        console.log('got acct: ' + JSON.stringify(acct));
+        this.campaignService.account = acct;
       }
       this.loginIfRequired();
 
@@ -61,7 +86,7 @@ export class AppComponent implements OnInit {
   private loginIfRequired(): void {
     this.app_loaded = true;
     if (!this.campaignService.account) {
-   //   this.router.navigateByUrl('login');
+      //   this.router.navigateByUrl('login');
     }
   }
 
@@ -78,6 +103,6 @@ export class AppComponent implements OnInit {
     if (campaignId) {
       return campaignId;
     }
-    return 363491351; // TODO;
+    return 364670647; // TODO;
   }
 }

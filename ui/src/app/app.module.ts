@@ -42,15 +42,15 @@ import { PopupComponent } from './components/popup/popup.component';
 
     RouterModule.forRoot([
       {
-        path: 'campaign',
+        path: 'f/campaign',
         component: CampaignComponent,
       },
       {
-        path: 'login',
+        path: 'f/login',
         component: LoginComponent,
       },
       {
-        path: 'shopify',
+        path: 'f/shopify',
         component: ShopifyComponent,
       },
       {
@@ -58,8 +58,12 @@ import { PopupComponent } from './components/popup/popup.component';
         component: ShopifyComponent,
       },
       {
+        path: 'index.html',
+        redirectTo: 'f/campaign',
+      },
+      {
         path: '',
-        redirectTo: 'campaign',
+        redirectTo: 'f/campaign',
         pathMatch: 'full'
       }
     ], {enableTracing: false})
