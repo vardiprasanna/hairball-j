@@ -80,7 +80,7 @@ public class App extends ResourceConfig {
         return instance;
     }
 
-    private void initialize(int localPort) throws IOException, Exception {
+    private void initialize(int localPort, boolean isNewUIEnabled) throws IOException, Exception {
         HttpConfiguration http_config = new HttpConfiguration();
         ServerConnector http = new ServerConnector(jetty, new HttpConnectionFactory(http_config));
 
@@ -91,6 +91,8 @@ public class App extends ResourceConfig {
         // If SSL termination is set up, don't listen to SSL port
         if (localPort <= 0) {
             configureSSL(http_config);
+        } else {
+            config.setProperty("ssl.port", -1); // indicate no custom SSL port
         }
 
         jetty.addConnector(http);
@@ -101,8 +103,10 @@ public class App extends ResourceConfig {
         handlerCollection.addHandler(UIResourceHandler);
 
         // Angular resource rewriter
-        RewriteHandler rewriteHandler = buildRewriteHandler();
-        handlerCollection.addHandler(rewriteHandler);
+        if (isNewUIEnabled) {
+            RewriteHandler rewriteHandler = buildRewriteHandler();
+            handlerCollection.addHandler(rewriteHandler);
+        }
 
         ServletContextHandler servletContextHandler = new ServletContextHandler(jetty, "/", ServletContextHandler.SESSIONS);
         servletContextHandler.addServlet(new ServletFormHolder(new ServletContainer(this)), "/g/*");
@@ -201,11 +205,15 @@ public class App extends ResourceConfig {
         RewriteHandler rewriteHandler = new RewriteHandler();
         RedirectPatternRule rule = new RedirectPatternRule() {
             public String matchAndApply(String target, HttpServletRequest request, HttpServletResponse response) throws IOException {
-                if (target.startsWith("/f/")) {
+                if (target.startsWith("/f/") || target.startsWith("/g/shopify/welcome") || target.startsWith("/g/shopify/home")
+                        || target.startsWith("/g/shopify/ews")) {
                     String query = request.getQueryString();
                     String path = request.getPathInfo();
                     String redirectTo;
 
+                    if (!target.startsWith("/f/")) {
+                        path = path.replace("/g/", "/f/");
+                    }
                     if (path.startsWith("/")) {
                         path = path.substring(1);
                     }
@@ -237,6 +245,7 @@ public class App extends ResourceConfig {
     }
 
     public static void main(String[] args) throws Exception {
+        boolean isNewUIEnabled = false;
         int port = -1;
 
         // Heroku passes a local port via the command line option
@@ -245,11 +254,13 @@ public class App extends ResourceConfig {
                 port = Integer.parseInt(args[i + 1]);
                 System.out.println("overriding port to=" + port);
                 break;
+            } else if (args[i].endsWith("-newui")) {
+                isNewUIEnabled = true;
             }
         }
 
         App app = getInstance();
-        app.initialize(port);
+        app.initialize(port, isNewUIEnabled);
         app.start();
     }
 }

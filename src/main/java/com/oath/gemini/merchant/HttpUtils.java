@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
+import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,6 +19,8 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class HttpUtils {
+    private static Configuration config = AppConfiguration.getConfig();
+
     public static String dump(HttpServletRequest req) {
         StringBuilder buf = new StringBuilder();
 
@@ -95,7 +98,7 @@ public class HttpUtils {
             System.err.format("force to overwrite a non-SSL='%s'", url);
             UriBuilder builder = UriBuilder.fromUri(new URI(url));
             builder.scheme("https");
-            builder.port(-1); // use a default SSL port
+            builder.port(config.getInt("ssl.port"));
             url = builder.build().toString();
         }
         return url;
