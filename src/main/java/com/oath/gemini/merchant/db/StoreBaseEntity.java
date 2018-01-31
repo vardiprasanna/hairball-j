@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import java.sql.Timestamp;
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
-import org.hibernate.annotations.Where;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,7 +13,6 @@ import lombok.Setter;
 @Getter
 @Setter
 @MappedSuperclass
-@Where(clause="is_deleted = 0")
 public abstract class StoreBaseEntity {
     public StoreBaseEntity() {
         updatedDate = createdDate = new Timestamp(System.currentTimeMillis());
