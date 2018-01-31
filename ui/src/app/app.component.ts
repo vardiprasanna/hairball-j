@@ -28,10 +28,26 @@ export class AppComponent implements OnInit, OnDestroy {
       .subscribe(params => {
         if (params != null) {
           console.log('next query in app.component: ' + JSON.stringify(params));
-          const redirect = params['route'];
+          let redirect = params['route'];
           // this.app_loaded = true;
 
           if (redirect) {
+            let query: string = null;
+
+            for (const name in params) {
+              if (!params.hasOwnProperty(name) || name === 'route') {
+                continue;
+              }
+              if (query) {
+                query += '&' + name + '=' + params[name];
+              } else {
+                query = '?' + name + '=' + params[name];
+              }
+            }
+            if (query) {
+              redirect += query;
+            }
+
             this.router.navigateByUrl(redirect);
           }
         }
@@ -95,7 +111,7 @@ export class AppComponent implements OnInit, OnDestroy {
     if (advertiserId) {
       return advertiserId;
     }
-    return 1643580; // TODO
+    return null; // 1643580; // TODO
   }
 
   private getCampaignIdParam(): number {
@@ -103,6 +119,6 @@ export class AppComponent implements OnInit, OnDestroy {
     if (campaignId) {
       return campaignId;
     }
-    return 364670647; // TODO;
+    return null; // 364670647; // TODO;
   }
 }
