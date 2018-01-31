@@ -50,12 +50,19 @@ import { PopupComponent } from './components/popup/popup.component';
         component: LoginComponent,
       },
       {
-        path: 'f/shopify',
+        path: 'f/shopify/welcome',
         component: ShopifyComponent,
+        data: {reason: 'welcome'}
       },
       {
-        path: 'g/shopify/ews',
+        path: 'f/shopify/home',
         component: ShopifyComponent,
+        data: {reason: 'home'}
+      },
+      {
+        path: 'f/shopify/ews',
+        component: ShopifyComponent,
+        data: {reason: 'yauth'}
       },
       {
         path: 'index.html',
