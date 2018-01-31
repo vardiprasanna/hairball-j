@@ -40,8 +40,16 @@ export class CampaignService {
       .toPromise();
   }
 
-  loginShopify(query: Params): Promise<Account> {
-    const path = '/g/shopify/login';
+  signInYahoo(query: Params): Promise<Account> {
+    const path = '/g/shopify/yauth';
+    return this.http
+      .get<Account>(this.base_uri + path, {params: query})
+      .toPromise();
+  }
+
+  signInShopify(query: Params): Promise<Account> {
+    const path = '/g/shopify/sauth';
+    console.log('ready to call api: ' + this.base_uri + path + ', with params: ' + JSON.stringify(query));
     return this.http
       .get<Account>(this.base_uri + path, {params: query})
       .toPromise();

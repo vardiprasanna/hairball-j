@@ -20,10 +20,12 @@ public class UIAccountDTO {
     }
 
     public UIAccountDTO(StoreAcctEntity acctEntity) {
-        this.name = acctEntity.getName();
-        this.geminiNativeAcctId = acctEntity.getGeminiNativeAcctId();
-        this.storeAccessToken = acctEntity.getStoreAccessToken();
-        this.yahooAccessToken = acctEntity.getYahooAccessToken();
+        if (acctEntity != null) {
+            this.name = acctEntity.getName();
+            this.geminiNativeAcctId = acctEntity.getGeminiNativeAcctId();
+            this.storeAccessToken = acctEntity.getStoreAccessToken();
+            this.yahooAccessToken = acctEntity.getYahooAccessToken();
+        }
     }
 
     @JsonProperty(value = "adv_status")
@@ -34,6 +36,9 @@ public class UIAccountDTO {
 
     @JsonProperty(value = "adv_id")
     private Integer geminiNativeAcctId;
+
+    @JsonProperty(value = "cmp_id")
+    private Long geminiNativeCampaignId;
 
     @JsonProperty(value = "store_access_token")
     private String storeAccessToken;
@@ -49,4 +54,10 @@ public class UIAccountDTO {
 
     @JsonProperty(value = "yahoo_token_valid", required = true)
     private Boolean isYahooTokenValid = false;
+
+    @JsonProperty(value = "store_auth_uri")
+    private String storeAuthUrl;
+
+    @JsonProperty(value = "yahoo_auth_uri")
+    private String yahooAuthUrl;
 }

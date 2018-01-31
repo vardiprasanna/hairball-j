@@ -248,9 +248,12 @@ public class ShopifyOnboardResource {
      */
     @GET
     @Path("query")
-    public Response queryShopifyAccount(@Context UriInfo info, @QueryParam("hmac") String hmac, @QueryParam("shop") String shop) {
+    public Response queryShopifyAccount(@Context HttpServletRequest req, @Context UriInfo info, @QueryParam("hmac") String hmac,
+            @QueryParam("shop") String shop) {
+        int keyEntry = -1;
+
         try {
-            if (ShopifyOauthHelper.matchHMac(hmac, info.getQueryParameters()) < 0) {
+            if ((keyEntry = ShopifyOauthHelper.matchHMac(hmac, info.getQueryParameters())) < 0) {
                 return Response.status(Status.UNAUTHORIZED).entity("<h3>Unauthorized-1 due to a mismatched key</h3>").build();
             }
         } catch (Exception e) {
@@ -258,37 +261,91 @@ public class ShopifyOnboardResource {
         }
 
         StoreAcctEntity storeAcct = databaseService.findStoreAcctByDomain(shop);
-        return (storeAcct != null ? Response.ok(mapToAccountDTO(storeAcct)) : Response.noContent()).build();
+        UIAccountDTO accountDTO = mapToAccountDTO(storeAcct);
+
+        try {
+            // Prepare Yahoo authentication URI
+            String yahooAuthUrl = config.getString("y.oauth.auth.request.url");
+            String rd = new URI(req.getScheme(), config.getString("app.host"), "/g/shopify/ews", null).toString();
+
+            rd = HttpUtils.forceToUseHttps(rd);
+            rd = buildQueries(rd, "shop", shop);
+
+            yahooAuthUrl = yahooAuthUrl.replace("${y.oauth.redirect}", URLEncoder.encode(rd, "UTF-8"));
+            accountDTO.setYahooAuthUrl(yahooAuthUrl);
+
+            // Prepare Shopify authentication URI
+            String path = info.getAbsolutePath().toString();
+            String redirectUrl = HttpUtils.forceToUseHttps(path.substring(0, path.indexOf("/shopify/")) + "/shopify/home");
+            URI uri = buildScopeRequestUrl(keyEntry, shop, redirectUrl);
+            accountDTO.setStoreAuthUrl(uri.toString());
+        } catch (Exception e) {
+            log.error("failed for constructing shopify and yahoo authentication URL", e);
+        }
+        return Response.ok(accountDTO).build();
     }
 
     /**
      * UI wants to fetch an account DTO object where the code is Yahoo's oAuth authentication code after a user signs in
      */
     @GET
-    @Path("login")
-    public Response loginShopify(@Context HttpServletRequest req, @QueryParam("code") String oauthCode, @QueryParam("shop") String shop) {
+    @Path("yauth")
+    public Response loginShopify(@Context HttpServletRequest req, @Context UriInfo info, @DefaultValue("") @QueryParam("code") String code,
+            @QueryParam("shop") String shop) {
         EWSAccessTokenData tokens;
+        StoreAcctEntity storeAcct;
 
         try {
             String rd = new URI("https"/* req.getScheme() */, config.getString("app.host"), "/g/shopify/ews", null).toString();
-            tokens = ewsAuthService.getAccessTokenFromAuthCode(oauthCode, rd);
+            tokens = ewsAuthService.getAccessTokenFromAuthCode(code, rd);
 
             // Redirect user to a campaign setup page
             if (tokens == null || tokens.getRefreshToken() == null) {
                 log.error("invalid EWS authorization code, which could have expired");
                 return Response.status(Status.UNAUTHORIZED).entity("failed to retrieve EWS oAuth token").build();
             }
+
+            // Create a placeholder for a partially installed account
+            EWSClientService ews = new EWSClientService(tokens);
+            storeAcct = registerStoreAccountIfRequired(shop, ews);
         } catch (Exception e) {
             log.error("failed to validate the legitimate of the call", req.getRequestURI());
             return Response.serverError().entity(e.getMessage() != null ? e.getMessage() : e.toString()).build();
         }
 
-        StoreAcctEntity storeAcct = databaseService.findStoreAcctByDomain(shop);
+        UIAccountDTO accountDTO = mapToAccountDTO(storeAcct);
+        int keyEntry = 0; // TODO - remove this dependency
 
-        if (storeAcct == null) {
-            storeAcct = new StoreAcctEntity();
-            storeAcct.setYahooAccessToken(tokens.getRefreshToken());
+        try {
+            // Prepare Yahoo authentication URI
+            String yahooAuthUrl = config.getString("y.oauth.auth.request.url");
+            String rd = new URI(req.getScheme(), config.getString("app.host"), "/g/shopify/ews", null).toString();
+
+            rd = HttpUtils.forceToUseHttps(rd);
+            rd = buildQueries(rd, "shop", shop);
+
+            yahooAuthUrl = yahooAuthUrl.replace("${y.oauth.redirect}", URLEncoder.encode(rd, "UTF-8"));
+            accountDTO.setYahooAuthUrl(yahooAuthUrl);
+
+            // Prepare Shopify authentication URI
+            String path = info.getAbsolutePath().toString();
+            String redirectUrl = HttpUtils.forceToUseHttps(path.substring(0, path.indexOf("/shopify/")) + "/shopify/home");
+            URI uri = buildScopeRequestUrl(keyEntry, shop, redirectUrl);
+            accountDTO.setStoreAuthUrl(uri.toString());
+        } catch (Exception e) {
+            log.error("failed for constructing shopify and yahoo authentication URL", e);
         }
+
+        return Response.ok(accountDTO).build();
+    }
+
+    @GET
+    @Path("sauth")
+    public Response lastStep(@Context UriInfo info, @Context HttpServletRequest req, @QueryParam("hmac") String hmac,
+            @QueryParam("shop") String shop, @QueryParam("code") String code, @QueryParam("state") String state) {
+        home(info, req, hmac, shop, code, state);
+
+        StoreAcctEntity storeAcct = databaseService.findStoreAcctByDomain(shop);
         return Response.ok(mapToAccountDTO(storeAcct)).build();
     }
 
@@ -307,10 +364,16 @@ public class ShopifyOnboardResource {
             if (!EWSResponseData.isEmpty(advResponse)) {
                 // TODO - pass this info back to UI
             }
+
+            StoreCampaignEntity storeCmpEntity = databaseService.findByAcctId(StoreCampaignEntity.class, storeAcct.getId());
+            if (storeCmpEntity != null) {
+                acct.setGeminiNativeCampaignId(storeCmpEntity.getCampaignId());
+            }
         } catch (Exception e) {
         }
 
         // TODO: Check whether Shopify refresh token is still good
+        acct.setIsStoreTokenValid(StringUtils.isNotBlank(acct.getStoreAccessToken()));
         return acct;
     }
 
@@ -454,6 +517,45 @@ public class ShopifyOnboardResource {
 
             oldStoreAcct.setEmail(shop.getEmail());
             oldStoreAcct.setStoreAccessToken(ps.getAccessToken());
+            oldStoreAcct.setYahooAccessToken(refreshToken);
+            databaseService.update(oldStoreAcct);
+        }
+        return oldStoreAcct;
+    }
+
+    /**
+     * To register a Shopify's shop, which typically happens when the shop installs our application.
+     */
+    private StoreAcctEntity registerStoreAccountIfRequired(String shop, EWSClientService ews) throws Exception {
+        EWSResponseData<AdvertiserData> advResponse = ews.get(AdvertiserData.class, EWSEndpointEnum.ADVERTISER);
+        if (advResponse.size() <= 0) {
+            throw new Exception("Unable to retrieve the Gemini account, which must be registered separately if hasn't been done yet.");
+        }
+
+        StoreSysEntity storeSysEntity = registerStoreSystemIfRequired();
+        String refreshToken = ews.getTokens().getRefreshToken();
+        Long geminiNativeAcctId = advResponse.get(0).getId();
+
+        // Check whether this shop already exists
+        StoreAcctEntity oldStoreAcct = new StoreAcctEntity();
+        oldStoreAcct.setDomain(shop);
+
+        // Insert or update this shop's account
+        oldStoreAcct = databaseService.findByAny(oldStoreAcct);
+
+        if (oldStoreAcct == null) {
+            StoreAcctEntity newStoreAcct = new StoreAcctEntity();
+            newStoreAcct.setName(shop);
+            newStoreAcct.setDomain(shop);
+            newStoreAcct.setEmail("dummy@shopify.com");
+            newStoreAcct.setYahooAccessToken(refreshToken);
+            newStoreAcct.setStoreSysId(storeSysEntity.getId());
+            newStoreAcct.setGeminiNativeAcctId(geminiNativeAcctId.intValue());
+            newStoreAcct.setPixelId(extractDotTag(ews, geminiNativeAcctId).getId().intValue());
+            databaseService.save(newStoreAcct);
+            return newStoreAcct;
+        } else {
+            // Only the following fields can be modified
             oldStoreAcct.setYahooAccessToken(refreshToken);
             databaseService.update(oldStoreAcct);
         }
