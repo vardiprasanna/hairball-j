@@ -5,7 +5,7 @@
 
 export const environment = {
   production: false,
-  ewsBaseUrl: 'http://localhost:4088',
+  ewsBaseUrl: '',
 
   oauthUrl: 'https://api.login.yahoo.com/oauth2/request_auth?response_type=code&language=en-us&client_id=' +
   'dj0yJmk9NEJVRHRaRnpWa09SJmQ9WVdrOVREQktiREUzTjJrbWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmeD1iYQ--&redirect_uri=' +
