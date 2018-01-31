@@ -20,41 +20,144 @@ export class ShopifyComponent implements OnInit {
     const subscription = this.route
       .queryParams
       .subscribe(params => {
+        console.log('next query in shopify.component: ' + JSON.stringify(params));
 
-        if (params != null) {
-          console.log('next query: ' + JSON.stringify(params));
-
-          if (!params['shop']) {
-            this.shopify_loaded = true;
-            this.router.navigateByUrl('f/login');
-          }
-          if (params['hmac']) {
-            // This happens when the call orignates from Shopify
-            this.routeShopify(this.campaignService.queryShopify(params));
-          } else {
-            // Yahoo oAuth will come here after either user grant or deny our Gemini access
-            if (params['error']) {
-              this.shopify_loaded_err = params['error']; // TODO - pass this error to login page
-            } else if (params['code']) {
-              // This happens when the call orignates from Shopify
-              this.routeShopify(this.campaignService.loginShopify(params));
-            }
-          }
+        if (params == null || !params['shop']) {
+          this.shopify_loaded = true;
+          this.shopify_loaded_err = 'incorrect query'; // TODO - pass this error to login page
+          this.router.navigateByUrl('f/login');
         }
+
+        this.route.data.forEach(d => {
+          console.log('shopify reason: ' + JSON.stringify(d));
+
+          switch (d.reason) {
+            case 'welcome':
+              this.welcome(params);
+              break;
+            case 'home':
+              this.home(params);
+              break;
+            case 'yauth':
+              this.yoauth(params);
+              break;
+          }
+        });
       });
 
     subscription.unsubscribe();
   }
 
-  private routeShopify(invoker: Promise<Account>): void {
+  /**
+   * Lands here when a Shopify user installs or views our app
+   */
+  private welcome(params: Params) {
+    if (params['hmac']) {
+      if (this.campaignService.isAccountReady()) {
+        this.shopify_loaded = true;
+        this.redirectForShopifyAccess();
+      } else {
+        // This happens when the call orignates from Shopify
+        this.afterWelcome(params, this.campaignService.queryShopify(params));
+      }
+    }
+  }
+
+  /**
+   * Lands here when a Shopify user grants or denies our app the access of Shopify during installation
+   */
+  private home(params: Params) {
+    if (params['hmac']) {
+      if (this.campaignService.isAccountReady()) {
+        this.shopify_loaded = true;
+        this.router.navigateByUrl('f/campaign', {skipLocationChange: true});
+      } else {
+        // This happens when the call orignates from Shopify
+        this.afterHome(params, this.campaignService.signInShopify(params));
+      }
+    }
+  }
+
+  /**
+   * Lands here when a Shopify user grants or denies our app the access of Gemini during installation
+   */
+  private yoauth(params: Params) {
+    if (params['error']) {
+      this.shopify_loaded_err = params['error']; // TODO - pass this error to login page
+    } else if (params['code']) {
+      // This happens when user grants Gemini access
+      this.afterYAuth(params, this.campaignService.signInYahoo(params));
+    }
+  }
+
+  /**
+   * Onboard step 1 - post operation after user lands here
+   */
+  private afterWelcome(params: Params, invoker: Promise<Account>): void {
     invoker.then(acct => {
       this.campaignService.account = acct;
     }, err => {
       this.shopify_loaded_err = (err.message ? err.message : JSON.stringify(err));
     }).then(() => {
       this.shopify_loaded = true;
-      const loc = (this.campaignService.isAccountReady() ? 'f/campaign' : 'f/login');
-      this.router.navigateByUrl(loc, {skipLocationChange: false});
+
+      // User may install and uninstall our app n-number of times. So the account may come from a previous installation, so we should ask user's permission
+      if (this.campaignService.isAccountReady()) {
+        this.redirectForShopifyAccess();
+      } else {
+        this.router.navigateByUrl('f/login', {skipLocationChange: true});
+      }
     });
+  }
+
+  /**
+   * Onboard step 2 - post operation after ask user to sign in Yahoo OAuth
+   */
+  private afterYAuth(params: Params, invoker: Promise<Account>): void {
+    invoker.then(acct => {
+      this.campaignService.account = acct;
+    }, err => {
+      this.shopify_loaded_err = (err.message ? err.message : JSON.stringify(err));
+    }).then(() => {
+      const acct = this.campaignService.account;
+      this.shopify_loaded = true;
+
+      console.log('afterYAuth with acct: ' + JSON.stringify(acct));
+
+      // User may install and uninstall our app n-number of times. So the account may come from a previous installation, so we should ask user's permission
+      if (acct && acct.hasValidYahooToken()) {
+        this.redirectForShopifyAccess();
+      } else {
+        this.router.navigateByUrl('f/login', {skipLocationChange: true});
+      }
+    });
+  }
+
+  /**
+   * Onboard step 3 - post operation after ask user for the permisson of accessing Shopify products, etc
+   */
+  private afterHome(params: Params, invoker: Promise<Account>): void {
+    invoker.then(acct => {
+      this.campaignService.account = acct;
+    }, err => {
+      this.shopify_loaded_err = (err.message ? err.message : JSON.stringify(err));
+    }).then(() => {
+      const acct = this.campaignService.account;
+      this.shopify_loaded = true;
+
+      console.log('afterHome with acct: ' + JSON.stringify(acct));
+      const loc = (this.campaignService.isAccountReady() ? 'f/campaign' : 'f/login');
+      this.router.navigateByUrl(loc, {skipLocationChange: true});
+    });
+  }
+
+  /**
+   * Upon successful grant of the access, Shopify will redirect to 'f/shopify/home'
+   */
+  private redirectForShopifyAccess() {
+    const acct = this.campaignService.account;
+    console.log('look good, and ask shopify for access: ' + acct.store_auth_uri);
+    // window.location.href = redirect;
+    window.open(acct.store_auth_uri, '_self');
   }
 }
