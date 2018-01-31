@@ -46,3 +46,8 @@ body {
   outline: 5px auto #461aa0;
   outline-width: medium;
 }
+
+.gemini-button:disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
