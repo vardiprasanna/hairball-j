@@ -4,6 +4,9 @@ import { Subscription } from 'rxjs/Subscription';
 import { TimerObservable } from 'rxjs/observable/TimerObservable';
 import { MatDialogRef } from '@angular/material/dialog';
 import { ButtonConfig } from '../popup/popup.component';
+
+import { CampaignService } from '../../services/campaign.service';
+import { Account } from '../../model/account';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -12,19 +15,27 @@ import { environment } from '../../../environments/environment';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent implements OnInit, OnDestroy {
+  login_loaded = false;
+  login_loaded_err: string;
   oath_win_hdl: any;
   subscription: Subscription;
 
-  constructor(private messageService: MessageService) {
+  constructor(private messageService: MessageService, private campaignService: CampaignService) {
   }
 
   ngOnInit() {
-    const timer = TimerObservable.create(2000, 1000);
-    this.subscription = timer.subscribe(() => {
+    if (this.campaignService.account && this.campaignService.account.yahoo_auth_uri) {
+      const timer = TimerObservable.create(2000, 1000);
+      this.subscription = timer.subscribe(() => {
         if (this.oath_win_hdl && this.oath_win_hdl.closed) {
           window.focus();
         }
-    });
+      });
+    } else {
+      this.login_loaded_err = 'it seems that the link is not from Shopify directly';
+      console.log(this.login_loaded_err);
+    }
+    this.login_loaded = true;
   }
 
   ngOnDestroy() {
@@ -53,15 +64,20 @@ export class LoginComponent implements OnInit, OnDestroy {
     const dialogRef: MatDialogRef<any> = this.messageService.show(environment.geminiSigInMessage, buttons);
     if (dialogRef) {
       dialogRef.afterClosed().subscribe(c => {
+          if (!this.campaignService.account) {
+            console.log('an expected acct is null in login.component');
+            return;
+          }
           if (c === 'confirm') {
             const isEmbedded = !(window === window.parent);
+            const oauthUri = this.campaignService.account.yahoo_auth_uri;
 
             if (isEmbedded) {
               // Due to the same-origin constraint, let's open a top level window
-              this.oath_win_hdl = window.open(environment.oauthUrl, '_blank');
+              this.oath_win_hdl = window.open(oauthUri, '_blank');
               this.oath_win_hdl.focus();
             } else {
-              window.open(environment.oauthUrl, '_self');
+              window.open(oauthUri, '_self');
             }
           }
         }
