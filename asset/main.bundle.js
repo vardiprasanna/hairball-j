@@ -383,11 +383,9 @@ var report_choices = [
         label: 'Yesterday', selected: true
     }, {
         label: 'This week (Mon - Today)', selected: false
-    },
-    {
+    }, {
         label: 'Last week (Mon - Sun)', selected: false
-    },
-    {
+    }, {
         label: 'Last 7 days', selected: false
     }, {
         label: 'Last 14 days', selected: false
@@ -423,12 +421,12 @@ var CampaignChartComponent = (function () {
     };
     CampaignChartComponent.prototype.ngOnInit = function () {
         var _this = this;
-        var yesterday = CampaignChartComponent_1.subtractDays(new Date(), 1);
-        // Choose a default report - 'Yesterday'
+        var today = new Date();
+        // Choose a default report - 'Last 30 days'
         this.current_report = {
-            report_choice_idx: 1,
-            stats_x_start: yesterday,
-            stats_x_end: yesterday,
+            report_choice_idx: 8,
+            stats_x_start: CampaignChartComponent_1.subtractDays(today, 29),
+            stats_x_end: today,
             stats_yaxis: ['Spend', 'Average CPC'],
             advertiserId: this.advertiserId,
             campaignId: this.campaignId,
