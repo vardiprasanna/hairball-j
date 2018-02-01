@@ -175,7 +175,7 @@ public class Archetype {
         if (EWSResponseData.isNotEmpty(cmpResponse)) {
             for (CampaignData c : cmpResponse.getObjects()) {
                 if (c.getCampaignName().contains(entityAutoGenName) && c.getStatus() != EWSConstant.StatusEnum.DELETED) {
-                    cmpData = changeStatus(CampaignData.class, c, StatusEnum.ACTIVE, EWSEndpointEnum.CAMPAIGN_OPS);
+                    cmpData = c; // changeStatus(CampaignData.class, c, StatusEnum.ACTIVE, EWSEndpointEnum.CAMPAIGN_OPS);
                     break;
                 }
             }
@@ -184,7 +184,7 @@ public class Archetype {
             CampaignData cmp = new CampaignData();
 
             cmp.setAdvertiserId(advertiserId);
-            cmp.setStatus(EWSConstant.StatusEnum.ACTIVE);
+            cmp.setStatus(EWSConstant.StatusEnum.PAUSED);
             cmp.setCampaignName(entityAutoGenName);
             cmp.setBudgetType("DAILY");
             cmp.setBudget(BigDecimal.valueOf(50L));
