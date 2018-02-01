@@ -314,7 +314,7 @@ public class ShopifyOnboardResource {
         }
 
         UIAccountDTO accountDTO = mapToAccountDTO(storeAcct);
-        int keyEntry = 1; // TODO - remove this dependency
+        int keyEntry = 0; // TODO - remove this dependency
 
         try {
             // Prepare Yahoo authentication URI
@@ -538,7 +538,10 @@ public class ShopifyOnboardResource {
 
         // Check whether this shop already exists
         StoreAcctEntity oldStoreAcct = new StoreAcctEntity();
+        oldStoreAcct.setName(shop);
         oldStoreAcct.setDomain(shop);
+        oldStoreAcct.setYahooAccessToken(refreshToken);
+        oldStoreAcct.setGeminiNativeAcctId(geminiNativeAcctId.intValue());
 
         // Insert or update this shop's account
         oldStoreAcct = databaseService.findByAny(oldStoreAcct);
