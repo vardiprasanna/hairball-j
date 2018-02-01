@@ -261,7 +261,7 @@ public class App extends ResourceConfig {
         }
 
         App app = getInstance();
-        app.initialize(port, isNewUIEnabled);
+        app.initialize(port, true);
         app.start();
     }
 }
