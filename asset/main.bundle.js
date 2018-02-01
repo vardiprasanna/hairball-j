@@ -1269,6 +1269,7 @@ var ShopifyComponent = (function () {
         invoker.then(function (acct) {
             _this.campaignService.account = acct;
         }, function (err) {
+            console.log('afterWelcome err: ' + JSON.stringify(err));
             _this.shopify_loaded_err = (err.message ? err.message : JSON.stringify(err));
         }).then(function () {
             _this.shopify_loaded = true;
@@ -1289,6 +1290,7 @@ var ShopifyComponent = (function () {
         invoker.then(function (acct) {
             _this.campaignService.account = acct;
         }, function (err) {
+            console.log('afterYAuth err: ' + JSON.stringify(err));
             _this.shopify_loaded_err = (err.message ? err.message : JSON.stringify(err));
         }).then(function () {
             var acct = _this.campaignService.account;
@@ -1311,6 +1313,7 @@ var ShopifyComponent = (function () {
         invoker.then(function (acct) {
             _this.campaignService.account = acct;
         }, function (err) {
+            console.log('afterHome err: ' + JSON.stringify(err));
             _this.shopify_loaded_err = (err.message ? err.message : JSON.stringify(err));
         }).then(function () {
             var acct = _this.campaignService.account;
