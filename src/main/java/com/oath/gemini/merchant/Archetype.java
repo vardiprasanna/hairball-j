@@ -283,11 +283,11 @@ public class Archetype {
             String filter = "{\"color\":{\"eq\":\"red\"}}"; // TODO: hard-coded color
 
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode obj = mapper.readTree(filter);
+            JsonNode filterObj = mapper.readTree(filter);
             pset.setAdvertiserId(advertiserId);
             pset.setStatus(EWSConstant.StatusEnum.ACTIVE);
             pset.setName(entityAutoGenName);
-            pset.setFilter(obj);
+            pset.setFilter(filterObj);
             psetResponse = ews.create(ProductSetData.class, pset, EWSEndpointEnum.PRODUCT_SET_OPS);
         }
         return psetResponse.get(0);
