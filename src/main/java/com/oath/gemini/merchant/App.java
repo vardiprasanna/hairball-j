@@ -253,10 +253,10 @@ public class App extends ResourceConfig {
         for (int i = 0; i < args.length; i++) {
             if (args[i].endsWith("-port") && (i < args.length - 1)) {
                 port = Integer.parseInt(args[i + 1]);
-                System.out.println("overriding port to=" + port);
-                break;
+                System.err.println("overriding port to=" + port);
             } else if (args[i].endsWith("-newui")) {
                 isNewUIEnabled = true;
+                System.err.println("forced to new ui");
             }
         }
 
