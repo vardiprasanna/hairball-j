@@ -14,8 +14,10 @@ export class CampaignConfigComponent implements OnInit {
   advertiserId: number;
 
   campaign: Campaign;
+  campaign_original: Campaign;
   campaign_config_loaded = false;
   campaign_config_loaded_err: any;
+  is_changed = false;
 
   constructor(private campaignService: CampaignService) {
     this.campaign = new Campaign();
@@ -28,23 +30,47 @@ export class CampaignConfigComponent implements OnInit {
     }
 
     this.campaignService.getCampaign(this.campaignId, query).then(cmp => {
-      this.campaign = {
-        budget: cmp.budget,
-        cpc: cmp.price,
-        start_date: new Date(cmp.startDateInMilli),
-        end_date: new Date(cmp.endDateInMilli),
-        is_running: (cmp.status === 'ACTIVE')
-      };
-
-      this.campaign_config_loaded = true;
-      this.campaign_config_loaded_err = null;
+      this.campaign_original = new Campaign();
+      Object.assign(this.campaign_original, cmp);
+      Object.assign(this.campaign, this.campaign_original);
     }, err => {
-      this.campaign_config_loaded = true;
       this.campaign_config_loaded_err = (err.message ? err.message : JSON.stringify(err));
+    }).then(() => {
+      this.campaign_config_loaded = true;
     });
   }
 
-  public updateCost($event) {
+  change(): void {
+    if (!this.campaign_original) {
+      this.is_changed = true;
+    }
+    for (const name of Object.getOwnPropertyNames(this.campaign)) {
+      if (this.campaign[name] !== this.campaign_original[name]) {
+        this.is_changed = true;
+        return;
+      }
+    }
+    this.is_changed = false;
+  }
+
+  public updateCost() {
     console.log(event + ', ' + JSON.stringify(this.campaign));
+    return false;
+  }
+
+  public updateStatus() {
+    if (!this.campaign_original) {
+      return; // cannot update because we're not even able to load the campaign
+    }
+    const cmp: Campaign = new Campaign();
+    cmp.is_running = !this.campaign_original.is_running;
+
+    this.campaignService.updateCampaign(this.campaignId, cmp).then(() => {
+      this.campaign_original.is_running = !this.campaign_original.is_running;
+      this.campaign.is_running = this.campaign_original.is_running;
+    }, err => {
+      this.campaign_config_loaded_err = (err.message ? err.message : JSON.stringify(err));
+    });
+    return false;
   }
 }

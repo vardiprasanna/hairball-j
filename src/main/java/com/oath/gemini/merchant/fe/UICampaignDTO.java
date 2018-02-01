@@ -2,6 +2,7 @@ package com.oath.gemini.merchant.fe;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.oath.gemini.merchant.db.StoreCampaignEntity;
 import com.oath.gemini.merchant.ews.EWSConstant;
 import com.oath.gemini.merchant.ews.json.CampaignData;
@@ -38,12 +39,25 @@ public class UICampaignDTO {
     }
 
     private EWSConstant.StatusEnum status;
+    
+    @JsonProperty(value = "adv_name")
     private String advName;
+
+    @JsonProperty(value = "cmp_name")
     private String campaignName;
+    
+    @JsonProperty(value = "adv_id")
     private long advId;
+    
+    @JsonProperty(value = "cmp_id")
     private long campaignId;
+    
     private float budget;
     private float price;
+    
+    @JsonProperty(value = "start_date")
     private Long startDateInMilli;
+    
+    @JsonProperty(value = "end_date")
     private Long endDateInMilli;
 }

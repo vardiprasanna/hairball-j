@@ -4,19 +4,22 @@
       <div class="form-group">
         <label>Budget:</label>
         <input required class="form-control" type="number" name="budget"
-               [(ngModel)]="campaign.budget" placeholder="max spend">
+               [(ngModel)]="campaign.budget" (change)="change()" placeholder="max spend">
       </div>
       <div class="form-group">
         <label>Cost Per Click:</label>
         <input required class="form-control" type="number" name="cpc"
-               [(ngModel)]="campaign.cpc" placeholder="unit price">
+               [(ngModel)]="campaign.cpc" (change)="change()" placeholder="unit price">
       </div>
     </div>
 
     <!-- toggle start and stop a campaign -->
     <div class="gemini-button-group">
-      <button class="gemini-button" [disabled]="!campaignForm.valid" (click)="updateCost()">
+      <button class="gemini-button" [disabled]="!campaignForm.valid" (click)="updateStatus()">
         {{ campaign.is_running ? 'Stop' : 'Start' }}
+      </button>
+      <button class="gemini-button" [disabled]="!is_changed" (click)="updateCost()">
+        Update
       </button>
     </div>
   </div>

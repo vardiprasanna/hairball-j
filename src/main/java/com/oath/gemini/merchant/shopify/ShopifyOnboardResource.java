@@ -314,7 +314,7 @@ public class ShopifyOnboardResource {
         }
 
         UIAccountDTO accountDTO = mapToAccountDTO(storeAcct);
-        int keyEntry = 0; // TODO - remove this dependency
+        int keyEntry = 1; // TODO - remove this dependency
 
         try {
             // Prepare Yahoo authentication URI
