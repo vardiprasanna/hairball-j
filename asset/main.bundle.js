@@ -38,7 +38,7 @@ module.exports = module.exports.toString();
 /***/ "../../../../../src/app/app.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<div class=\"app-root\" *ngIf=\"app_loaded\">\n  <div class=\"app-header-group\">\n    <div class=\"app-header\">\n      <div class=\"app-header-label\"></div>\n      <div>GEMINI DPA</div>\n    </div>\n    <div>\n      <i class=\"fa fa-hand-o-right\" aria-hidden=\"true\"></i>\n      <a class=\"app-header-contact\" href=\"https://www.oath.com/advertising/contact-us/\" target=\"_blank\">Contact Us</a>\n    </div>\n  </div>\n  <div class=\"app-header-sub\">\n    <i class=\"fa fa-long-arrow-right\" aria-hidden=\"true\"></i> automate your Shopify product ads and bring users to your site\n  </div>\n  <router-outlet></router-outlet>\n</div>\n"
+module.exports = "<div class=\"app-root\" *ngIf=\"app_loaded\">\n  <div class=\"app-header-group\">\n    <div class=\"app-header\">\n      <div class=\"app-header-label\"></div>\n      <div>GEMINI</div>\n    </div>\n    <div>\n      <i class=\"fa fa-hand-o-right\" aria-hidden=\"true\"></i>\n      <a class=\"app-header-contact\" href=\"https://www.oath.com/advertising/contact-us/\" target=\"_blank\">Contact Us</a>\n    </div>\n  </div>\n  <div class=\"app-header-sub\">\n    <i class=\"fa fa-long-arrow-right\" aria-hidden=\"true\"></i> automate your Shopify product ads and bring users to your site\n  </div>\n  <router-outlet></router-outlet>\n</div>\n"
 
 /***/ }),
 
