@@ -18,6 +18,8 @@ export class CampaignService {
       const href = window.location.href;
       const base_len = href.indexOf('/', 8);
       this.base_uri = href.substr(0, base_len);
+    } else if (this.base_uri.endsWith('/')) {
+      this.base_uri = this.base_uri.substr(0, this.base_uri.length - 1);
     }
   }
 
@@ -75,8 +77,10 @@ export class CampaignService {
       .toPromise();
   }
 
-  private handleError(error: any): Promise<any> {
-    console.error('ERROR OCCURRED TALKING TO SERVER' + error);
-    return Promise.reject(error.message || error);
+  updateCampaign(id: number, cmp: Campaign): Promise<any> {
+    const path = '/g/ui/campaign/' + id;
+    return this.http
+      .put<Campaign>(this.base_uri + path, cmp)
+      .toPromise();
   }
 }

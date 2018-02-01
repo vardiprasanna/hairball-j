@@ -30,20 +30,13 @@ export class CampaignConfigComponent implements OnInit {
     }
 
     this.campaignService.getCampaign(this.campaignId, query).then(cmp => {
-      this.campaign_original = {
-        budget: cmp.budget,
-        cpc: cmp.price,
-        start_date: new Date(cmp.startDateInMilli),
-        end_date: new Date(cmp.endDateInMilli),
-        is_running: (cmp.status === 'ACTIVE')
-      };
-
+      this.campaign_original = new Campaign();
+      Object.assign(this.campaign_original, cmp);
       Object.assign(this.campaign, this.campaign_original);
-      this.campaign_config_loaded = true;
-      this.campaign_config_loaded_err = null;
     }, err => {
-      this.campaign_config_loaded = true;
       this.campaign_config_loaded_err = (err.message ? err.message : JSON.stringify(err));
+    }).then(() => {
+      this.campaign_config_loaded = true;
     });
   }
 
@@ -57,7 +50,6 @@ export class CampaignConfigComponent implements OnInit {
         return;
       }
     }
-
     this.is_changed = false;
   }
 
@@ -67,6 +59,18 @@ export class CampaignConfigComponent implements OnInit {
   }
 
   public updateStatus() {
+    if (!this.campaign_original) {
+      return; // cannot update because we're not even able to load the campaign
+    }
+    const cmp: Campaign = new Campaign();
+    cmp.is_running = !this.campaign_original.is_running;
+
+    this.campaignService.updateCampaign(this.campaignId, cmp).then(() => {
+      this.campaign_original.is_running = !this.campaign_original.is_running;
+      this.campaign.is_running = this.campaign_original.is_running;
+    }, err => {
+      this.campaign_config_loaded_err = (err.message ? err.message : JSON.stringify(err));
+    });
     return false;
   }
 }

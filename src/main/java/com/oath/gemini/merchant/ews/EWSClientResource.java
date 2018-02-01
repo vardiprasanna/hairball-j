@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.oath.gemini.merchant.ClosableHttpClient;
 import com.oath.gemini.merchant.HttpStatus;
+import com.oath.gemini.merchant.HttpUtils;
 import com.oath.gemini.merchant.db.DatabaseService;
 import com.oath.gemini.merchant.db.StoreAcctEntity;
 import com.oath.gemini.merchant.db.StoreCampaignEntity;
@@ -18,14 +19,17 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import javax.annotation.Resource;
-import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -65,7 +69,6 @@ public class EWSClientResource {
     /**
      * Return an account object with a given Gemini id
      */
-    @RolesAllowed({ "localhost" })
     @GET
     @Path("account/{id}")
     public Response getAccount(@PathParam("id") int id) {
@@ -86,7 +89,6 @@ public class EWSClientResource {
         return Response.ok(new UIAccountDTO(storeAcct)).build();
     }
 
-    @RolesAllowed({ "localhost" })
     @GET
     @Path("campaign/{cmpId}")
     public Response getCampaign(@PathParam("cmpId") long id) {
@@ -138,7 +140,12 @@ public class EWSClientResource {
         return Response.ok(uiCmpDTO).build();
     }
 
-    @RolesAllowed({ "localhost" })
+    @PUT
+    @Path("campaign/{cmpId}")
+    public Response updateCampaign(@PathParam("cmpId") long id, UICampaignDTO cmpDTO) {
+        return Response.ok(cmpDTO).build();
+    }
+
     @POST
     @Path("reporting/{cmpId}")
     public Response getReport(@PathParam("cmpId") long id, String payload) {
