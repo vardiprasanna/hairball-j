@@ -7,7 +7,7 @@ import com.oath.gemini.merchant.ews.EWSConstant;
 import lombok.Getter;
 import lombok.Setter;
 /**
- * @author pvardi on 10/27/2017
+ * @author pvardi on 1/27/2018
  */
 @Getter
 @Setter
