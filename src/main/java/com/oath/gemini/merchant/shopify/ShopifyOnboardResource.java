@@ -558,6 +558,8 @@ public class ShopifyOnboardResource {
             databaseService.save(newStoreAcct);
             return newStoreAcct;
         } else {
+            databaseService.replaceIfDummyOrBlank(oldStoreAcct, "domain", shop);
+
             // Only the following fields can be modified
             oldStoreAcct.setYahooAccessToken(refreshToken);
             databaseService.update(oldStoreAcct);

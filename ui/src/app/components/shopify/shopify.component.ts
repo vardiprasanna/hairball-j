@@ -97,6 +97,7 @@ export class ShopifyComponent implements OnInit {
     invoker.then(acct => {
       this.campaignService.account = acct;
     }, err => {
+      console.log('afterWelcome err: ' + JSON.stringify(err));
       this.shopify_loaded_err = (err.message ? err.message : JSON.stringify(err));
     }).then(() => {
       this.shopify_loaded = true;
@@ -117,6 +118,7 @@ export class ShopifyComponent implements OnInit {
     invoker.then(acct => {
       this.campaignService.account = acct;
     }, err => {
+      console.log('afterYAuth err: ' + JSON.stringify(err));
       this.shopify_loaded_err = (err.message ? err.message : JSON.stringify(err));
     }).then(() => {
       const acct = this.campaignService.account;
@@ -140,6 +142,7 @@ export class ShopifyComponent implements OnInit {
     invoker.then(acct => {
       this.campaignService.account = acct;
     }, err => {
+      console.log('afterHome err: ' + JSON.stringify(err));
       this.shopify_loaded_err = (err.message ? err.message : JSON.stringify(err));
     }).then(() => {
       const acct = this.campaignService.account;
