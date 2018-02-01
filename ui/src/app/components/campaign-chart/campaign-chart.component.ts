@@ -32,11 +32,9 @@ const report_choices = [
     label: 'Yesterday', selected: true
   }, {
     label: 'This week (Mon - Today)', selected: false
-  },
-  {
+  }, {
     label: 'Last week (Mon - Sun)', selected: false
-  },
-  {
+  }, {
     label: 'Last 7 days', selected: false
   }, {
     label: 'Last 14 days', selected: false
@@ -103,13 +101,13 @@ export class CampaignChartComponent implements OnInit, AfterContentInit, OnDestr
   }
 
   ngOnInit() {
-    const yesterday = CampaignChartComponent.subtractDays(new Date(), 1);
+    const today = new Date();
 
-    // Choose a default report - 'Yesterday'
+    // Choose a default report - 'Last 30 days'
     this.current_report = {
-      report_choice_idx: 1,
-      stats_x_start: yesterday,
-      stats_x_end: yesterday,
+      report_choice_idx: 8,
+      stats_x_start: CampaignChartComponent.subtractDays(today, 29),
+      stats_x_end: today,
       stats_yaxis: ['Spend', 'Average CPC'],
       advertiserId: this.advertiserId,
       campaignId: this.campaignId,

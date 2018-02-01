@@ -149,9 +149,9 @@ public class EWSClientResource {
     @POST
     @Path("reporting/{cmpId}")
     public Response getReport(@PathParam("cmpId") long id, String payload) {
-        if (true) {
-            return Response.ok(data).build();
-        }
+//        if (true) {
+//            return Response.ok(data).build();
+//        }
 
         StoreCampaignEntity storeCampaign;
         StoreAcctEntity storeAcct;
