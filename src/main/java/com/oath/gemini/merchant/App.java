@@ -104,6 +104,7 @@ public class App extends ResourceConfig {
 
         // Angular resource rewriter
         if (isNewUIEnabled) {
+            config.setProperty("campaign.setup.url", "index.html");
             RewriteHandler rewriteHandler = buildRewriteHandler();
             handlerCollection.addHandler(rewriteHandler);
         }
