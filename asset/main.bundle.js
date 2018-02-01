@@ -868,16 +868,15 @@ var CampaignComponent = (function () {
         this.campaign_loaded = false;
     }
     CampaignComponent.prototype.ngOnInit = function () {
-        this.advId = 1643580;
-        this.cmpId = 364710042; // 364670647; // TODO;
-        // if (!this.campaignService.isAccountReady()) {
-        //   this.router.navigateByUrl('f/login');
-        //   this.campaign_loaded_err = 'not signed in or account is invalid';
-        // } else {
-        //   const acct = this.campaignService.account;
-        //   this.advId = acct.adv_id;
-        //   this.cmpId = acct.cmp_id; // 364670647; // TODO;
-        // }
+        if (!this.campaignService.isAccountReady()) {
+            this.router.navigateByUrl('f/login');
+            this.campaign_loaded_err = 'not signed in or account is invalid';
+        }
+        else {
+            var acct = this.campaignService.account;
+            this.advId = acct.adv_id;
+            this.cmpId = acct.cmp_id; // 364670647; // TODO;
+        }
         this.campaign_loaded = true;
     };
     CampaignComponent = __decorate([
@@ -1719,7 +1718,7 @@ var MessageService = (function () {
 // The list of which env maps to which file can be found in `.angular-cli.json`.
 var environment = {
     production: false,
-    ewsBaseUrl: 'http://localhost:4080',
+    ewsBaseUrl: '',
     geminiHomeUrl: 'https://gemini.yahoo.com/advertiser/home',
     geminiSigInMessage: 'You will be redirected to Yahoo\'s login page, and then automatically brought back here once you\'re done.',
     geminiSigUpMessage: 'You will be redirected to Yahoo Gemini page to create a new account. Make sure that you complete your billing info as well because otherwise your product ads will not run.'
