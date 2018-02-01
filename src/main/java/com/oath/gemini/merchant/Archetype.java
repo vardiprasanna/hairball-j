@@ -1,5 +1,6 @@
 package com.oath.gemini.merchant;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.oath.gemini.merchant.db.DatabaseService;
 import com.oath.gemini.merchant.db.StoreAcctEntity;
 import com.oath.gemini.merchant.db.StoreCampaignEntity;
@@ -18,6 +19,10 @@ import com.oath.gemini.merchant.ews.json.ProductFeedData;
 import com.oath.gemini.merchant.ews.json.ProductRuleData;
 import com.oath.gemini.merchant.ews.json.ProductSetData;
 import com.oath.gemini.merchant.shopify.ShopifyClientService;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Timestamp;
@@ -277,11 +282,16 @@ public class Archetype {
 
         if (EWSResponseData.isEmpty(psetResponse)) {
             ProductSetData pset = new ProductSetData();
-            String filter = "{\"price\":{\"gt\":\"0.10\"}}"; // TODO: hard-coded price
+
+            String filter = "{\"color\":{\"eq\":\"red\"}}"; // TODO: hard-coded price
+
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode obj = mapper.readTree(filter);
 
             pset.setAdvertiserId(advertiserId);
             pset.setStatus(EWSConstant.StatusEnum.ACTIVE);
-            pset.setFilter(filter);
+            pset.setName(entityAutoGenName);
+            pset.setFilter(obj);
             psetResponse = ews.create(ProductSetData.class, pset, EWSEndpointEnum.PRODUCT_SET_OPS);
         }
         return psetResponse.get(0);
