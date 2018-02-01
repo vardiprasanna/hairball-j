@@ -538,7 +538,10 @@ public class ShopifyOnboardResource {
 
         // Check whether this shop already exists
         StoreAcctEntity oldStoreAcct = new StoreAcctEntity();
+        oldStoreAcct.setName(shop);
         oldStoreAcct.setDomain(shop);
+        oldStoreAcct.setYahooAccessToken(refreshToken);
+        oldStoreAcct.setGeminiNativeAcctId(geminiNativeAcctId.intValue());
 
         // Insert or update this shop's account
         oldStoreAcct = databaseService.findByAny(oldStoreAcct);
