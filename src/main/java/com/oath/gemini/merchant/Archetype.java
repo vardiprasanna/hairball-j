@@ -280,11 +280,10 @@ public class Archetype {
         if (EWSResponseData.isEmpty(psetResponse)) {
             ProductSetData pset = new ProductSetData();
 
-            String filter = "{\"color\":{\"eq\":\"red\"}}"; // TODO: hard-coded price
+            String filter = "{\"color\":{\"eq\":\"red\"}}"; // TODO: hard-coded color
 
             ObjectMapper mapper = new ObjectMapper();
             JsonNode obj = mapper.readTree(filter);
-
             pset.setAdvertiserId(advertiserId);
             pset.setStatus(EWSConstant.StatusEnum.ACTIVE);
             pset.setName(entityAutoGenName);
