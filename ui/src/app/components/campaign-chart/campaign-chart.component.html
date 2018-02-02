@@ -8,7 +8,7 @@
     <i class="fa fa-calendar report-date-icon" aria-hidden="true"></i>
     <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
       <a *ngFor="let option of report_choices" class="dropdown-item" [class.seleccted-report-opt]="option.selected"
-         href="#" (click)="selectReport($event)">{{ option.label }}</a>
+         href="#" (click)="selectReport(option.label)">{{ option.label }}</a>
     </div>
   </div>
 </div>
