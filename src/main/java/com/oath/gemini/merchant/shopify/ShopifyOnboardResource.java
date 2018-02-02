@@ -266,7 +266,8 @@ public class ShopifyOnboardResource {
         try {
             // Prepare Yahoo authentication URI
             String yahooAuthUrl = config.getString("y.oauth.auth.request.url");
-            String rd = new URI(req.getScheme(), config.getString("app.host"), "/index.html?route=f/shopify/ews", null).toString();
+            StringBuilder builder = new StringBuilder(req.getScheme()).append("://").append(config.getString("app.host"));
+            String rd = builder.append("/index.html?route=f/shopify/ews").toString();
 
             rd = HttpUtils.forceToUseHttps(rd);
             rd = buildQueries(rd, "shop", shop);
@@ -295,8 +296,11 @@ public class ShopifyOnboardResource {
         EWSAccessTokenData tokens;
         StoreAcctEntity storeAcct;
 
+        StringBuilder builder = new StringBuilder(req.getScheme()).append("://").append(config.getString("app.host"));
+        String rd = builder.append("/index.html?route=f/shopify/ews").toString();
+
         try {
-            String rd = new URI("https"/* req.getScheme() */, config.getString("app.host"), "/index.html?route=f/shopify/ews", null).toString();
+            rd = HttpUtils.forceToUseHttps(rd);
             tokens = ewsAuthService.getAccessTokenFromAuthCode(code, rd);
 
             // Redirect user to a campaign setup page
@@ -319,7 +323,6 @@ public class ShopifyOnboardResource {
         try {
             // Prepare Yahoo authentication URI
             String yahooAuthUrl = config.getString("y.oauth.auth.request.url");
-            String rd = new URI(req.getScheme(), config.getString("app.host"), "/index.html?route=f/shopify/ews", null).toString();
 
             rd = HttpUtils.forceToUseHttps(rd);
             rd = buildQueries(rd, "shop", shop);
