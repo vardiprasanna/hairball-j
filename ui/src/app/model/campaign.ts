@@ -3,7 +3,8 @@ export class Campaign {
   cmp_id: number;
   adv_name?: string;
   cmp_name?: string;
-  status: string;
+  cmp_status: string;
+  adv_status: string;
   start_date?: Date;
   end_date?: Date;
   cr_date?: Date;
@@ -12,11 +13,11 @@ export class Campaign {
   cpc = 0.0;
 
   get is_running() {
-    return this.status && this.status === 'ACTIVE';
+    return this.cmp_status && this.cmp_status === 'ACTIVE';
   }
 
   set is_running(running: boolean) {
-    this.status = (running ? 'ACTIVE' : 'PAUSED');
+    this.cmp_status = (running ? 'ACTIVE' : 'PAUSED');
   }
 
   constructor() {

@@ -122,13 +122,19 @@ public class EWSClientResource {
 
         // Fill the campaign object for UI consumption
         EWSResponseData<CampaignData> campaignResponse;
+        AdvertiserData advData = null;
+
         try {
             EWSClientService ews = new EWSClientService(tokens);
             EWSResponseData<AdvertiserData> advResponse = ews.get(AdvertiserData.class, EWSEndpointEnum.ADVERTISER);
             campaignResponse = ews.get(CampaignData.class, EWSEndpointEnum.CAMPAIGN_BY_ID, id);
 
-            if (!campaignResponse.isOk() || campaignResponse.getObjects() == null || campaignResponse.getObjects().length != 1) {
-                return errorResponse(ERR_EWS, Status.fromStatusCode(campaignResponse.getStatus()), "No campaign found in Gemini with this id=%s", id);
+            if (advResponse.isOk() && !EWSResponseData.isEmpty(advResponse)) {
+                advData = advResponse.get(0);
+            }
+            if (!campaignResponse.isOk() || EWSResponseData.isEmpty(campaignResponse)) {
+                return errorResponse(ERR_EWS, Status.fromStatusCode(campaignResponse.getStatus()),
+                        "No campaign found in Gemini with this id=%s", id);
             }
         } catch (Exception e) {
             return errorResponse(ERR_EWS, Status.INTERNAL_SERVER_ERROR, "Failed to access Gemini: %s", e.getMessage());
@@ -136,7 +142,12 @@ public class EWSClientResource {
 
         CampaignData cmpData = campaignResponse.get(0);
         UICampaignDTO uiCmpDTO = new UICampaignDTO(storeCampaign);
-        uiCmpDTO.setStatus(cmpData.getStatus());
+
+        uiCmpDTO.setCampaignStatus(cmpData.getStatus());
+        if (advData != null) {
+            uiCmpDTO.setAdvStatus(advData.getStatus());
+            uiCmpDTO.setAdvName(advData.getName());
+        }
         return Response.ok(uiCmpDTO).build();
     }
 
