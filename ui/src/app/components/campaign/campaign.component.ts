@@ -26,9 +26,10 @@ export class CampaignComponent implements OnInit {
       this.campaign_loaded_err = 'not signed in or account is invalid';
     } else {
       const acct = this.campaignService.account;
-      this.advId = acct.adv_id;
-      this.cmpId = acct.cmp_id; // 364670647; // TODO;
+      this.advId = acct.adv_id; // 1643580;
+      this.cmpId = acct.cmp_id; // 364710042;
     }
+
     this.campaign_loaded = true;
   }
 }
