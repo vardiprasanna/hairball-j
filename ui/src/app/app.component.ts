@@ -35,7 +35,7 @@ export class AppComponent implements OnInit, OnDestroy {
             let query: string = null;
 
             for (const name in params) {
-              if (!params.hasOwnProperty(name) || name === 'route') {
+              if (!params.hasOwnProperty(name)) {
                 continue;
               }
               if (query) {

@@ -266,7 +266,7 @@ public class ShopifyOnboardResource {
         try {
             // Prepare Yahoo authentication URI
             String yahooAuthUrl = config.getString("y.oauth.auth.request.url");
-            String rd = new URI(req.getScheme(), config.getString("app.host"), "/g/shopify/ews", null).toString();
+            String rd = new URI(req.getScheme(), config.getString("app.host"), "/index.html?route=f/shopify/ews", null).toString();
 
             rd = HttpUtils.forceToUseHttps(rd);
             rd = buildQueries(rd, "shop", shop);
@@ -276,7 +276,7 @@ public class ShopifyOnboardResource {
 
             // Prepare Shopify authentication URI
             String path = info.getAbsolutePath().toString();
-            String redirectUrl = HttpUtils.forceToUseHttps(path.substring(0, path.indexOf("/shopify/")) + "/shopify/home");
+            String redirectUrl = HttpUtils.forceToUseHttps(path.substring(0, path.indexOf("/", 8)) + "/index.html?route=f/shopify/home"); // skip "https://"
             URI uri = buildScopeRequestUrl(keyEntry, shop, redirectUrl);
             accountDTO.setStoreAuthUrl(uri.toString());
         } catch (Exception e) {
@@ -296,7 +296,7 @@ public class ShopifyOnboardResource {
         StoreAcctEntity storeAcct;
 
         try {
-            String rd = new URI("https"/* req.getScheme() */, config.getString("app.host"), "/g/shopify/ews", null).toString();
+            String rd = new URI("https"/* req.getScheme() */, config.getString("app.host"), "/index.html?route=f/shopify/ews", null).toString();
             tokens = ewsAuthService.getAccessTokenFromAuthCode(code, rd);
 
             // Redirect user to a campaign setup page
@@ -314,12 +314,12 @@ public class ShopifyOnboardResource {
         }
 
         UIAccountDTO accountDTO = mapToAccountDTO(storeAcct);
-        int keyEntry = 0; // TODO - remove this dependency
+        int keyEntry = 1; // TODO - remove this dependency
 
         try {
             // Prepare Yahoo authentication URI
             String yahooAuthUrl = config.getString("y.oauth.auth.request.url");
-            String rd = new URI(req.getScheme(), config.getString("app.host"), "/g/shopify/ews", null).toString();
+            String rd = new URI(req.getScheme(), config.getString("app.host"), "/index.html?route=f/shopify/ews", null).toString();
 
             rd = HttpUtils.forceToUseHttps(rd);
             rd = buildQueries(rd, "shop", shop);
@@ -329,7 +329,7 @@ public class ShopifyOnboardResource {
 
             // Prepare Shopify authentication URI
             String path = info.getAbsolutePath().toString();
-            String redirectUrl = HttpUtils.forceToUseHttps(path.substring(0, path.indexOf("/shopify/")) + "/shopify/home");
+            String redirectUrl = HttpUtils.forceToUseHttps(path.substring(0, path.indexOf("/", 8)) + "/index.html?route=f/shopify/home"); // skip "https://"
             URI uri = buildScopeRequestUrl(keyEntry, shop, redirectUrl);
             accountDTO.setStoreAuthUrl(uri.toString());
         } catch (Exception e) {

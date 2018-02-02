@@ -22,6 +22,7 @@ import org.eclipse.jetty.rewrite.handler.RedirectPatternRule;
 import org.eclipse.jetty.rewrite.handler.RewriteHandler;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -224,6 +225,7 @@ public class App extends ResourceConfig {
                         redirectTo = HttpUtils.buildQueries("/index.html?" + query, "route", path);
                     }
                     this.setLocation(redirectTo);
+                  //  ((Request) request).setScheme("https");
                     return apply(target, request, response);
                 }
                 return null;
