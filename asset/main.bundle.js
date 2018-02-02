@@ -38,7 +38,7 @@ module.exports = module.exports.toString();
 /***/ "../../../../../src/app/app.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<div class=\"app-root\" *ngIf=\"app_loaded\">\n  <div class=\"app-header-group\">\n    <div class=\"app-header\">\n      <div class=\"app-header-label\"></div>\n      <div>GEMINI</div>\n    </div>\n    <div>\n      <i class=\"fa fa-hand-o-right\" aria-hidden=\"true\"></i>\n      <a class=\"app-header-contact\" href=\"https://www.oath.com/advertising/contact-us/\" target=\"_blank\">Contact Us</a>\n    </div>\n  </div>\n  <div class=\"app-header-sub\">\n    <i class=\"fa fa-long-arrow-right\" aria-hidden=\"true\"></i> automate your Shopify product ads and bring users to your site\n  </div>\n  <router-outlet></router-outlet>\n</div>\n"
+module.exports = "<div class=\"app-root\" *ngIf=\"app_loaded\">\n  <div class=\"app-header-group\">\n    <div class=\"app-header\">\n      <div class=\"app-header-label\"></div>\n      <div>GEMINI</div>\n    </div>\n    <div>\n      <i class=\"fa fa-hand-o-right\" aria-hidden=\"true\"></i>\n      <a class=\"app-header-contact\" href=\"https://www.oath.com/advertising/contact-us/\" target=\"_blank\">Contact Us</a>\n    </div>\n  </div>\n  <div class=\"app-header-sub\">\n    <i class=\"fa fa-long-arrow-right\" aria-hidden=\"true\"></i> automate your Shopify product ads and bring users to your site\n  </div>\n  <div class=\"alert alert-info\" role=\"alert\" style=\"position: relative; top: 5px; left: 0; width: 100%; opacity: 0.8; display: none\">\n    <button type=\"button\" class=\"close\" data-dismiss=\"alert\">&times;</button>\n    <strong>Heads up!</strong> This alert needs your attention, but it's not super important.\n  </div>\n  <router-outlet></router-outlet>\n</div>\n"
 
 /***/ }),
 
@@ -88,7 +88,7 @@ var AppComponent = (function () {
                 if (redirect) {
                     var query = null;
                     for (var name_1 in params) {
-                        if (!params.hasOwnProperty(name_1) || name_1 === 'route') {
+                        if (!params.hasOwnProperty(name_1)) {
                             continue;
                         }
                         if (query) {
@@ -329,7 +329,7 @@ module.exports = module.exports.toString();
 /***/ "../../../../../src/app/components/campaign-chart/campaign-chart.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<div class=\"campaign-chart-option container\" [hidden]=\"!report_loaded || report_loaded_err\">\n  <div class=\"campaign-chart-option dropdown dropleft\">\n    <span class=\"selected-report-label\">{{ report_choices[current_report.report_choice_idx].label }}:</span>\n    <a class=\"dropdown-togglex \" href=\"#\" role=\"button\" id=\"dropdownMenuLink\" data-toggle=\"dropdown\"\n       aria-haspopup=\"true\" aria-expanded=\"false\">\n      {{ current_report.stats_x_start | date:'mediumDate' }} - {{ current_report.stats_x_end | date:'mediumDate' }}\n    </a>\n    <i class=\"fa fa-calendar report-date-icon\" aria-hidden=\"true\"></i>\n    <div class=\"dropdown-menu\" aria-labelledby=\"dropdownMenuButton\">\n      <a *ngFor=\"let option of report_choices\" class=\"dropdown-item\" [class.seleccted-report-opt]=\"option.selected\"\n         href=\"#\" (click)=\"selectReport($event)\">{{ option.label }}</a>\n    </div>\n  </div>\n</div>\n\n<div #chartTarget [hidden]=\"report_empty\">\n</div>\n\n<div *ngIf=\"report_loaded && report_empty && !report_loaded_err\" class=\"campaign-chart-empty\">\n  <i class=\"report-empty-icon fa fa-line-chart\" aria-hidden=\"true\"></i>\n  <div style=\"margin: 2em 0\">There is no data available for the selected time period</div>\n</div>\n\n<div *ngIf=\"!report_loaded\" class=\"campaign-chart-loading\">\n  <div>Loading the report...</div>\n</div>\n\n<!-- Display error -->\n<div *ngIf=\"report_loaded && report_loaded_err\" class=\"alert alert-danger\" role=\"alert\">\n  <strong>Doh!</strong> {{ report_loaded_err }}\n</div>\n"
+module.exports = "<div class=\"campaign-chart-option container\" [hidden]=\"!report_loaded || report_loaded_err\">\n  <div class=\"campaign-chart-option dropdown dropleft\">\n    <span class=\"selected-report-label\">{{ report_choices[current_report.report_choice_idx].label }}:</span>\n    <a class=\"dropdown-togglex \" href=\"#\" role=\"button\" id=\"dropdownMenuLink\" data-toggle=\"dropdown\"\n       aria-haspopup=\"true\" aria-expanded=\"false\">\n      {{ current_report.stats_x_start | date:'mediumDate' }} - {{ current_report.stats_x_end | date:'mediumDate' }}\n    </a>\n    <i class=\"fa fa-calendar report-date-icon\" aria-hidden=\"true\"></i>\n    <div class=\"dropdown-menu\" aria-labelledby=\"dropdownMenuButton\">\n      <a *ngFor=\"let option of report_choices\" class=\"dropdown-item\" [class.seleccted-report-opt]=\"option.selected\"\n         href=\"#\" (click)=\"selectReport(option.label)\">{{ option.label }}</a>\n    </div>\n  </div>\n</div>\n\n<div #chartTarget [hidden]=\"report_empty\">\n</div>\n\n<div *ngIf=\"report_loaded && report_empty && !report_loaded_err\" class=\"campaign-chart-empty\">\n  <i class=\"report-empty-icon fa fa-line-chart\" aria-hidden=\"true\"></i>\n  <div style=\"margin: 2em 0\">There is no data available for the selected time period</div>\n</div>\n\n<div *ngIf=\"!report_loaded\" class=\"campaign-chart-loading\">\n  <div>Loading the report...</div>\n</div>\n\n<!-- Display error -->\n<div *ngIf=\"report_loaded && report_loaded_err\" class=\"alert alert-danger\" role=\"alert\">\n  <strong>Doh!</strong> {{ report_loaded_err }}\n</div>\n"
 
 /***/ }),
 
@@ -380,7 +380,7 @@ var report_choices = [
     {
         label: 'Today', selected: false
     }, {
-        label: 'Yesterday', selected: true
+        label: 'Yesterday', selected: false
     }, {
         label: 'This week (Mon - Today)', selected: false
     }, {
@@ -394,7 +394,7 @@ var report_choices = [
     }, {
         label: 'Last month', selected: false
     }, {
-        label: 'Last 30 days', selected: false
+        label: 'Last 30 days', selected: true
     }
 ];
 var LIGHT_PINK = '#D050D0';
@@ -452,9 +452,13 @@ var CampaignChartComponent = (function () {
     CampaignChartComponent.prototype.ngOnDestroy = function () {
         this.chart = null;
     };
-    CampaignChartComponent.prototype.selectReport = function (event) {
+    CampaignChartComponent.prototype.selectReport = function (selectedOption) {
         var _this = this;
-        var new_report_opt = event.srcElement.innerHTML.trim();
+        if (!selectedOption) {
+            console.log('an empty report option is passed in');
+            return;
+        }
+        var new_report_opt = selectedOption;
         var old_report_name = null;
         var new_report_index = 0;
         if (this.current_report.report_choice_idx >= 0 && this.current_report.report_choice_idx < report_choices.length) {
@@ -600,7 +604,7 @@ var CampaignChartComponent = (function () {
             for (var j = stats.length; j < date_ticks.length; j++) {
                 stats.push(0);
             }
-            console.log('stats: ' + stats_name + ', data: ' + stats);
+            console.log('stats: ' + stats_name[i] + ', data: ' + stats);
             series.push({
                 yAxis: i,
                 name: stats_name[i],
@@ -872,8 +876,8 @@ var CampaignComponent = (function () {
         }
         else {
             var acct = this.campaignService.account;
-            this.advId = acct.adv_id;
-            this.cmpId = acct.cmp_id; // 364670647; // TODO;
+            this.advId = acct.adv_id; // 1643580;
+            this.cmpId = acct.cmp_id; // 364710042;
         }
         this.campaign_loaded = true;
     };

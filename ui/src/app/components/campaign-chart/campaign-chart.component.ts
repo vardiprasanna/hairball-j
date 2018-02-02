@@ -29,7 +29,7 @@ const report_choices = [
   {
     label: 'Today', selected: false
   }, {
-    label: 'Yesterday', selected: true
+    label: 'Yesterday', selected: false
   }, {
     label: 'This week (Mon - Today)', selected: false
   }, {
@@ -43,7 +43,7 @@ const report_choices = [
   }, {
     label: 'Last month', selected: false
   }, {
-    label: 'Last 30 days', selected: false
+    label: 'Last 30 days', selected: true
   }
 ];
 
@@ -139,8 +139,12 @@ export class CampaignChartComponent implements OnInit, AfterContentInit, OnDestr
     this.chart = null;
   }
 
-  selectReport(event: Event): boolean {
-    const new_report_opt = event.srcElement.innerHTML.trim();
+  selectReport(selectedOption: string): boolean {
+    if (!selectedOption) {
+      console.log('an empty report option is passed in');
+      return;
+    }
+    const new_report_opt = selectedOption;
     let old_report_name = null;
     let new_report_index = 0;
 
@@ -314,7 +318,7 @@ export class CampaignChartComponent implements OnInit, AfterContentInit, OnDestr
         stats.push(0);
       }
 
-      console.log('stats: ' + stats_name + ', data: ' + stats);
+      console.log('stats: ' + stats_name[i] + ', data: ' + stats);
       series.push(
         {
           yAxis: i,
