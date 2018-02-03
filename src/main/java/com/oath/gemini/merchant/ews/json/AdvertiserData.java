@@ -22,9 +22,6 @@ public class AdvertiserData {
     @JsonProperty(value = "advertiserName", required = true)
     private String name;
 
-    @JsonProperty(required=true)
-    private EWSConstant.StatusEnum status;
-
     @JsonProperty(required = true)
     private EWSConstant.StatusEnum status;
 
