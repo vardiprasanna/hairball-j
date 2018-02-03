@@ -219,13 +219,13 @@ public class App extends ResourceConfig {
                     if (path.startsWith("/")) {
                         path = path.substring(1);
                     }
-                    if (StringUtils.isBlank(query)) {
+                    if (true /*StringUtils.isBlank(query)*/) { // TODO - forward a query except a route
                         redirectTo = HttpUtils.buildQueries("/index.html", "route", path);
                     } else {
                         redirectTo = HttpUtils.buildQueries("/index.html?" + query, "route", path);
                     }
                     this.setLocation(redirectTo);
-                  //  ((Request) request).setScheme("https");
+                    ((Request) request).setScheme("https");
                     return apply(target, request, response);
                 }
                 return null;
