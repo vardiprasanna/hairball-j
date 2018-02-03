@@ -1337,7 +1337,16 @@ var ShopifyComponent = (function () {
         var acct = this.campaignService.account;
         console.log('look good, and ask shopify for access: ' + acct.store_auth_uri);
         // window.location.href = redirect;
-        window.open(acct.store_auth_uri, '_self');
+        if (acct && acct.store_auth_uri) {
+            window.open(acct.store_auth_uri, '_self');
+        }
+        else if (this.campaignService.isAccountReady()) {
+            this.router.navigateByUrl('f/campaign', { skipLocationChange: true });
+        }
+        else {
+            this.shopify_loaded_err = 'missing of shopify auth url';
+            this.router.navigateByUrl('f/login', { skipLocationChange: true });
+        }
     };
     ShopifyComponent = __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["o" /* Component */])({
