@@ -245,6 +245,9 @@ public class ShopifyOnboardResource {
 
     /**
      * UI wants to fetch an account DTO object if the url represents a valid Shopify user
+     * 
+     * @param - hmac is passed in from Shopify
+     * @param - shop is passed in from Shopify
      */
     @GET
     @Path("query")
@@ -288,6 +291,8 @@ public class ShopifyOnboardResource {
 
     /**
      * UI wants to fetch an account DTO object where the code is Yahoo's oAuth authentication code after a user signs in
+     * 
+     * @param - shop is passed in from our own UI if it is invoked inside Shopify, otherwise it would be null
      */
     @GET
     @Path("yauth")
@@ -331,10 +336,13 @@ public class ShopifyOnboardResource {
             accountDTO.setYahooAuthUrl(yahooAuthUrl);
 
             // Prepare Shopify authentication URI
-            String path = info.getAbsolutePath().toString();
-            String redirectUrl = HttpUtils.forceToUseHttps(path.substring(0, path.indexOf("/", 8)) + "/index.html?route=f/shopify/home"); // skip "https://"
-            URI uri = buildScopeRequestUrl(keyEntry, shop, redirectUrl);
-            accountDTO.setStoreAuthUrl(uri.toString());
+            if (StringUtils.isNotBlank(shop)) {
+                String path = info.getAbsolutePath().toString();
+                String redirectUrl = HttpUtils
+                        .forceToUseHttps(path.substring(0, path.indexOf("/", 8)) + "/index.html?route=f/shopify/home"); // skip "https://"
+                URI uri = buildScopeRequestUrl(keyEntry, shop, redirectUrl);
+                accountDTO.setStoreAuthUrl(uri.toString());
+            }
         } catch (Exception e) {
             log.error("failed for constructing shopify and yahoo authentication URL", e);
         }

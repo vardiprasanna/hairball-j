@@ -712,7 +712,7 @@ module.exports = module.exports.toString();
 /***/ "../../../../../src/app/components/campaign-config/campaign-config.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<form #campaignForm=\"ngForm\" *ngIf=\"campaign_config_loaded && !campaign_config_loaded_err\">\n  <div class=\"campaign-config panel panel-default\">\n    <div class=\"campaign-config-body panel-body\">\n      <div class=\"form-group\">\n        <label>Budget:</label>\n        <input required class=\"form-control\" type=\"number\" name=\"budget\"\n               [(ngModel)]=\"campaign.budget\" (change)=\"change()\" placeholder=\"max spend\">\n      </div>\n      <div class=\"form-group\">\n        <label>Cost Per Click:</label>\n        <input required class=\"form-control\" type=\"number\" name=\"cpc\"\n               [(ngModel)]=\"campaign.cpc\" (change)=\"change()\" placeholder=\"unit price\">\n      </div>\n    </div>\n\n    <!-- toggle start and stop a campaign -->\n    <div class=\"gemini-button-group\">\n      <button class=\"gemini-button\" [disabled]=\"!campaignForm.valid\" (click)=\"updateStatus()\">\n        {{ campaign.is_running ? 'Stop' : 'Start' }}\n      </button>\n      <button class=\"gemini-button\" [disabled]=\"!is_changed\" (click)=\"updateCost()\">\n        Update\n      </button>\n    </div>\n  </div>\n</form>\n\n<div *ngIf=\"campaign_config_loaded && campaign_config_loaded_err\" class=\"alert alert-danger\" role=\"alert\">\n  <strong>Doh!</strong> {{ campaign_config_loaded_err }}\n</div>\n"
+module.exports = "<form #campaignForm=\"ngForm\" *ngIf=\"campaign_config_loaded && !campaign_config_loaded_err\">\n  <div style=\"margin: 5px;\" *ngIf=\"campaign.adv_status != 'ACTIVE'\">\n    <div class=\"alert alert-warning\" role=\"alert\"\n         style=\"position: relative; top: 50; left: 50; width: 100%; opacity: 0.8;\">\n      <strong>Your Yahoo Gemini account is inactive!</strong> Open <a target=\"_blank\" href=\"https://gemini.yahoo.com\">Yahoo Gemini</a> to learn more.\n      important.\n    </div>\n  </div>\n  <div class=\"campaign-config panel panel-default\">\n    <div class=\"campaign-config-body panel-body\">\n      <div class=\"form-group\">\n        <label>Budget:</label>\n        <input required class=\"form-control\" type=\"number\" name=\"budget\"\n               [(ngModel)]=\"campaign.budget\" (change)=\"change()\" placeholder=\"max spend\">\n      </div>\n      <div class=\"form-group\">\n        <label>Cost Per Click:</label>\n        <input required class=\"form-control\" type=\"number\" name=\"cpc\"\n               [(ngModel)]=\"campaign.cpc\" (change)=\"change()\" placeholder=\"unit price\">\n      </div>\n    </div>\n\n    <!-- toggle start and stop a campaign -->\n    <div class=\"gemini-button-group\">\n      <button class=\"gemini-button\" [disabled]=\"!campaignForm.valid\" (click)=\"updateStatus()\">\n        {{ campaign.is_running ? 'Stop' : 'Start' }}\n      </button>\n      <button class=\"gemini-button\" [disabled]=\"!is_changed || !campaignForm.valid\" (click)=\"updateCost()\">\n        Update\n      </button>\n    </div>\n  </div>\n</form>\n\n<div *ngIf=\"campaign_config_loaded && campaign_config_loaded_err\" class=\"alert alert-danger\" role=\"alert\">\n  <strong>Doh!</strong> {{ campaign_config_loaded_err }}\n</div>\n"
 
 /***/ }),
 
@@ -955,6 +955,7 @@ var LoginComponent = (function () {
     LoginComponent.prototype.ngOnInit = function () {
         var _this = this;
         if (this.campaignService.account && this.campaignService.account.yahoo_auth_uri) {
+            console.log('yahoo_auth_uri: ' + this.campaignService.account.yahoo_auth_uri);
             var timer = __WEBPACK_IMPORTED_MODULE_2_rxjs_observable_TimerObservable__["a" /* TimerObservable */].create(2000, 1000);
             this.subscription = timer.subscribe(function () {
                 if (_this.oath_win_hdl && _this.oath_win_hdl.closed) {
@@ -963,6 +964,7 @@ var LoginComponent = (function () {
             });
         }
         else {
+            console.log('yauth_default: ' + __WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].yauth_default);
             this.login_loaded_err = 'it seems that the link is not from Shopify directly';
             console.log(this.login_loaded_err);
         }
@@ -994,13 +996,16 @@ var LoginComponent = (function () {
         var dialogRef = this.messageService.show(__WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].geminiSigInMessage, buttons);
         if (dialogRef) {
             dialogRef.afterClosed().subscribe(function (c) {
-                if (!_this.campaignService.account) {
-                    console.log('an expected acct is null in login.component');
-                    return;
-                }
                 if (c === 'confirm') {
                     var isEmbedded = !(window === window.parent);
-                    var oauthUri = _this.campaignService.account.yahoo_auth_uri;
+                    var oauthUri = null;
+                    if (_this.campaignService.account) {
+                        oauthUri = _this.campaignService.account.yahoo_auth_uri;
+                    }
+                    if (!oauthUri) {
+                        oauthUri = __WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].yauth_default; // likely user opens our app outside Shopify admin console
+                        console.log('use a default yauth url: ' + oauthUri);
+                    }
                     if (isEmbedded) {
                         // Due to the same-origin constraint, let's open a top level window
                         _this.oath_win_hdl = window.open(oauthUri, '_blank');
@@ -1332,7 +1337,16 @@ var ShopifyComponent = (function () {
         var acct = this.campaignService.account;
         console.log('look good, and ask shopify for access: ' + acct.store_auth_uri);
         // window.location.href = redirect;
-        window.open(acct.store_auth_uri, '_self');
+        if (acct && acct.store_auth_uri) {
+            window.open(acct.store_auth_uri, '_self');
+        }
+        else if (this.campaignService.isAccountReady()) {
+            this.router.navigateByUrl('f/campaign', { skipLocationChange: true });
+        }
+        else {
+            this.shopify_loaded_err = 'missing of shopify auth url';
+            this.router.navigateByUrl('f/login', { skipLocationChange: true });
+        }
     };
     ShopifyComponent = __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["o" /* Component */])({
@@ -1391,10 +1405,10 @@ var Campaign = (function () {
     }
     Object.defineProperty(Campaign.prototype, "is_running", {
         get: function () {
-            return this.status && this.status === 'ACTIVE';
+            return this.cmp_status && this.cmp_status === 'ACTIVE';
         },
         set: function (running) {
-            this.status = (running ? 'ACTIVE' : 'PAUSED');
+            this.cmp_status = (running ? 'ACTIVE' : 'PAUSED');
         },
         enumerable: true,
         configurable: true
@@ -1718,11 +1732,14 @@ var MessageService = (function () {
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return environment; });
 // The file contents for the current environment will overwrite these during build.
-// The build system defaults to the dev environment which uses `environment.ts`, but if you do
-// `ng build --env=prod` then `environment.prod.ts` will be used instead.
-// The list of which env maps to which file can be found in `.angular-cli.json`.
+// The build system defaults to the dev environment which uses 'environment.ts', but if you do
+// 'ng build --env=prod' then 'environment.prod.ts' will be used instead.
+// The list of which env maps to which file can be found in '.angular-cli.json'.
 var environment = {
     production: false,
+    yauth_default: 'https://api.login.yahoo.com/oauth2/request_auth?response_type=code&language=en-us' +
+        '&client_id=dj0yJmk9YTl4bFUxYXJYSFlpJmQ9WVdrOWVHTTFkMkprTm1jbWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmeD02OQ--' +
+        '&redirect_uri=https%3A%2F%2Fgemini-shopify.herokuapp.com%2Findex.html%3Froute%3Df%2Fshopify%2Fews',
     ewsBaseUrl: '',
     geminiHomeUrl: 'https://gemini.yahoo.com/advertiser/home',
     geminiSigInMessage: 'You will be redirected to Yahoo\'s login page, and then automatically brought back here once you\'re done.',

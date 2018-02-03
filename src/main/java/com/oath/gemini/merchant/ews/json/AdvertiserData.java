@@ -26,6 +26,9 @@ public class AdvertiserData {
     private EWSConstant.StatusEnum status;
 
     @JsonProperty(required = true)
+    private EWSConstant.StatusEnum status;
+
+    @JsonProperty(required = true)
     private String timezone;
 
     @JsonProperty(required = true)

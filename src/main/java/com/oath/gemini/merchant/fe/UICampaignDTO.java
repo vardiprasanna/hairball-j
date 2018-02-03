@@ -21,7 +21,7 @@ public class UICampaignDTO {
     }
 
     public UICampaignDTO(CampaignData cmpData) {
-        this.status = cmpData.getStatus();
+        this.campaignStatus = cmpData.getStatus();
         this.campaignName = cmpData.getCampaignName();
         this.advId = cmpData.getAdvertiserId();
         this.campaignId = cmpData.getId();
@@ -29,7 +29,7 @@ public class UICampaignDTO {
     }
 
     public UICampaignDTO(StoreCampaignEntity cmpEntity) {
-        this.status = cmpEntity.getStatus();
+        this.campaignStatus = cmpEntity.getStatus();
         this.advId = cmpEntity.getAdvId();
         this.campaignId = cmpEntity.getCampaignId();
         this.budget = cmpEntity.getBudget();
@@ -38,26 +38,30 @@ public class UICampaignDTO {
         this.endDateInMilli = cmpEntity.getEndDate().getTime();
     }
 
-    private EWSConstant.StatusEnum status;
-    
+    @JsonProperty(value = "adv_id")
+    private long advId;
+
     @JsonProperty(value = "adv_name")
     private String advName;
 
-    @JsonProperty(value = "cmp_name")
-    private String campaignName;
-    
-    @JsonProperty(value = "adv_id")
-    private long advId;
-    
+    @JsonProperty(value = "adv_status")
+    private EWSConstant.StatusEnum advStatus;
+
     @JsonProperty(value = "cmp_id")
     private long campaignId;
-    
+
+    @JsonProperty(value = "cmp_name")
+    private String campaignName;
+
+    @JsonProperty(value = "cmp_status")
+    private EWSConstant.StatusEnum campaignStatus;
+
     private float budget;
     private float price;
-    
+
     @JsonProperty(value = "start_date")
     private Long startDateInMilli;
-    
+
     @JsonProperty(value = "end_date")
     private Long endDateInMilli;
 }
