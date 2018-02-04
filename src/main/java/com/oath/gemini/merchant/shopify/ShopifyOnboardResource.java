@@ -549,31 +549,35 @@ public class ShopifyOnboardResource {
 
         // Check whether this shop already exists
         StoreAcctEntity oldStoreAcct = new StoreAcctEntity();
-        oldStoreAcct.setName(shop);
-        oldStoreAcct.setDomain(shop);
+        if (StringUtils.isNotBlank(shop)) {
+            oldStoreAcct.setName(shop);
+            oldStoreAcct.setDomain(shop);
+        }
         oldStoreAcct.setYahooAccessToken(refreshToken);
         oldStoreAcct.setGeminiNativeAcctId(geminiNativeAcctId.intValue());
 
         // Insert or update this shop's account
         oldStoreAcct = databaseService.findByAny(oldStoreAcct);
 
-        if (oldStoreAcct == null) {
-            StoreAcctEntity newStoreAcct = new StoreAcctEntity();
-            newStoreAcct.setName(shop);
-            newStoreAcct.setDomain(shop);
-            newStoreAcct.setEmail("dummy@shopify.com");
-            newStoreAcct.setYahooAccessToken(refreshToken);
-            newStoreAcct.setStoreSysId(storeSysEntity.getId());
-            newStoreAcct.setGeminiNativeAcctId(geminiNativeAcctId.intValue());
-            newStoreAcct.setPixelId(extractDotTag(ews, geminiNativeAcctId).getId().intValue());
-            databaseService.save(newStoreAcct);
-            return newStoreAcct;
-        } else {
-            databaseService.replaceIfDummyOrBlank(oldStoreAcct, "domain", shop);
+        if (StringUtils.isNotBlank(shop)) {
+            if (oldStoreAcct == null) {
+                StoreAcctEntity newStoreAcct = new StoreAcctEntity();
+                newStoreAcct.setName(shop);
+                newStoreAcct.setDomain(shop);
+                newStoreAcct.setEmail("dummy@shopify.com");
+                newStoreAcct.setYahooAccessToken(refreshToken);
+                newStoreAcct.setStoreSysId(storeSysEntity.getId());
+                newStoreAcct.setGeminiNativeAcctId(geminiNativeAcctId.intValue());
+                newStoreAcct.setPixelId(extractDotTag(ews, geminiNativeAcctId).getId().intValue());
+                databaseService.save(newStoreAcct);
+                return newStoreAcct;
+            } else {
+                databaseService.replaceIfDummyOrBlank(oldStoreAcct, "domain", shop);
 
-            // Only the following fields can be modified
-            oldStoreAcct.setYahooAccessToken(refreshToken);
-            databaseService.update(oldStoreAcct);
+                // Only the following fields can be modified
+                oldStoreAcct.setYahooAccessToken(refreshToken);
+                databaseService.update(oldStoreAcct);
+            }
         }
         return oldStoreAcct;
     }
