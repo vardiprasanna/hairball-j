@@ -23,6 +23,12 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this._ngOnInit();
+
+    if (this.campaignService.isAccountReady()) {
+      this.router.navigateByUrl('f/campaign');
+      return;
+    }
+
     this.subscription = this.route
       .queryParams
       .subscribe(params => {
@@ -55,7 +61,9 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.subscription.unsubscribe();
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
   }
 
   /**
@@ -70,10 +78,10 @@ export class AppComponent implements OnInit, OnDestroy {
       let account: any;
 
       if (window.sessionStorage) {
-        account = window.sessionStorage.getItem('geminiDpaApp');
+        account = window.sessionStorage.getItem('geminiDpaAccount');
       }
       if (!account && window.localStorage) {
-        account = window.sessionStorage.getItem('geminiDpaApp');
+        account = window.localStorage.getItem('geminiDpaAccount');
       }
       if (account) {
         try {
@@ -82,27 +90,19 @@ export class AppComponent implements OnInit, OnDestroy {
           console.log(err.getMessages());
         }
       }
-      return this.loginIfRequired();
-    }
-
-    // Check whether an account can be retrieved via URL parameters
-    this.campaignService.getAccount(advertiserId).then(acct => {
-      if (acct) {
-        console.log('got acct: ' + JSON.stringify(acct));
-        this.campaignService.account = acct;
-      }
-      this.loginIfRequired();
-
-    }, err => {
-      this.loginIfRequired();
-      console.log(err.message ? err.message : JSON.stringify(err));
-    });
-  }
-
-  private loginIfRequired(): void {
-    this.app_loaded = true;
-    if (!this.campaignService.account) {
-      //   this.router.navigateByUrl('login');
+      this.app_loaded = true;
+    } else {
+      // Check whether an account can be retrieved via URL parameters
+      this.campaignService.getAccount(advertiserId).then(acct => {
+        if (acct) {
+          console.log('got acct: ' + JSON.stringify(acct));
+          this.campaignService.account = acct;
+        }
+      }, err => {
+        console.log(err.message ? err.message : JSON.stringify(err));
+      }).then((() => {
+        this.app_loaded = true;
+      }));
     }
   }
 

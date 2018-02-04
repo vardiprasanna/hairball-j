@@ -10,7 +10,7 @@ export class Campaign {
   cr_date?: Date;
   upd_date?: Date;
   budget = 0;
-  cpc = 0.0;
+  price = 0.0;
 
   get is_running() {
     return this.cmp_status && this.cmp_status === 'ACTIVE';
