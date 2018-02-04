@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.oath.gemini.merchant.ClosableHttpClient;
 import com.oath.gemini.merchant.HttpStatus;
-import com.oath.gemini.merchant.HttpUtils;
+import com.oath.gemini.merchant.db.DatabaseResource;
 import com.oath.gemini.merchant.db.DatabaseService;
 import com.oath.gemini.merchant.db.StoreAcctEntity;
 import com.oath.gemini.merchant.db.StoreCampaignEntity;
@@ -21,15 +21,12 @@ import java.io.StringReader;
 import javax.annotation.Resource;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -154,6 +151,48 @@ public class EWSClientResource {
     @PUT
     @Path("campaign/{cmpId}")
     public Response updateCampaign(@PathParam("cmpId") long id, UICampaignDTO cmpDTO) {
+        StoreCampaignEntity storeCampaign, modifiedStoreCampaign;
+        StoreAcctEntity storeAcct;
+        boolean isModified = false;
+
+        try {
+            modifiedStoreCampaign = new StoreCampaignEntity();
+            storeCampaign = databaseService.findStoreCampaignByGeminiCampaignId(id);
+
+            if (storeCampaign == null) {
+                return errorResponse(ERR_LOCAL_DB, Status.NOT_FOUND, "No campaign found with this id=%s", id);
+            }
+            if (cmpDTO.getBudget() >= 0f && (storeCampaign.getBudget() == null || storeCampaign.getBudget() != cmpDTO.getBudget())) {
+                modifiedStoreCampaign.setBudget(cmpDTO.getBudget());
+                isModified = true;
+            }
+            if (cmpDTO.getPrice() >= 0f && (storeCampaign.getPrice() == null || storeCampaign.getPrice() != cmpDTO.getPrice())) {
+                modifiedStoreCampaign.setPrice(cmpDTO.getPrice());
+                isModified = true;
+            }
+            if (cmpDTO.getCampaignStatus() != null && storeCampaign.getStatus() != cmpDTO.getCampaignStatus()) {
+                modifiedStoreCampaign.setStatus(cmpDTO.getCampaignStatus());
+                isModified = true;
+            }
+
+            if (isModified) {
+                storeAcct = databaseService.findByEntityId(StoreAcctEntity.class, storeCampaign.getStoreAcctId());
+                if (storeAcct == null) {
+                    return errorResponse(ERR_LOCAL_DB, Status.NOT_FOUND, "No account found with this campaign id=%s", id);
+                }
+
+                DatabaseResource db = new DatabaseResource(this.databaseService, this.ewsAuthService);
+
+                modifiedStoreCampaign.setAdgroupId(storeCampaign.getAdgroupId());
+                modifiedStoreCampaign.setCampaignId(storeCampaign.getCampaignId());
+                db.updateAdGroup(storeAcct.getYahooAccessToken(), modifiedStoreCampaign);
+
+                databaseService.update(storeCampaign);
+            }
+        } catch (Exception e) {
+            return errorResponse(ERR_LOCAL_DB, Status.INTERNAL_SERVER_ERROR, "Failed to fetch the campaign=%s: %s", id, e.getMessage());
+        }
+
         return Response.ok(cmpDTO).build();
     }
 

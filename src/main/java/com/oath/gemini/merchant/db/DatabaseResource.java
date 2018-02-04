@@ -65,6 +65,14 @@ public class DatabaseResource {
     @Inject
     EWSAuthenticationService ewsAuthService;
 
+    public DatabaseResource() {
+    }
+
+    public DatabaseResource(DatabaseService databaseService, EWSAuthenticationService ewsAuthService) {
+        this.databaseService = databaseService;
+        this.ewsAuthService = ewsAuthService;
+    }
+
     @RolesAllowed({ "SIG", "YBY", "localhost" })
     @GET
     @Path("acct/{id:.*}")
@@ -198,7 +206,7 @@ public class DatabaseResource {
     /**
      * Update a Gemini campaign and an adgroup
      */
-    private Response updateAdGroup(String gRefreshToken, StoreCampaignEntity modifiedStoreCampaign) throws Exception {
+    public Response updateAdGroup(String gRefreshToken, StoreCampaignEntity modifiedStoreCampaign) throws Exception {
         EWSAccessTokenData tokens = ewsAuthService.getAccessTokenFromRefreshToken(gRefreshToken);
         EWSClientService ews = new EWSClientService(tokens);
         EWSResponseData<AdGroupData> adGroupResponse = ews.get(AdGroupData.class, EWSEndpointEnum.ADGROUP_BY_ID,
@@ -213,12 +221,12 @@ public class DatabaseResource {
         AdGroupData originalGroupData = adGroupResponse.get(0);
         AdGroupData modifiedAdGroupData = new AdGroupData();
 
-        if (modifiedStoreCampaign.getStartDate() != null) {
-            modifiedAdGroupData.setStartDateStr(geminiDateFormat.format(modifiedStoreCampaign.getStartDate()));
-        }
-        if (modifiedStoreCampaign.getEndDate() != null) {
-            modifiedAdGroupData.setEndDateStr(geminiDateFormat.format(modifiedStoreCampaign.getEndDate()));
-        }
+//        if (modifiedStoreCampaign.getStartDate() != null) {
+//            modifiedAdGroupData.setStartDateStr(geminiDateFormat.format(modifiedStoreCampaign.getStartDate()));
+//        }
+//        if (modifiedStoreCampaign.getEndDate() != null) {
+//            modifiedAdGroupData.setEndDateStr(geminiDateFormat.format(modifiedStoreCampaign.getEndDate()));
+//        }
         if (modifiedStoreCampaign.getStatus() != null) {
             modifiedAdGroupData.setStatus(modifiedStoreCampaign.getStatus());
         }
