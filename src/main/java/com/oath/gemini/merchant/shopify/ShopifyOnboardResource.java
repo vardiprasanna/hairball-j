@@ -325,26 +325,26 @@ public class ShopifyOnboardResource {
         UIAccountDTO accountDTO = mapToAccountDTO(storeAcct);
         int keyEntry = 0; // TODO - remove this dependency
 
-        try {
-            // Prepare Yahoo authentication URI
-            String yahooAuthUrl = config.getString("y.oauth.auth.request.url");
+        if (StringUtils.isNotBlank(shop)) {
+            try {
+                // Prepare Yahoo authentication URI
+                String yahooAuthUrl = config.getString("y.oauth.auth.request.url");
 
-            rd = HttpUtils.forceToUseHttps(rd);
-            rd = buildQueries(rd, "shop", shop);
+                rd = HttpUtils.forceToUseHttps(rd);
+                rd = buildQueries(rd, "shop", shop);
 
-            yahooAuthUrl = yahooAuthUrl.replace("${y.oauth.redirect}", URLEncoder.encode(rd, "UTF-8"));
-            accountDTO.setYahooAuthUrl(yahooAuthUrl);
+                yahooAuthUrl = yahooAuthUrl.replace("${y.oauth.redirect}", URLEncoder.encode(rd, "UTF-8"));
+                accountDTO.setYahooAuthUrl(yahooAuthUrl);
 
-            // Prepare Shopify authentication URI
-            if (StringUtils.isNotBlank(shop)) {
+                // Prepare Shopify authentication URI
                 String path = info.getAbsolutePath().toString();
                 String redirectUrl = HttpUtils
                         .forceToUseHttps(path.substring(0, path.indexOf("/", 8)) + "/index.html?route=f/shopify/home"); // skip "https://"
                 URI uri = buildScopeRequestUrl(keyEntry, shop, redirectUrl);
                 accountDTO.setStoreAuthUrl(uri.toString());
+            } catch (Exception e) {
+                log.error("failed for constructing shopify and yahoo authentication URL", e);
             }
-        } catch (Exception e) {
-            log.error("failed for constructing shopify and yahoo authentication URL", e);
         }
 
         return Response.ok(accountDTO).build();
@@ -549,10 +549,8 @@ public class ShopifyOnboardResource {
 
         // Check whether this shop already exists
         StoreAcctEntity oldStoreAcct = new StoreAcctEntity();
-        if (StringUtils.isNotBlank(shop)) {
-            oldStoreAcct.setName(shop);
-            oldStoreAcct.setDomain(shop);
-        }
+        oldStoreAcct.setName(shop);
+        oldStoreAcct.setDomain(shop);
         oldStoreAcct.setYahooAccessToken(refreshToken);
         oldStoreAcct.setGeminiNativeAcctId(geminiNativeAcctId.intValue());
 
