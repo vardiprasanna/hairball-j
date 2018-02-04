@@ -1,4 +1,6 @@
 export class Account {
+  last_access: Date; // set only if the hasValidTokens() is true
+
   constructor(account?: Account) {
     if (account) {
       Object.assign(this, account);

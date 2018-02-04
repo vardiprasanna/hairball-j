@@ -25,6 +25,20 @@ export class CampaignService {
 
   set account(acct: Account) {
     this._account = new Account(acct);
+    if (this.isAccountReady()) {
+      acct.last_access = new Date();
+      const account = JSON.stringify(acct);
+      console.log('ready to persist acct in local storage: ' + account);
+
+      if (window.sessionStorage) {
+        console.log('ready to persist acct to session storage');
+        window.sessionStorage.setItem('geminiDpaAccount', account);
+      }
+      if (window.localStorage) {
+        console.log('ready to persist acct to local storage');
+        window.localStorage.setItem('geminiDpaAccount', account);
+      }
+    }
   }
 
   get account(): Account {
