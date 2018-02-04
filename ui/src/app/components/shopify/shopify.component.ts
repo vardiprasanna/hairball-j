@@ -22,7 +22,7 @@ export class ShopifyComponent implements OnInit {
       .subscribe(params => {
         console.log('next query in shopify.component: ' + JSON.stringify(params));
 
-        if (params == null || !params['shop']) {
+        if (params == null /*|| !params['shop']*/) {
           this.shopify_loaded = true;
           this.shopify_loaded_err = 'incorrect query'; // TODO - pass this error to login page
           this.router.navigateByUrl('f/login');
