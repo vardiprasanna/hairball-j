@@ -54,7 +54,19 @@ export class CampaignConfigComponent implements OnInit {
   }
 
   public updateCost() {
-    console.log(event + ', ' + JSON.stringify(this.campaign));
+    if (!this.campaign_original || !this.campaign) {
+      return; // cannot update because we're not even able to load the campaign
+    }
+    if (this.campaign.price >= 0 && this.campaign.budget >= 0) {
+      this.campaignService.updateCampaign(this.campaignId, this.campaign).then(() => {
+        this.campaign_original.price = this.campaign.price;
+        this.campaign_original.budget = this.campaign.budget;
+      }, err => {
+        this.campaign_config_loaded_err = (err.message ? err.message : JSON.stringify(err));
+      });
+    } else {
+      console.log('invalid amount: ' + JSON.stringify(this.campaign));
+    }
     return false;
   }
 
