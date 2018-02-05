@@ -170,7 +170,7 @@ public class EWSClientResource {
                 modifiedStoreCampaign.setPrice(cmpDTO.getPrice());
                 isModified = true;
             }
-            if (cmpDTO.getCampaignStatus() != null && storeCampaign.getStatus() != cmpDTO.getCampaignStatus()) {
+            if (cmpDTO.getCampaignStatus() != null) {
                 modifiedStoreCampaign.setStatus(cmpDTO.getCampaignStatus());
                 isModified = true;
             }
