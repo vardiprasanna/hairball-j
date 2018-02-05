@@ -84,6 +84,7 @@ export class ShopifyComponent implements OnInit {
   private yoauth(params: Params) {
     if (params['error']) {
       this.shopify_loaded_err = params['error']; // TODO - pass this error to login page
+      this.router.navigateByUrl('f/login', {skipLocationChange: true});
     } else if (params['code']) {
       // This happens when user grants Gemini access
       this.afterYAuth(params, this.campaignService.signInYahoo(params));
