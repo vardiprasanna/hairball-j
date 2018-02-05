@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { CampaignService } from './services/campaign.service';
+import { Account } from './model/account';
 
 @Component({
   selector: 'app-root',
@@ -70,8 +71,8 @@ export class AppComponent implements OnInit, OnDestroy {
    * TODO - use 'router' for parameters; and persist the account in storage
    */
   _ngOnInit() {
-    const campaignId = this.getCampaignIdParam();
-    const advertiserId = this.getAdvertiserIdParam();
+    let campaignId = this.getCampaignIdParam();
+    let advertiserId = this.getAdvertiserIdParam();
 
     // Use a locally cached account if necessary
     if (!campaignId && !advertiserId) {
@@ -80,18 +81,21 @@ export class AppComponent implements OnInit, OnDestroy {
       if (window.sessionStorage) {
         account = window.sessionStorage.getItem('geminiDpaAccount');
       }
-      if (!account && window.localStorage) {
-        account = window.localStorage.getItem('geminiDpaAccount');
-      }
+      // if (!account && window.localStorage) {
+      //   account = window.localStorage.getItem('geminiDpaAccount');
+      // }
       if (account) {
         try {
-          this.campaignService.account = JSON.parse(account);
+          const acct: Account = JSON.parse(account);
+          advertiserId = acct.adv_id;
+          campaignId = acct.cmp_id;
         } catch (err) {
           console.log(err.getMessages());
         }
       }
-      this.app_loaded = true;
-    } else {
+    }
+
+    if (campaignId && advertiserId) {
       // Check whether an account can be retrieved via URL parameters
       this.campaignService.getAccount(advertiserId).then(acct => {
         if (acct) {
@@ -103,6 +107,8 @@ export class AppComponent implements OnInit, OnDestroy {
       }).then((() => {
         this.app_loaded = true;
       }));
+    } else {
+      this.app_loaded = true;
     }
   }
 
