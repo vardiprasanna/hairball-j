@@ -250,7 +250,7 @@ public class DatabaseResource {
         }
 
         // Update the campaign
-        if (modifiedStoreCampaign.getBudget() != null) {
+        if (modifiedStoreCampaign.getBudget() != null || modifiedStoreCampaign.getStatus() != null) {
             EWSResponseData<CampaignData> campaignResponse = ews.get(CampaignData.class, EWSEndpointEnum.CAMPAIGN_BY_ID,
                     modifiedStoreCampaign.getCampaignId());
 
@@ -260,7 +260,12 @@ public class DatabaseResource {
             CampaignData originalCampaignData = campaignResponse.get(0);
             CampaignData modifiedCampaignData = new CampaignData();
 
-            modifiedCampaignData.setBudget(BigDecimal.valueOf(modifiedStoreCampaign.getBudget().doubleValue()));
+            if (modifiedStoreCampaign.getBudget() != null) {
+                modifiedCampaignData.setBudget(BigDecimal.valueOf(modifiedStoreCampaign.getBudget().doubleValue()));
+            }
+            if (modifiedStoreCampaign.getStatus() != null) {
+                modifiedCampaignData.setStatus(modifiedStoreCampaign.getStatus());
+            }
             if (DatabaseService.copyNonNullProperties(originalCampaignData, modifiedCampaignData)) {
                 campaignResponse = ews.update(CampaignData.class, originalCampaignData, EWSEndpointEnum.CAMPAIGN_OPS);
 

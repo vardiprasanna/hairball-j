@@ -76,6 +76,8 @@ export class CampaignConfigComponent implements OnInit {
     }
     const cmp: Campaign = new Campaign();
     cmp.is_running = !this.campaign_original.is_running;
+    cmp.price = this.campaign_original.price;
+    cmp.budget = this.campaign_original.budget;
 
     this.campaignService.updateCampaign(this.campaignId, cmp).then(() => {
       this.campaign_original.is_running = !this.campaign_original.is_running;
