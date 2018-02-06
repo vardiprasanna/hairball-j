@@ -86,6 +86,11 @@ public class RoleAuthentication implements ContainerRequestFilter {
                     }
 
                     String query = servletRequest.getQueryString();
+                    if (StringUtils.isBlank(query)) {
+                        log.error("sig param is missing from request: ", servletRequest.getRequestURI());
+                        System.err.println("sig param is missing from request: " + servletRequest.getRequestURI());
+                        break;
+                    }
                     Matcher matcher = regex.matcher(query);
                     if (!matcher.find() || matcher.groupCount() != 1) {
                         log.error("failed to verify the signature because unable to match: {}", query);

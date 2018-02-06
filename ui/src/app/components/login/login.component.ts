@@ -1,12 +1,9 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { MessageService } from '../../services/message.service';
-import { Subscription } from 'rxjs/Subscription';
-import { TimerObservable } from 'rxjs/observable/TimerObservable';
 import { MatDialogRef } from '@angular/material/dialog';
 import { ButtonConfig } from '../popup/popup.component';
 
 import { CampaignService } from '../../services/campaign.service';
-import { Account } from '../../model/account';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -14,26 +11,15 @@ import { environment } from '../../../environments/environment';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
-export class LoginComponent implements OnInit, OnDestroy {
+export class LoginComponent implements OnInit {
   login_loaded = false;
   login_loaded_err: string;
-  oath_win_hdl: any;
-  subscription: Subscription;
 
   constructor(private messageService: MessageService, private campaignService: CampaignService) {
   }
 
   ngOnInit() {
-    if (this.campaignService.account && this.campaignService.account.yahoo_auth_uri) {
-      console.log('yahoo_auth_uri: ' + this.campaignService.account.yahoo_auth_uri);
-
-      const timer = TimerObservable.create(2000, 1000);
-      this.subscription = timer.subscribe(() => {
-        if (this.oath_win_hdl && this.oath_win_hdl.closed) {
-          window.focus();
-        }
-      });
-    } else {
+    if (!this.campaignService.account || !this.campaignService.account.yahoo_auth_uri) {
       console.log('yauth_default: ' + environment.yauth_default);
       this.login_loaded_err = 'it seems that the link is not from Shopify directly';
       console.log(this.login_loaded_err);
@@ -41,19 +27,11 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.login_loaded = true;
   }
 
-  ngOnDestroy() {
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-      this.subscription = null;
-    }
-  }
-
   /**
    * Launch Yahoo OAuth in a new window if we are embedded; otherwise launch it in our own window
-   * @param {Event} event
    * @returns {boolean}
    */
-  signIn(event: Event): boolean {
+  signIn(): boolean {
     const buttons: ButtonConfig[] = [
       {
         label: 'Cancel',
@@ -81,8 +59,10 @@ export class LoginComponent implements OnInit, OnDestroy {
 
             if (isEmbedded) {
               // Due to the same-origin constraint, let's open a top level window
-              this.oath_win_hdl = window.open(oauthUri, '_blank');
-              this.oath_win_hdl.focus();
+              const win_hdl = window.open(oauthUri, '_blank');
+              if (win_hdl && !win_hdl.closed) {
+                win_hdl.focus();
+              }
             } else {
               window.open(oauthUri, '_self');
             }
@@ -95,10 +75,9 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   /**
    * Launch Gemini in a new window for a user to create an account
-   * @param {Event} event
    * @returns {boolean}
    */
-  signUp(event: Event): boolean {
+  signUp(): boolean {
     const buttons: ButtonConfig[] = [
       {
         label: 'Cancel',

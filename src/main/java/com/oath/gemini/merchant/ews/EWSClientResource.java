@@ -83,7 +83,7 @@ public class EWSClientResource {
             return errorResponse(ERR_LOCAL_DB, Status.INTERNAL_SERVER_ERROR, "Failed to fetch the campaign=%s: %s", id, e.getMessage());
         }
 
-        return Response.ok(new UIAccountDTO(storeAcct)).build();
+        return Response.ok(mapToAccountDTO(storeAcct)).build();
     }
 
     @GET
@@ -264,6 +264,37 @@ public class EWSClientResource {
         }
 
         return Response.status(Status.NO_CONTENT).build();
+    }
+
+    /**
+     * Fill partial UI account
+     */
+    private UIAccountDTO mapToAccountDTO(StoreAcctEntity storeAcct) {
+        UIAccountDTO acct = new UIAccountDTO(storeAcct);
+
+        try {
+            // Check whether Yahoo refresh token is still good
+            EWSAccessTokenData tokens = ewsAuthService.getAccessTokenFromRefreshToken(storeAcct.getYahooAccessToken());
+            acct.setIsYahooTokenValid(tokens.isOk());
+
+            // Check whether the token is still good for accessing a Gemini account.
+            EWSClientService ews = new EWSClientService(tokens);
+            EWSResponseData<AdvertiserData> advResponse = ews.get(AdvertiserData.class, EWSEndpointEnum.ADVERTISER);
+
+            if (!EWSResponseData.isEmpty(advResponse)) {
+                // TODO - pass this info back to UI
+            }
+
+            StoreCampaignEntity storeCmpEntity = databaseService.findByAcctId(StoreCampaignEntity.class, storeAcct.getId());
+            if (storeCmpEntity != null) {
+                acct.setGeminiNativeCampaignId(storeCmpEntity.getCampaignId());
+            }
+        } catch (Exception e) {
+        }
+
+        // TODO: Check whether Shopify refresh token is still good
+        acct.setIsStoreTokenValid(StringUtils.isNotBlank(acct.getStoreAccessToken()));
+        return acct;
     }
 
     /**

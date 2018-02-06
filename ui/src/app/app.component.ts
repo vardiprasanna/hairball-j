@@ -1,6 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { CampaignService } from './services/campaign.service';
+import { Account } from './model/account';
+import 'rxjs/add/operator/take';
 
 @Component({
   selector: 'app-root',
@@ -22,42 +24,43 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this._ngOnInit();
+    this._ngOnInit().then(() => {
+      this.app_loaded = true;
 
-    if (this.campaignService.isAccountReady()) {
-      this.router.navigateByUrl('f/campaign');
-      return;
-    }
+      if (this.campaignService.isAccountReady()) {
+        this.router.navigateByUrl('f/campaign');
+        return;
+      }
 
-    this.subscription = this.route
-      .queryParams
-      .subscribe(params => {
-        if (params != null) {
-          console.log('next query in app.component: ' + JSON.stringify(params));
-          let redirect = params['route'];
-          // this.app_loaded = true;
+      this.subscription = this.route
+        .queryParams
+        .subscribe(params => {
+          if (params != null) {
+            console.log('next query in app.component: ' + JSON.stringify(params));
+            let redirect = params['route'];
 
-          if (redirect) {
-            let query: string = null;
+            if (redirect) {
+              let query: string = null;
 
-            for (const name in params) {
-              if (!params.hasOwnProperty(name)) {
-                continue;
+              for (const name in params) {
+                if (!params.hasOwnProperty(name)) {
+                  continue;
+                }
+                if (query) {
+                  query += '&' + name + '=' + params[name];
+                } else {
+                  query = '?' + name + '=' + params[name];
+                }
               }
               if (query) {
-                query += '&' + name + '=' + params[name];
-              } else {
-                query = '?' + name + '=' + params[name];
+                redirect += query;
               }
-            }
-            if (query) {
-              redirect += query;
-            }
 
-            this.router.navigateByUrl(redirect);
+              this.router.navigateByUrl(redirect);
+            }
           }
-        }
-      });
+        });
+    });
   }
 
   ngOnDestroy() {
@@ -69,9 +72,10 @@ export class AppComponent implements OnInit, OnDestroy {
   /**
    * TODO - use 'router' for parameters; and persist the account in storage
    */
-  _ngOnInit() {
-    const campaignId = this.getCampaignIdParam();
-    const advertiserId = this.getAdvertiserIdParam();
+  _ngOnInit(): Promise<boolean> {
+    let campaignId = this.getCampaignIdParam();
+    let advertiserId = this.getAdvertiserIdParam();
+    let cachedAcct: Account = null;
 
     // Use a locally cached account if necessary
     if (!campaignId && !advertiserId) {
@@ -80,30 +84,39 @@ export class AppComponent implements OnInit, OnDestroy {
       if (window.sessionStorage) {
         account = window.sessionStorage.getItem('geminiDpaAccount');
       }
-      if (!account && window.localStorage) {
-        account = window.localStorage.getItem('geminiDpaAccount');
-      }
+      // if (!account && window.localStorage) {
+      //   account = window.localStorage.getItem('geminiDpaAccount');
+      // }
       if (account) {
         try {
-          this.campaignService.account = JSON.parse(account);
+          cachedAcct = JSON.parse(account);
+          advertiserId = cachedAcct.adv_id;
+          campaignId = cachedAcct.cmp_id;
         } catch (err) {
           console.log(err.getMessages());
         }
       }
-      this.app_loaded = true;
-    } else {
-      // Check whether an account can be retrieved via URL parameters
-      this.campaignService.getAccount(advertiserId).then(acct => {
-        if (acct) {
-          console.log('got acct: ' + JSON.stringify(acct));
-          this.campaignService.account = acct;
-        }
-      }, err => {
-        console.log(err.message ? err.message : JSON.stringify(err));
-      }).then((() => {
-        this.app_loaded = true;
-      }));
     }
+
+    const promise: Promise<boolean> = new Promise((resolve, reject) => {
+      if (campaignId && advertiserId) {
+        // Check whether an account can be retrieved via URL parameters
+        this.campaignService.getAccount(advertiserId).then(acct => {
+          if (acct && acct.cmp_id === cachedAcct.cmp_id && acct.adv_id === cachedAcct.adv_id) {
+            console.log('got acct: ' + JSON.stringify(acct) + ', and its cached: ' + JSON.stringify(cachedAcct));
+            this.campaignService.account = cachedAcct;
+          }
+        }, err => {
+          console.log(err.message ? err.message : JSON.stringify(err));
+        }).then((() => {
+          resolve(true);
+        }));
+      } else {
+        resolve(true);
+      }
+    });
+
+    return promise;
   }
 
   private getAdvertiserIdParam(): number {
