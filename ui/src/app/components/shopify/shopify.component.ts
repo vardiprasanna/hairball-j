@@ -3,6 +3,7 @@ import { Router, ActivatedRoute, Params } from '@angular/router';
 
 import { CampaignService } from '../../services/campaign.service';
 import { Account } from '../../model/account';
+import 'rxjs/add/operator/takeWhile';
 
 @Component({
   selector: 'app-shopify',
@@ -19,6 +20,7 @@ export class ShopifyComponent implements OnInit {
   ngOnInit() {
     const subscription = this.route
       .queryParams
+      .takeWhile(() => this.shopify_loaded === false)
       .subscribe(params => {
         console.log('next query in shopify.component: ' + JSON.stringify(params));
 
@@ -44,8 +46,6 @@ export class ShopifyComponent implements OnInit {
           }
         });
       });
-
-    subscription.unsubscribe();
   }
 
   /**
@@ -60,6 +60,8 @@ export class ShopifyComponent implements OnInit {
         // This happens when the call orignates from Shopify
         this.afterWelcome(params, this.campaignService.queryShopify(params));
       }
+    } else {
+      this.router.navigateByUrl('f/login', {skipLocationChange: true});
     }
   }
 
@@ -75,6 +77,8 @@ export class ShopifyComponent implements OnInit {
         // This happens when the call orignates from Shopify
         this.afterHome(params, this.campaignService.signInShopify(params));
       }
+    } else {
+      this.router.navigateByUrl('f/login', {skipLocationChange: true});
     }
   }
 
@@ -88,6 +92,8 @@ export class ShopifyComponent implements OnInit {
     } else if (params['code']) {
       // This happens when user grants Gemini access
       this.afterYAuth(params, this.campaignService.signInYahoo(params));
+    } else {
+      this.router.navigateByUrl('f/login', {skipLocationChange: true});
     }
   }
 
