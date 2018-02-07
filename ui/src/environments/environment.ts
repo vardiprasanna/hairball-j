@@ -11,6 +11,7 @@ export const environment = {
   '&redirect_uri=https%3A%2F%2Fhairball.herokuapp.com%2Findex.html%3Froute%3Df%2Fshopify%2Fews',
 
   ewsBaseUrl: 'https://localhost:4443',
+  appTitle: 'promote your products and bring users to your site',
   geminiAcctInvalid: 'A Yahoo account you used to sign in has no Gemini access.',
   geminiAcctInactive: 'Your Yahoo Gemini account is inactive. Please click the contact link at top left to reach out Oath for support.',
   geminiHomeUrl: 'https://gemini.yahoo.com/advertiser/home',

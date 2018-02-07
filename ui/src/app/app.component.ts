@@ -3,6 +3,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { CampaignService } from './services/campaign.service';
 import { MessageService } from './services/message.service';
 import { Account } from './model/account';
+import { environment } from '../environments/environment';
 import 'rxjs/add/operator/take';
 
 @Component({
@@ -13,11 +14,13 @@ import 'rxjs/add/operator/take';
 
 export class AppComponent implements OnInit, OnDestroy {
   messageService: MessageService;
+  environment: any;
   subscription: any;
   app_loaded = false;
 
   constructor(private router: Router, private route: ActivatedRoute, private campaignService: CampaignService, messageService: MessageService) {
     this.messageService = messageService; // workaround an angular bug by redefining this var locally
+    this.environment = environment;
   }
 
   static getQueryIntParam(reg): number {
