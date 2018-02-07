@@ -1,5 +1,5 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CampaignService } from './services/campaign.service';
 import { MessageService } from './services/message.service';
 import { Account } from './model/account';
@@ -17,10 +17,18 @@ export class AppComponent implements OnInit, OnDestroy {
   environment: any;
   subscription: any;
   app_loaded = false;
+  alert_css: string;
+  alert_msg: string;
 
   constructor(private router: Router, private route: ActivatedRoute, private campaignService: CampaignService, messageService: MessageService) {
     this.messageService = messageService; // workaround an angular bug by redefining this var locally
     this.environment = environment;
+
+    this.messageService.on()
+      .subscribe(msg => {
+        this.alert_css = 'alert-' + msg.severity;
+        this.alert_msg = msg.text;
+      });
   }
 
   static getQueryIntParam(reg): number {
