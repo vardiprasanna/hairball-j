@@ -1,18 +1,26 @@
 import { Injectable } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { PopupComponent, MessageConfig } from '../components/popup/popup.component';
+import { MessageConfig, PopupComponent } from '../components/popup/popup.component';
+import { Subject } from 'rxjs/Subject';
+import { Observable } from 'rxjs/Observable';
 
 export interface Message {
   text: string;
-  cssType?: string;
+  severity?: string;
 }
 
 @Injectable()
 export class MessageService {
   dialogRef: any;
   messages: Message[];
+  alertBroadcaster: Subject<Message>;
 
   constructor(private dialog: MatDialog) {
+    this.alertBroadcaster = new Subject<Message>();
+  }
+
+  on(): Observable<Message> {
+    return this.alertBroadcaster.asObservable();
   }
 
   isEmpty(): boolean {
@@ -26,10 +34,13 @@ export class MessageService {
     if (!type) {
       type = 'warning';
     }
-    this.messages.push({
+
+    const typedMessage: Message = {
       text: msg,
-      cssType: type
-    });
+      severity: type
+    };
+    this.messages.push(typedMessage);
+    this.alertBroadcaster.next(typedMessage);
   }
 
   pop(): Message {
