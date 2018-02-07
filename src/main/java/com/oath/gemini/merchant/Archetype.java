@@ -42,6 +42,8 @@ public class Archetype {
     private String entityAutoGenName;
 
     @Getter
+    private AdvertiserData advertiserData;
+    @Getter
     private long advertiserId;
 
     public Archetype(ShopifyClientService svc, EWSClientService ews, DatabaseService ds) throws Exception {
@@ -54,8 +56,8 @@ public class Archetype {
             throw new RuntimeException("No advertiser found");
         }
 
-        AdvertiserData advData = advResponse.get(0);
-        advertiserId = advData.getId();
+        advertiserData = advResponse.get(0);
+        advertiserId = advertiserData.getId();
         entityAutoGenName = svc.getShopName() + "-autogen";
     }
 
@@ -63,6 +65,11 @@ public class Archetype {
      * Initialize a new campaign
      */
     public StoreCampaignEntity create(StoreAcctEntity acctEntity, String remoteFTPFileName) throws Exception {
+        // Don't proceed if user's gemini account is not active
+        if (advertiserData.getStatus() != EWSConstant.StatusEnum.ACTIVE) {
+            throw new InactiveGeminiAcountException();
+        }
+
         // Initiate a campaign if a specific one does not exist
         CampaignData cmpData = newCampaign();
 
@@ -189,7 +196,7 @@ public class Archetype {
             cmp.setStatus(EWSConstant.StatusEnum.PAUSED);
             cmp.setCampaignName(entityAutoGenName);
             cmp.setBudgetType("DAILY");
-            cmp.setBudget(BigDecimal.valueOf(50L));
+            cmp.setBudget(BigDecimal.valueOf(20L));
             cmp.setLanguage("en");
             cmp.setChannel(EWSConstant.ChannelEnum.NATIVE);
             cmp.setObjective(EWSConstant.ObjectiveEnum.VISIT_OFFER);
@@ -221,7 +228,7 @@ public class Archetype {
 
             bidSetData.setChannel(EWSConstant.ChannelEnum.NATIVE);
             bidSetData.setPriceType(EWSConstant.PriceTypeEnum.CPC);
-            bidSetData.setValue(0.1f); // TODO
+            bidSetData.setValue(0.2f); // TODO
             bidSet.setBids(new BidSetData[] { bidSetData });
 
             group.setStatus(EWSConstant.StatusEnum.ACTIVE);
