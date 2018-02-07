@@ -4,6 +4,8 @@ import { Router } from '@angular/router';
 import { CampaignService } from '../../services/campaign.service';
 import { CampaignChartComponent } from '../campaign-chart/campaign-chart.component';
 import { CampaignConfigComponent } from '../campaign-config/campaign-config.component';
+import { environment } from '../../../environments/environment';
+import { MessageService } from '../../services/message.service';
 
 @Component({
   selector: 'app-campaign',
@@ -17,17 +19,26 @@ export class CampaignComponent implements OnInit {
   campaign_loaded = false;
   campaign_loaded_err: any;
 
-  constructor(private router: Router, private campaignService: CampaignService) {
+  constructor(private router: Router, private campaignService: CampaignService, private messageService: MessageService) {
   }
 
   ngOnInit() {
     if (!this.campaignService.isAccountReady()) {
-      this.router.navigateByUrl('f/login');
-      this.campaign_loaded_err = 'not signed in or account is invalid';
+      this.campaign_loaded_err = environment.geminiAcctInvalid;
     } else {
       const acct = this.campaignService.account;
       this.advId = acct.adv_id; // 1643580;
       this.cmpId = acct.cmp_id; // 364710042;
+
+      if (acct.adv_status !== 'ACTIVE') {
+        this.campaign_loaded_err = environment.geminiAcctInactive;
+      }
+    }
+
+    if (this.campaign_loaded_err) {
+      console.log(this.campaign_loaded_err);
+      this.router.navigateByUrl('f/login');
+      this.messageService.push(this.campaign_loaded_err, 'danger');
     }
 
     this.campaign_loaded = true;
