@@ -6,6 +6,9 @@ export const environment = {
   '&redirect_uri=https%3A%2F%2Fgemini-shopify.herokuapp.com%2Findex.html%3Froute%3Df%2Fshopify%2Fews',
 
   ewsBaseUrl: '',
+  appTitle: 'promote your products and bring users to your site',
+  geminiAcctInvalid: 'A Yahoo account you used to sign in has no Gemini access.',
+  geminiAcctInactive: 'Your Yahoo Gemini account is inactive. Please click the contact link at top left to reach out Oath for support.',
   geminiHomeUrl: 'https://gemini.yahoo.com/advertiser/home',
   geminiSigInMessage: 'You will be redirected to Yahoo\'s login page, and then automatically brought back here once you\'re done.',
   geminiSigUpMessage: 'You will be redirected to Yahoo Gemini page to create a new account. Make sure that you complete your billing info as well because otherwise your product ads will not run.'

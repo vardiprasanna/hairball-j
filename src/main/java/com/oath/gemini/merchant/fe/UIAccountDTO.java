@@ -29,7 +29,7 @@ public class UIAccountDTO {
     }
 
     @JsonProperty(value = "adv_status")
-    private EWSConstant.StatusEnum status = EWSConstant.StatusEnum.ACTIVE;
+    private EWSConstant.StatusEnum status;
 
     @JsonProperty(value = "adv_name")
     private String name;

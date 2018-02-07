@@ -282,7 +282,10 @@ public class EWSClientResource {
             EWSResponseData<AdvertiserData> advResponse = ews.get(AdvertiserData.class, EWSEndpointEnum.ADVERTISER);
 
             if (!EWSResponseData.isEmpty(advResponse)) {
-                // TODO - pass this info back to UI
+                AdvertiserData advData = advResponse.get(0);
+                acct.setStatus(advData.getStatus());
+            } else {
+                log.error("failed to retrieve the advertiser object: {}", storeAcct.getGeminiNativeAcctId());
             }
 
             StoreCampaignEntity storeCmpEntity = databaseService.findByAcctId(StoreCampaignEntity.class, storeAcct.getId());

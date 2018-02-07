@@ -10,6 +10,7 @@ import com.oath.gemini.merchant.db.StoreSysEntity;
 import com.oath.gemini.merchant.ews.EWSAccessTokenData;
 import com.oath.gemini.merchant.ews.EWSAuthenticationService;
 import com.oath.gemini.merchant.ews.EWSClientService;
+import com.oath.gemini.merchant.ews.EWSConstant;
 import com.oath.gemini.merchant.ews.EWSEndpointEnum;
 import com.oath.gemini.merchant.ews.EWSResponseData;
 import com.oath.gemini.merchant.ews.json.AdvertiserData;
@@ -366,14 +367,17 @@ public class ShopifyOnboardResource {
         try {
             // Check whether Yahoo refresh token is still good
             EWSAccessTokenData tokens = ewsAuthService.getAccessTokenFromRefreshToken(storeAcct.getYahooAccessToken());
-            acct.setIsYahooTokenValid(true);
+            acct.setIsYahooTokenValid(tokens.isOk());
 
             // Check whether the token is still good for accessing a Gemini account.
             EWSClientService ews = new EWSClientService(tokens);
             EWSResponseData<AdvertiserData> advResponse = ews.get(AdvertiserData.class, EWSEndpointEnum.ADVERTISER);
 
             if (!EWSResponseData.isEmpty(advResponse)) {
-                // TODO - pass this info back to UI
+                AdvertiserData advData = advResponse.get(0);
+                acct.setStatus(advData.getStatus());
+            } else {
+                log.error("failed to retrieve the advertiser object: {}", storeAcct.getGeminiNativeAcctId());
             }
 
             StoreCampaignEntity storeCmpEntity = databaseService.findByAcctId(StoreCampaignEntity.class, storeAcct.getId());
@@ -402,6 +406,9 @@ public class ShopifyOnboardResource {
 
         if (storeCmpEntity == null) {
             Archetype archeType = new Archetype(ps, ews, databaseService);
+            if (archeType.getAdvertiserData().getStatus() != EWSConstant.StatusEnum.ACTIVE) {
+                return Response.status(Status.FORBIDDEN).entity("account" + archeType.getAdvertiserId() + " is inactive").build();
+            }
             ShopifyProductSetBuilder feedBuilder = new ShopifyProductSetBuilder(ps);
 
             // Upload the product feed if it has never been done so

@@ -45,3 +45,12 @@
 .app-header-label + div {
   color: #461aa0;
 }
+
+.app-alert {
+  position: relative;
+  top: 5px;
+  left: 0;
+  width: 100%;
+  opacity: 0.8;
+  display: none;
+}

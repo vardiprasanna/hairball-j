@@ -1,7 +1,9 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { CampaignService } from './services/campaign.service';
+import { MessageService } from './services/message.service';
 import { Account } from './model/account';
+import { environment } from '../environments/environment';
 import 'rxjs/add/operator/take';
 
 @Component({
@@ -11,10 +13,14 @@ import 'rxjs/add/operator/take';
 })
 
 export class AppComponent implements OnInit, OnDestroy {
+  messageService: MessageService;
+  environment: any;
   subscription: any;
   app_loaded = false;
 
-  constructor(private router: Router, private route: ActivatedRoute, private campaignService: CampaignService) {
+  constructor(private router: Router, private route: ActivatedRoute, private campaignService: CampaignService, messageService: MessageService) {
+    this.messageService = messageService; // workaround an angular bug by redefining this var locally
+    this.environment = environment;
   }
 
   static getQueryIntParam(reg): number {
@@ -28,7 +34,7 @@ export class AppComponent implements OnInit, OnDestroy {
       this.app_loaded = true;
 
       if (this.campaignService.isAccountReady()) {
-        this.router.navigateByUrl('f/campaign');
+        this.router.navigateByUrl('f/campaign', {skipLocationChange: true});
         return;
       }
 
@@ -56,7 +62,7 @@ export class AppComponent implements OnInit, OnDestroy {
                 redirect += query;
               }
 
-              this.router.navigateByUrl(redirect);
+              this.router.navigateByUrl(redirect, {skipLocationChange: true});
             }
           }
         });
@@ -102,7 +108,7 @@ export class AppComponent implements OnInit, OnDestroy {
       if (campaignId && advertiserId) {
         // Check whether an account can be retrieved via URL parameters
         this.campaignService.getAccount(advertiserId).then(acct => {
-          if (acct && acct.cmp_id === cachedAcct.cmp_id && acct.adv_id === cachedAcct.adv_id) {
+          if (acct && cachedAcct && acct.cmp_id === cachedAcct.cmp_id && acct.adv_id === cachedAcct.adv_id) {
             console.log('got acct: ' + JSON.stringify(acct) + ', and its cached: ' + JSON.stringify(cachedAcct));
             this.campaignService.account = cachedAcct;
           }
