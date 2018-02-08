@@ -12,7 +12,7 @@
   <div class="app-header-sub">
     {{ environment.appTitle }}
   </div>
-  <div class="alert app-alert" role="alert" [hidden]="!alert_msg" [ngClass]="alert_css">
+  <div class="alert alert-warning app-alert" role="alert" [hidden]="!alert_msg">
     <button type="button" class="close" data-dismiss="alert">&times;</button>
     {{ alert_msg }}.
   </div>
