@@ -28,16 +28,14 @@ export class CampaignService {
     if (this.isAccountReady()) {
       acct.last_access = new Date();
       const account = JSON.stringify(acct);
-      console.log('ready to persist acct in local storage: ' + account);
 
       if (window.sessionStorage) {
-        console.log('ready to persist acct to session storage');
         window.sessionStorage.setItem('geminiDpaAccount', account);
       }
-      if (window.localStorage) {
-        console.log('ready to persist acct to local storage');
-        window.localStorage.setItem('geminiDpaAccount', account);
-      }
+      // if (window.localStorage) {
+      //   console.log('ready to persist acct to local storage');
+      //   window.localStorage.setItem('geminiDpaAccount', account);
+      // }
     }
   }
 
@@ -65,7 +63,6 @@ export class CampaignService {
 
   signInShopify(query: Params): Promise<Account> {
     const path = '/g/shopify/sauth';
-    console.log('ready to call api: ' + this.base_uri + path + ', with params: ' + JSON.stringify(query));
     return this.http
       .get<Account>(this.base_uri + path, {params: query})
       .toPromise();
