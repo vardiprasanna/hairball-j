@@ -235,7 +235,7 @@ export class CampaignChartComponent implements OnInit, AfterContentInit, OnDestr
       this.stats.reset(rpt);
       this.updateChart(new_report);
 
-      console.log('report data: ' + JSON.stringify(rpt));
+      // console.log('report data: ' + JSON.stringify(rpt));
       report_choices[this.current_report.report_choice_idx].selected = false;
       report_choices[new_report.report_choice_idx].selected = true;
       this.current_report = new_report;
@@ -318,7 +318,7 @@ export class CampaignChartComponent implements OnInit, AfterContentInit, OnDestr
         stats.push(0);
       }
 
-      console.log('stats: ' + stats_name[i] + ', data: ' + stats);
+      // console.log('stats: ' + stats_name[i] + ', data: ' + stats);
       series.push(
         {
           yAxis: i,
