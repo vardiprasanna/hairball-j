@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
@@ -13,6 +14,9 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Optional;
+import java.util.stream.Stream;
+
+import com.mchange.io.FileUtils;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -47,7 +51,7 @@ public class ClosableFTPClient implements Closeable, AutoCloseable {
 
     /**
      * Copy a local file to the FTP server
-     * 
+     *
      * @param fromFile - a full pathname
      * @param toFile - an optional base file name if it differs from its from-file
      */
@@ -98,7 +102,7 @@ public class ClosableFTPClient implements Closeable, AutoCloseable {
 
     /**
      * Return true if a given file exists on the FTP server
-     * 
+     *
      * @param fileName - a full pathname
      */
     public boolean exits(String fileName) throws Exception {
@@ -132,7 +136,7 @@ public class ClosableFTPClient implements Closeable, AutoCloseable {
     /**
      * List all files that share the same parent directory as the given file
      */
-    private FTPFile[] listFiles(String fileName) throws Exception {
+    public FTPFile[] listFiles(String fileName) throws Exception {
         // setup FPT connection
         connect();
 
@@ -143,6 +147,35 @@ public class ClosableFTPClient implements Closeable, AutoCloseable {
             fileName = fileName.substring(0, pathIdx);
             return ftp.listFiles(fileName);
         }
+    }
+
+    /**
+     * List all files present in the current directory
+     */
+    public FTPFile[] listFiles() throws Exception {
+        // setup FPT connection
+        connect();
+            return ftp.listFiles();
+    }
+
+    /**
+     * List all files present in the current directory
+     */
+    public void copyFileFromRemote(String fromFile, java.nio.file.Path toFile, String fileName) throws Exception {
+        // setup FPT connection
+        connect();
+        InputStream is = ftp.retrieveFileStream(fromFile);
+        byte[] buffer = new byte[is.available()];
+        is.read(buffer);
+
+        File file = new File(toFile.toString()+"/"+fileName);
+        try {
+            java.io.OutputStream outStream = new java.io.FileOutputStream(file);
+            //outStream.write(buffer);
+        } catch (Exception e){
+            log.info(e.getMessage());
+        }
+
     }
 
     private void connect() throws Exception {

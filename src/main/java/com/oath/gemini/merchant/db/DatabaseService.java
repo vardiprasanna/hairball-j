@@ -1,5 +1,6 @@
 package com.oath.gemini.merchant.db;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.sql.Date;
@@ -17,6 +18,8 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
+import org.hsqldb.lib.tar.DbBackupMain;
+import org.hsqldb.lib.tar.TarMalformatException;
 
 /**
  * @author tong on 10/1/2017
@@ -207,6 +210,21 @@ public class DatabaseService {
             if (session != null) {
                 session.close();
             }
+        }
+    }
+
+    /**
+     * Note: this is HSQLDB specific restore. It is used only during the development
+     */
+    public void restore(String directory) throws IOException {
+        try {
+            if (!directory.endsWith("/")) {
+                directory += "/";
+            }
+            DbBackupMain.main(new String[] { "--extract", directory,
+                    System.getProperty("user.home") + "/restore/" });
+        } catch (TarMalformatException e) {
+            e.printStackTrace();
         }
     }
 
