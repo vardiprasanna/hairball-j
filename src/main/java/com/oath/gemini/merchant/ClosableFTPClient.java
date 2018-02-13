@@ -27,10 +27,11 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class ClosableFTPClient implements Closeable, AutoCloseable {
-    public static final String username, password, host;
     private static final SimpleDateFormat ftpDateFormat = new SimpleDateFormat("YYYYMMDDhhmmss");
+    public static final String username, password, host;
     private static final int connectionTimeout;
     private static final long utcOffset;
+    private FTPSClient ftp = new FTPSClient(false); // TLS explicit
 
     static {
         Configuration config = AppConfiguration.getConfig();
@@ -43,8 +44,6 @@ public class ClosableFTPClient implements Closeable, AutoCloseable {
         // Assume that a remote server is in UTC timezone
         utcOffset = new GregorianCalendar().get(GregorianCalendar.ZONE_OFFSET);
     }
-
-    private FTPSClient ftp = new FTPSClient(false); // TLS explicit
 
     /**
      * Copy a local file to the FTP server
