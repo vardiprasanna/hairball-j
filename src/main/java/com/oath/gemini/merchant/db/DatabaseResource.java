@@ -1,6 +1,7 @@
 package com.oath.gemini.merchant.db;
 
 import static com.oath.gemini.merchant.HttpUtils.badRequest;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -19,6 +20,8 @@ import com.oath.gemini.merchant.ews.json.AdGroupData;
 import com.oath.gemini.merchant.ews.json.BidSetArrayData;
 import com.oath.gemini.merchant.ews.json.BidSetData;
 import com.oath.gemini.merchant.ews.json.CampaignData;
+
+import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.InetAddress;
@@ -43,27 +46,22 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import org.apache.commons.io.comparator.LastModifiedFileComparator;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.net.ftp.FTPFile;
 
 /**
  * This service is to access and backup database
- * 
+ *
  * @author tong on 10/1/2017
  */
-@Slf4j
-@Singleton
-@Resource
-@Produces(MediaType.APPLICATION_JSON)
-@JsonInclude(Include.NON_NULL)
-@Path("database")
-@QuartzCronAnnotation(cron = "db.backup.cron", method = "backup")
-public class DatabaseResource {
-    @Inject
-    DatabaseService databaseService;
-    @Inject
-    EWSAuthenticationService ewsAuthService;
+@Slf4j @Singleton @Resource @Produces(MediaType.APPLICATION_JSON) @JsonInclude(Include.NON_NULL) @Path("database") @QuartzCronAnnotation(cron = "db.backup.cron", method = "backup") public class DatabaseResource {
+    private static SimpleDateFormat geminiDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    @Inject DatabaseService databaseService;
+    @Inject EWSAuthenticationService ewsAuthService;
 
     public DatabaseResource() {
     }
@@ -73,24 +71,18 @@ public class DatabaseResource {
         this.ewsAuthService = ewsAuthService;
     }
 
-    @RolesAllowed({ "SIG", "YBY", "localhost" })
-    @GET
-    @Path("acct/{id:.*}")
-    public List<StoreAcctEntity> listAccounts(@PathParam("id") @DefaultValue("") String id) {
+    @RolesAllowed({ "SIG", "YBY", "localhost" }) @GET @Path("acct/{id:.*}") public List<StoreAcctEntity> listAccounts(
+            @PathParam("id") @DefaultValue("") String id) {
         return listAll(StoreAcctEntity.class, id);
     }
 
-    @RolesAllowed({ "SIG", "YBY", "localhost" })
-    @GET
-    @Path("campaign/{id:.*}")
-    public List<StoreCampaignEntity> listCampaigns(@PathParam("id") @DefaultValue("") String id) {
+    @RolesAllowed({ "SIG", "YBY", "localhost" }) @GET @Path("campaign/{id:.*}") public List<StoreCampaignEntity> listCampaigns(
+            @PathParam("id") @DefaultValue("") String id) {
         return listAll(StoreCampaignEntity.class, id);
     }
 
-    @RolesAllowed({ "SIG", "YBY", "localhost" })
-    @PUT
-    @Path("campaign/{id}/update")
-    public Response modifyCampaign(@PathParam("id") String id, @Context HttpServletRequest req, StoreCampaignEntity modifiedStoreCampaign) {
+    @RolesAllowed({ "SIG", "YBY", "localhost" }) @PUT @Path("campaign/{id}/update") public Response modifyCampaign(
+            @PathParam("id") String id, @Context HttpServletRequest req, StoreCampaignEntity modifiedStoreCampaign) {
         StoreCampaignEntity originStoreCampaign = listOne(StoreCampaignEntity.class, id);
         if (originStoreCampaign == null) {
             return badRequest("Missing a unique campaigns: ", id);
@@ -128,9 +120,7 @@ public class DatabaseResource {
     /**
      * This function can be triggered either via the scheduler or through a REST service call
      */
-    @GET
-    @Path("backup")
-    public Response backup() throws IOException {
+    @GET @Path("backup") public Response backup() throws IOException {
         java.nio.file.Path path = null;
 
         try {
@@ -190,6 +180,57 @@ public class DatabaseResource {
         return Response.ok(objectNode).build();
     }
 
+    /**
+     * This function should be triggered before starting the server
+     */
+    @GET @Path("restore") public Response restore() throws IOException {
+        java.nio.file.Path path = Paths.get("/backup/");
+        java.nio.file.Path localPath = null;
+        String remoteFile = "/backup/";
+        File localFile = null;
+
+        try {
+            localPath = Files.createTempDirectory("hairball-");
+        } catch (Exception e) {
+            return badRequest("failed to create a temporary database backup dir", e);
+        }
+        try (ClosableFTPClient ftpClient = new ClosableFTPClient()) {
+            if (ftpClient.exits(remoteFile)) {
+                FTPFile[] ftpFiles = ftpClient.listFiles(remoteFile);
+                if (ftpFiles != null) {
+                    FTPFile file = extractLatestFile(ftpFiles);
+                    String remoteFilePath = "/backup/" + file.getName();
+                    if (ftpClient.exits(remoteFilePath)) {
+                        ftpClient.copyFileFromRemote(remoteFilePath, localPath, file.getName());
+                    }
+                    localFile = new File(localPath.toString() + "/" + file.getName());
+                }
+            } else {
+                log.info("That file doesn't exists");
+            }
+
+        } catch (Exception e) {
+            log.info("Not able to read the file");
+        }
+
+        try {
+            databaseService.restore(localFile.toString());
+        } catch (Exception e) {
+            return badRequest("failed to backup database locally", e);
+        }
+        return Response.ok().build();
+    }
+
+    private FTPFile extractLatestFile(FTPFile[] ftpFiles) {
+        FTPFile file = ftpFiles[0];
+        for (FTPFile f : ftpFiles) {
+            if (f.getTimestamp().getTimeInMillis() > file.getTimestamp().getTimeInMillis()) {
+                file = f;
+            }
+        }
+        return file;
+    }
+
     private <T> List<T> listAll(Class<T> entityClass, String id) {
         if (StringUtils.isNotBlank(id) && NumberUtils.isDigits(id)) {
             T result = databaseService.findByEntityId(entityClass, Integer.parseInt(id));
@@ -209,8 +250,8 @@ public class DatabaseResource {
     public Response updateAdGroup(String gRefreshToken, StoreCampaignEntity modifiedStoreCampaign) throws Exception {
         EWSAccessTokenData tokens = ewsAuthService.getAccessTokenFromRefreshToken(gRefreshToken);
         EWSClientService ews = new EWSClientService(tokens);
-        EWSResponseData<AdGroupData> adGroupResponse = ews.get(AdGroupData.class, EWSEndpointEnum.ADGROUP_BY_ID,
-                modifiedStoreCampaign.getAdgroupId());
+        EWSResponseData<AdGroupData> adGroupResponse = ews
+                .get(AdGroupData.class, EWSEndpointEnum.ADGROUP_BY_ID, modifiedStoreCampaign.getAdgroupId());
         String campaignIdStr = modifiedStoreCampaign.getCampaignId().toString();
 
         if (!adGroupResponse.isOk() || adGroupResponse.getObjects() == null || adGroupResponse.getObjects().length != 1) {
@@ -221,12 +262,12 @@ public class DatabaseResource {
         AdGroupData originalGroupData = adGroupResponse.get(0);
         AdGroupData modifiedAdGroupData = new AdGroupData();
 
-//        if (modifiedStoreCampaign.getStartDate() != null) {
-//            modifiedAdGroupData.setStartDateStr(geminiDateFormat.format(modifiedStoreCampaign.getStartDate()));
-//        }
-//        if (modifiedStoreCampaign.getEndDate() != null) {
-//            modifiedAdGroupData.setEndDateStr(geminiDateFormat.format(modifiedStoreCampaign.getEndDate()));
-//        }
+        //        if (modifiedStoreCampaign.getStartDate() != null) {
+        //            modifiedAdGroupData.setStartDateStr(geminiDateFormat.format(modifiedStoreCampaign.getStartDate()));
+        //        }
+        //        if (modifiedStoreCampaign.getEndDate() != null) {
+        //            modifiedAdGroupData.setEndDateStr(geminiDateFormat.format(modifiedStoreCampaign.getEndDate()));
+        //        }
         if (modifiedStoreCampaign.getStatus() != null) {
             modifiedAdGroupData.setStatus(modifiedStoreCampaign.getStatus());
         }
@@ -251,8 +292,8 @@ public class DatabaseResource {
 
         // Update the campaign
         if (modifiedStoreCampaign.getBudget() != null || modifiedStoreCampaign.getStatus() != null) {
-            EWSResponseData<CampaignData> campaignResponse = ews.get(CampaignData.class, EWSEndpointEnum.CAMPAIGN_BY_ID,
-                    modifiedStoreCampaign.getCampaignId());
+            EWSResponseData<CampaignData> campaignResponse = ews
+                    .get(CampaignData.class, EWSEndpointEnum.CAMPAIGN_BY_ID, modifiedStoreCampaign.getCampaignId());
 
             if (!campaignResponse.isOk() || campaignResponse.getObjects() == null || campaignResponse.getObjects().length != 1) {
                 return badRequest(campaignResponse, "Failed to retrieve the campaign object: ", campaignIdStr);
@@ -277,6 +318,4 @@ public class DatabaseResource {
 
         return Response.ok().build();
     }
-
-    private static SimpleDateFormat geminiDateFormat = new SimpleDateFormat("yyyy-MM-dd");
 }

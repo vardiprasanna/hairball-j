@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Optional;
+
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -25,13 +26,11 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * @author tong on 10/1/2017
  */
-@Slf4j
-public class ClosableFTPClient implements Closeable, AutoCloseable {
-    private static final SimpleDateFormat ftpDateFormat = new SimpleDateFormat("YYYYMMDDhhmmss");
+@Slf4j public class ClosableFTPClient implements Closeable, AutoCloseable {
     public static final String username, password, host;
+    private static final SimpleDateFormat ftpDateFormat = new SimpleDateFormat("YYYYMMDDhhmmss");
     private static final int connectionTimeout;
     private static final long utcOffset;
-    private FTPSClient ftp = new FTPSClient(false); // TLS explicit
 
     static {
         Configuration config = AppConfiguration.getConfig();
@@ -39,17 +38,19 @@ public class ClosableFTPClient implements Closeable, AutoCloseable {
         username = config.getString("ftp.username");
         password = config.getString("ftp.password");
         host = config.getString("ftp.host");
-        connectionTimeout = config.getInt("ftp.connection.timeout", 10000);
+        connectionTimeout = config.getInt("ftp.connection.timeout", 200000);
 
         // Assume that a remote server is in UTC timezone
         utcOffset = new GregorianCalendar().get(GregorianCalendar.ZONE_OFFSET);
     }
 
+    private FTPSClient ftp = new FTPSClient(false); // TLS explicit
+
     /**
      * Copy a local file to the FTP server
-     * 
+     *
      * @param fromFile - a full pathname
-     * @param toFile - an optional base file name if it differs from its from-file
+     * @param toFile   - an optional base file name if it differs from its from-file
      */
     public void copyTo(String fromFile, String toFile) throws Exception {
         File file = new File(fromFile);
@@ -98,7 +99,7 @@ public class ClosableFTPClient implements Closeable, AutoCloseable {
 
     /**
      * Return true if a given file exists on the FTP server
-     * 
+     *
      * @param fileName - a full pathname
      */
     public boolean exits(String fileName) throws Exception {
@@ -132,7 +133,7 @@ public class ClosableFTPClient implements Closeable, AutoCloseable {
     /**
      * List all files that share the same parent directory as the given file
      */
-    private FTPFile[] listFiles(String fileName) throws Exception {
+    public FTPFile[] listFiles(String fileName) throws Exception {
         // setup FPT connection
         connect();
 
@@ -145,8 +146,54 @@ public class ClosableFTPClient implements Closeable, AutoCloseable {
         }
     }
 
+    /**
+     * List all files present in the current directory
+     */
+    public FTPFile[] listFiles() throws Exception {
+        // setup FPT connection
+        connect();
+        return ftp.listFiles();
+    }
+
+    /**
+     * List all files present in the current directory
+     */
+    public void copyFileFromRemote(String fromFile, java.nio.file.Path toFile, String fileName) throws Exception {
+        // setup FTP. connection
+        connect();
+        java.io.OutputStream outStream = null;
+        InputStream is = null;
+        try {
+            is = ftp.retrieveFileStream(fromFile);
+        } catch (IOException e) {
+            log.error("Failed to download remote file'", fromFile);
+            throw new Exception("Failed to ftp the file");
+        }
+
+        File file = new File(toFile.toString() + "/" + fileName);
+        outStream = new java.io.FileOutputStream(file);
+
+        int buffer;
+        try {
+            while ((buffer = is.read()) != -1) {
+                outStream.write(buffer);
+            }
+        } catch (IOException e) {
+            log.info(e.getMessage());
+        } finally {
+            if (is != null) {
+                is.close();
+            }
+            if (outStream != null) {
+                outStream.close();
+            }
+        }
+
+    }
+
     private void connect() throws Exception {
         ftp.setConnectTimeout(connectionTimeout);
+        ftp.setDefaultTimeout(connectionTimeout);
         ftp.connect(host);
 
         int reply = ftp.getReplyCode();
@@ -163,8 +210,7 @@ public class ClosableFTPClient implements Closeable, AutoCloseable {
         ftp.setKeepAlive(true);
     }
 
-    @Override
-    public void close() throws IOException {
+    @Override public void close() throws IOException {
         if (ftp != null) {
             ftp.logout();
             ftp.disconnect();
