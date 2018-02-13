@@ -19,7 +19,6 @@ import com.oath.gemini.merchant.ews.json.AdGroupData;
 import com.oath.gemini.merchant.ews.json.BidSetArrayData;
 import com.oath.gemini.merchant.ews.json.BidSetData;
 import com.oath.gemini.merchant.ews.json.CampaignData;
-
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -45,7 +44,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
 import org.apache.commons.io.comparator.LastModifiedFileComparator;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -65,6 +63,7 @@ import org.apache.commons.net.ftp.FTPFile;
 @Path("database")
 @QuartzCronAnnotation(cron = "db.backup.cron", method = "backup")
 public class DatabaseResource {
+    private static SimpleDateFormat geminiDateFormat = new SimpleDateFormat("yyyy-MM-dd");
     @Inject
     DatabaseService databaseService;
     @Inject
@@ -129,6 +128,7 @@ public class DatabaseResource {
         }
         return Response.ok(originStoreCampaign).build();
     }
+
 
     /**
      * This function can be triggered either via the scheduler or through a REST service call
@@ -200,7 +200,7 @@ public class DatabaseResource {
      */
     @GET
     @Path("restore")
-    public Response restore() throws IOException{
+    public Response restore() throws IOException {
         java.nio.file.Path path = Paths.get("/backup/");
         java.nio.file.Path localPath = null;
         String remoteFile = "/backup/";
@@ -212,22 +212,21 @@ public class DatabaseResource {
             return badRequest("failed to create a temporary database backup dir", e);
         }
         try (ClosableFTPClient ftpClient = new ClosableFTPClient()) {
-            if(ftpClient.exits(remoteFile)) {
+            if (ftpClient.exits(remoteFile)) {
                 FTPFile[] ftpFiles = ftpClient.listFiles(remoteFile);
-                if(ftpFiles != null){
+                if (ftpFiles != null) {
                     FTPFile file = extractLatestFile(ftpFiles);
                     String remoteFilePath = "/backup/" + file.getName();
-                    if(ftpClient.exits(remoteFilePath)) {
+                    if (ftpClient.exits(remoteFilePath)) {
                         ftpClient.copyFileFromRemote(remoteFilePath, localPath, file.getName());
                     }
-                    localFile = new File(localPath.toString()+"/"+file.getName());
-                    log.info("It is a file",file);
+                    localFile = new File(localPath.toString() + "/" + file.getName());
                 }
-            } else{
+            } else {
                 log.info("That file doesn't exists");
             }
 
-        }catch (Exception e){
+        } catch (Exception e) {
             log.info("Not able to read the file");
         }
 
@@ -238,6 +237,7 @@ public class DatabaseResource {
         }
         return Response.ok().build();
     }
+
 
     private FTPFile extractLatestFile(FTPFile[] ftpFiles){
         FTPFile file = ftpFiles[0];
@@ -336,6 +336,4 @@ public class DatabaseResource {
 
         return Response.ok().build();
     }
-
-    private static SimpleDateFormat geminiDateFormat = new SimpleDateFormat("yyyy-MM-dd");
 }
