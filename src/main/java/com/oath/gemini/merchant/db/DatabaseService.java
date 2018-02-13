@@ -4,12 +4,15 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.sql.Date;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
@@ -24,6 +27,7 @@ import org.hsqldb.lib.tar.TarMalformatException;
 /**
  * @author tong on 10/1/2017
  */
+@Slf4j
 @Singleton
 public class DatabaseService {
     @Inject
@@ -221,8 +225,22 @@ public class DatabaseService {
             if (!directory.endsWith("/")) {
                 directory += "/";
             }
+            String FileName =  System.getProperty("user.dir");
+            log.info(FileName);
+            File f1 = new File(System.getProperty("user.dir")+ "/db/dev.lobs");
+            File f2 = new File(System.getProperty("user.dir")+ "/db/dev.properties");
+            File f3 = new File(System.getProperty("user.dir")+ "/db/dev.script");
+            if(f1.delete()){
+                log.info("Able to delete file");
+            }
+            if(f2.delete()){
+                log.info("Able to delete file");
+            }
+            if(f3.delete()){
+                log.info("Able to delete file");
+            }
             DbBackupMain.main(new String[] { "--extract", directory,
-                    System.getProperty("user.home") + "/restore/" });
+                    System.getProperty("user.dir") + "/db/" });
         } catch (TarMalformatException e) {
             e.printStackTrace();
         }

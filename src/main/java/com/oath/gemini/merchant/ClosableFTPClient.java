@@ -43,7 +43,7 @@ public class ClosableFTPClient implements Closeable, AutoCloseable {
         username = config.getString("ftp.username");
         password = config.getString("ftp.password");
         host = config.getString("ftp.host");
-        connectionTimeout = config.getInt("ftp.connection.timeout", 10000);
+        connectionTimeout = config.getInt("ftp.connection.timeout", 200000);
 
         // Assume that a remote server is in UTC timezone
         utcOffset = new GregorianCalendar().get(GregorianCalendar.ZONE_OFFSET);
@@ -162,24 +162,41 @@ public class ClosableFTPClient implements Closeable, AutoCloseable {
      * List all files present in the current directory
      */
     public void copyFileFromRemote(String fromFile, java.nio.file.Path toFile, String fileName) throws Exception {
-        // setup FPT connection
+        // setup FTP. connection
         connect();
-        InputStream is = ftp.retrieveFileStream(fromFile);
-        byte[] buffer = new byte[is.available()];
-        is.read(buffer);
-
-        File file = new File(toFile.toString()+"/"+fileName);
+        java.io.OutputStream outStream = null;
+        InputStream is = null;
         try {
-            java.io.OutputStream outStream = new java.io.FileOutputStream(file);
-            //outStream.write(buffer);
-        } catch (Exception e){
+            is = ftp.retrieveFileStream(fromFile);
+        } catch (IOException e){
+            log.error("Failed to download remote file'", fromFile);
+            throw new Exception("Failed to ftp the file");
+        }
+
+        File file = new File(toFile.toString() + "/" + fileName);
+        outStream = new java.io.FileOutputStream(file);
+
+        int c;
+        try {
+            while ((c = is.read()) != -1) {
+                outStream.write(c);
+            }
+        } catch (IOException  e){
             log.info(e.getMessage());
+        } finally {
+            if (is != null) {
+                is.close();
+            }
+            if (outStream != null) {
+                outStream.close();
+            }
         }
 
     }
 
     private void connect() throws Exception {
         ftp.setConnectTimeout(connectionTimeout);
+        ftp.setDefaultTimeout(connectionTimeout);
         ftp.connect(host);
 
         int reply = ftp.getReplyCode();

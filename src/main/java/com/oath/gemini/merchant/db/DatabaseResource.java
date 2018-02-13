@@ -194,62 +194,6 @@ public class DatabaseResource {
 
         return Response.ok(objectNode).build();
     }
-    /**
-     * This function should be triggered before starting the server
-     */
-    @GET
-    @Path("check")
-    public Response check(){
-        String remoteFile = "backup";
-        java.nio.file.Path localPath = null;
-        File Localfile = null;
-
-        try {
-            localPath = Files.createTempDirectory("hairball-");
-        } catch (Exception e) {
-            return badRequest("failed to create a temporary database backup dir", e);
-        }
-        try (ClosableFTPClient ftpClient = new ClosableFTPClient()) {
-            if(ftpClient.exits(remoteFile)) {
-                FTPFile[] ftpFiles = ftpClient.listFiles();
-                if(ftpFiles != null){
-                    for(FTPFile f : ftpFiles) {
-                        log.info(f.getName());
-                        if(f.isDirectory() && f.getName().toString().equals("backup")){
-                            FTPFile[] backupfiles = ftpClient.listFiles("/"+f.getName()+"/");
-                            for(FTPFile file : backupfiles) {
-                                log.info("File name is ", file.getName());
-                                String remoteFilePath = "/backup/" + file.getName();
-                                java.io.File rFile = new File(remoteFilePath);
-                                if(ftpClient.exits(remoteFilePath)) {
-                                    ftpClient.copyFileFromRemote(remoteFilePath.toString(), localPath,file.getName());
-                                    Localfile = new File(localPath.toString()+"/"+file.getName());
-                                }
-                            }
-                            log.info("It is a file",f);
-                        }
-                        else{
-                            log.info("It is not a file",f);
-                        }
-                    }
-                }
-
-                //ftpClient.copyTo(ftpFile.toString(), localPath.toString());
-            } else{
-                log.info("That file doesn't exists");
-            }
-
-        }catch (Exception e){
-            log.info("Not able to read the file");
-        }
-        try {
-            databaseService.restore(Localfile.toString());
-        } catch (Exception e) {
-            return badRequest("failed to backup database locally", e);
-        }
-        return Response.ok().build();
-    }
-
 
     /**
      * This function should be triggered before starting the server
@@ -260,31 +204,25 @@ public class DatabaseResource {
         java.nio.file.Path path = Paths.get("/backup/");
         java.nio.file.Path localPath = null;
         String remoteFile = "/backup/";
+        File localFile = null;
 
         try {
             localPath = Files.createTempDirectory("hairball-");
         } catch (Exception e) {
             return badRequest("failed to create a temporary database backup dir", e);
         }
-        List<String> successful = new ArrayList<>();
-        List<String> failure = new ArrayList<>();
-
         try (ClosableFTPClient ftpClient = new ClosableFTPClient()) {
             if(ftpClient.exits(remoteFile)) {
                 FTPFile[] ftpFiles = ftpClient.listFiles(remoteFile);
                 if(ftpFiles != null){
-                    for(FTPFile f : ftpFiles) {
-                        log.info("File name is ", f.getName());
-                        String remoteFilePath = "/backup/" + f.getName();
-                        java.io.File rFile = new File(remoteFilePath);
-                        if(ftpClient.exits(remoteFilePath)) {
-                            ftpClient.copyFileFromRemote(remoteFilePath.toString(), localPath, f.getName());
-                        }
-                        log.info("It is a file",f);
+                    FTPFile file = extractLatestFile(ftpFiles);
+                    String remoteFilePath = "/backup/" + file.getName();
+                    if(ftpClient.exits(remoteFilePath)) {
+                        ftpClient.copyFileFromRemote(remoteFilePath, localPath, file.getName());
                     }
+                    localFile = new File(localPath.toString()+"/"+file.getName());
+                    log.info("It is a file",file);
                 }
-
-                //ftpClient.copyTo(ftpFile.toString(), localPath.toString());
             } else{
                 log.info("That file doesn't exists");
             }
@@ -294,12 +232,21 @@ public class DatabaseResource {
         }
 
         try {
-            databaseService.restore(path.toString());
+            databaseService.restore(localFile.toString());
         } catch (Exception e) {
             return badRequest("failed to backup database locally", e);
         }
+        return Response.ok().build();
+    }
 
-        return Response.ok("The backup is successful").build();
+    private FTPFile extractLatestFile(FTPFile[] ftpFiles){
+        FTPFile file = ftpFiles[0];
+        for(FTPFile f : ftpFiles) {
+            if (f.getTimestamp().getTimeInMillis() > file.getTimestamp().getTimeInMillis()) {
+                file = f;
+            }
+        }
+        return file;
     }
 
     private <T> List<T> listAll(Class<T> entityClass, String id) {
