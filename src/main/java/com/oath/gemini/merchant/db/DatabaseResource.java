@@ -129,7 +129,6 @@ public class DatabaseResource {
         return Response.ok(originStoreCampaign).build();
     }
 
-
     /**
      * This function can be triggered either via the scheduler or through a REST service call
      */
@@ -225,7 +224,6 @@ public class DatabaseResource {
             } else {
                 log.info("That file doesn't exists");
             }
-
         } catch (Exception e) {
             log.info("Not able to read the file");
         }
@@ -233,12 +231,14 @@ public class DatabaseResource {
         try {
             databaseService.restore(localFile.toString());
         } catch (Exception e) {
-            return badRequest("failed to backup database locally", e);
+            return badRequest("failed to restore database", e);
         }
         return Response.ok().build();
     }
 
-
+    /**
+     * This function fine the latest backed up file from remote to local
+     */
     private FTPFile extractLatestFile(FTPFile[] ftpFiles){
         FTPFile file = ftpFiles[0];
         for(FTPFile f : ftpFiles) {

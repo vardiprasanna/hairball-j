@@ -241,7 +241,6 @@ public class DatabaseService {
             if (!directory.endsWith("/")) {
                 directory += "/";
             }
-
             DbBackupMain.main(new String[] { "--extract", directory, System.getProperty("user.dir") + "/db/" });
         } catch (TarMalformatException e) {
             e.printStackTrace();
