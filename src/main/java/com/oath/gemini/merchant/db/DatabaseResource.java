@@ -206,9 +206,9 @@ public class DatabaseResource {
         File localFile = null;
 
         try {
-            localPath = Files.createTempDirectory("hairball-");
+            localPath = Files.createTempDirectory("hairball-Restore-");
         } catch (Exception e) {
-            return badRequest("failed to create a temporary database backup dir", e);
+            return badRequest("failed to create a temporary database restore dir", e);
         }
         try (ClosableFTPClient ftpClient = new ClosableFTPClient()) {
             if (ftpClient.exits(remoteFile)) {
