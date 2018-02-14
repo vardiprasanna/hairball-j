@@ -35,16 +35,10 @@ import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import org.apache.commons.io.comparator.LastModifiedFileComparator;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -64,6 +58,7 @@ import org.apache.commons.net.ftp.FTPFile;
 @QuartzCronAnnotation(cron = "db.backup.cron", method = "backup")
 public class DatabaseResource {
     private static SimpleDateFormat geminiDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    private static String remoteBackUpDir = "/backup/";
     @Inject
     DatabaseService databaseService;
     @Inject
@@ -129,6 +124,31 @@ public class DatabaseResource {
         return Response.ok(originStoreCampaign).build();
     }
 
+    @RolesAllowed({ "SIG", "YBY", "localhost" })
+    @DELETE
+    @Path("campaign/{id}/delete")
+    public Response delete(@PathParam("id") String id, @Context HttpServletRequest req, StoreCampaignEntity modifiedStoreCampaign) {
+        StoreCampaignEntity originStoreCampaign = listOne(StoreCampaignEntity.class, id);
+        if (originStoreCampaign == null) {
+            return badRequest("Missing a unique campaigns: ", id);
+        }
+
+        StoreAcctEntity storeAcct = listOne(StoreAcctEntity.class, originStoreCampaign.getStoreAcctId().toString());
+        if (storeAcct == null) {
+            return badRequest("Missing store account for the campaigns: ", id);
+        }
+
+        // Update the store campaign record
+        try {
+            if (DatabaseService.copyNonNullProperties(originStoreCampaign, modifiedStoreCampaign)) {
+                databaseService.update(originStoreCampaign);
+            }
+        } catch (Exception e) {
+            return badRequest("failed to copy properties", e);
+        }
+        return Response.ok(originStoreCampaign).build();
+    }
+
     /**
      * This function can be triggered either via the scheduler or through a REST service call
      */
@@ -158,7 +178,7 @@ public class DatabaseResource {
                 try {
                     String prefix = InetAddress.getLocalHost().getHostName();
                     String baseName = prefix + "__" + local.getName(local.getNameCount() - 1).toString();
-                    java.nio.file.Path remoteFile = Paths.get("/backup/", baseName);
+                    java.nio.file.Path remoteFile = Paths.get(remoteBackUpDir, baseName);
                     failure.add(remoteFile.toString());
 
                     ftpClient.copyTo(local.toString(), remoteFile.toString());
@@ -200,10 +220,8 @@ public class DatabaseResource {
     @GET
     @Path("restore")
     public Response restore() throws IOException {
-        java.nio.file.Path path = Paths.get("/backup/");
         java.nio.file.Path localPath = null;
-        String remoteFile = "/backup/";
-        File localFile = null;
+        String toFile = null;
 
         try {
             localPath = Files.createTempDirectory("hairball-Restore-");
@@ -211,15 +229,15 @@ public class DatabaseResource {
             return badRequest("failed to create a temporary database restore dir", e);
         }
         try (ClosableFTPClient ftpClient = new ClosableFTPClient()) {
-            if (ftpClient.exits(remoteFile)) {
-                FTPFile[] ftpFiles = ftpClient.listFiles(remoteFile);
+            if (ftpClient.exits(remoteBackUpDir)) {
+                FTPFile[] ftpFiles = ftpClient.listFiles(remoteBackUpDir);
                 if (ftpFiles != null) {
                     FTPFile file = extractLatestFile(ftpFiles);
-                    String remoteFilePath = "/backup/" + file.getName();
-                    if (ftpClient.exits(remoteFilePath)) {
-                        ftpClient.copyFileFromRemote(remoteFilePath, localPath, file.getName());
+                    String fromFile = remoteBackUpDir + file.getName();
+                    if (ftpClient.exits(fromFile)) {
+                        toFile = localPath.toString() + "/" + file.getName();
+                        ftpClient.copyFrom(fromFile, toFile);
                     }
-                    localFile = new File(localPath.toString() + "/" + file.getName());
                 }
             } else {
                 log.info("That file doesn't exists");
@@ -229,7 +247,7 @@ public class DatabaseResource {
         }
 
         try {
-            databaseService.restore(localFile.toString());
+            databaseService.restore(toFile.toString());
         } catch (Exception e) {
             return badRequest("failed to restore database", e);
         }

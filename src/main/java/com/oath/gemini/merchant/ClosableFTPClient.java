@@ -156,39 +156,36 @@ public class ClosableFTPClient implements Closeable, AutoCloseable {
     }
 
     /**
-     * List all files present in the current directory
+     * Copy Files from remote location to local files to restore
      */
-    public void copyFileFromRemote(String fromFile, java.nio.file.Path toFile, String fileName) throws Exception {
+    public void copyFrom(String fromFile, String toFile) throws Exception {
         // setup FTP. connection
         connect();
         java.io.OutputStream outStream = null;
-        InputStream is = null;
+        InputStream inStream = null;
         try {
-            is = ftp.retrieveFileStream(fromFile);
+            inStream = ftp.retrieveFileStream(fromFile);
         } catch (IOException e) {
             log.error("Failed to download remote file'", fromFile);
-            throw new Exception("Failed to ftp the file");
+            throw new Exception("Failed to download the file from FTP");
         }
-
-        File file = new File(toFile.toString() + "/" + fileName);
-        outStream = new java.io.FileOutputStream(file);
+        outStream = new java.io.FileOutputStream(toFile);
 
         int buffer;
         try {
-            while ((buffer = is.read()) != -1) {
+            while ((buffer = inStream.read()) != -1) {
                 outStream.write(buffer);
             }
         } catch (IOException e) {
             log.info(e.getMessage());
         } finally {
-            if (is != null) {
-                is.close();
+            if (inStream != null) {
+                inStream.close();
             }
             if (outStream != null) {
                 outStream.close();
             }
         }
-
     }
 
 
