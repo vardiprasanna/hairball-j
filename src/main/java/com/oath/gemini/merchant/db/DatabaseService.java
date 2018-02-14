@@ -226,7 +226,7 @@ public class DatabaseService {
         File f2 = new File(appPath + "/db/dev.properties");
         File f3 = new File(appPath + "/db/dev.script");
         //delete existing db files to restore them from backup
-        if (!f1.delete()) {
+        if (f1.delete()) {
             log.info("Able to delete file dev.lobs");
         }
         if (f2.delete()) {
