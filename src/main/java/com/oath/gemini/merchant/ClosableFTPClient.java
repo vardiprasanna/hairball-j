@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -146,13 +145,23 @@ public class ClosableFTPClient implements Closeable, AutoCloseable {
         }
     }
 
+
+    /**
+     * List all files present in the current directory
+     */
+    public FTPFile[] listFiles() throws Exception {
+        // setup FPT connection
+        connect();
+        return ftp.listFiles();
+    }
+
     /**
      * Copy Files from remote location to local files to restore
      */
     public void copyFrom(String fromFile, String toFile) throws Exception {
         // setup FTP. connection
         connect();
-        OutputStream outStream = null;
+        java.io.OutputStream outStream = null;
         InputStream inStream = null;
         try {
             inStream = ftp.retrieveFileStream(fromFile);
