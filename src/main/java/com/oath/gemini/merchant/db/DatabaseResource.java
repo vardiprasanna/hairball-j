@@ -230,12 +230,12 @@ public class DatabaseResource {
     }
 
     /**
-     * This function fine the latest backed up file from remote to local
+     * This function finds the latest backed up file from remote to local
      */
-    private FTPFile extractLatestFile(FTPFile[] ftpFiles){
+    private FTPFile extractLatestFile(FTPFile[] ftpFiles) {
         FTPFile file = ftpFiles[0];
-        for(FTPFile f : ftpFiles) {
-            if (f.getTimestamp().getTimeInMillis() > file.getTimestamp().getTimeInMillis()) {
+        for (FTPFile f : ftpFiles) {
+            if (f.getTimestamp().compareTo(file.getTimestamp()) > 0) {
                 file = f;
             }
         }
