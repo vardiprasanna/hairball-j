@@ -124,6 +124,31 @@ public class DatabaseResource {
         return Response.ok(originStoreCampaign).build();
     }
 
+    @RolesAllowed({ "SIG", "YBY", "localhost" })
+    @DELETE
+    @Path("campaign/{id}/delete")
+    public Response delete(@PathParam("id") String id, @Context HttpServletRequest req, StoreCampaignEntity modifiedStoreCampaign) {
+        StoreCampaignEntity originStoreCampaign = listOne(StoreCampaignEntity.class, id);
+        if (originStoreCampaign == null) {
+            return badRequest("Missing a unique campaigns: ", id);
+        }
+
+        StoreAcctEntity storeAcct = listOne(StoreAcctEntity.class, originStoreCampaign.getStoreAcctId().toString());
+        if (storeAcct == null) {
+            return badRequest("Missing store account for the campaigns: ", id);
+        }
+
+        // Update the store campaign record
+        try {
+            if (DatabaseService.copyNonNullProperties(originStoreCampaign, modifiedStoreCampaign)) {
+                databaseService.update(originStoreCampaign);
+            }
+        } catch (Exception e) {
+            return badRequest("failed to copy properties", e);
+        }
+        return Response.ok(originStoreCampaign).build();
+    }
+
     /**
      * This function can be triggered either via the scheduler or through a REST service call
      */
@@ -234,7 +259,7 @@ public class DatabaseResource {
      */
     private FTPFile extractLatestFile(FTPFile[] ftpFiles){
         FTPFile file = ftpFiles[0];
-        for (FTPFile f : ftpFiles) {
+        for(FTPFile f : ftpFiles) {
             if (f.getTimestamp().getTimeInMillis() > file.getTimestamp().getTimeInMillis()) {
                 file = f;
             }
