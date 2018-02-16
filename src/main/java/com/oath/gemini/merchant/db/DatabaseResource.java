@@ -19,7 +19,6 @@ import com.oath.gemini.merchant.ews.json.AdGroupData;
 import com.oath.gemini.merchant.ews.json.BidSetArrayData;
 import com.oath.gemini.merchant.ews.json.BidSetData;
 import com.oath.gemini.merchant.ews.json.CampaignData;
-import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.InetAddress;
@@ -35,7 +34,12 @@ import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.*;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -57,8 +61,8 @@ import org.apache.commons.net.ftp.FTPFile;
 @Path("database")
 @QuartzCronAnnotation(cron = "db.backup.cron", method = "backup")
 public class DatabaseResource {
-    private static SimpleDateFormat geminiDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-    private static String remoteBackUpDir = "/backup/";
+    private static final SimpleDateFormat geminiDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    private static final String remoteBackUpDir = "/backup/";
     @Inject
     DatabaseService databaseService;
     @Inject
