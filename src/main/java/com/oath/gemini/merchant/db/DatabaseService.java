@@ -1,10 +1,10 @@
 package com.oath.gemini.merchant.db;
 
 import java.io.IOException;
+import java.io.File;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.sql.Date;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
