@@ -971,7 +971,7 @@ module.exports = module.exports.toString();
 /***/ "../../../../../src/app/components/login/login.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<div class=\"login-container\">\n  <div class=\"login-content\">\n    <div>\n      <i class=\"fa fa-exclamation-circle\" aria-hidden=\"true\"></i>\n    </div>\n    <div>\nYou need to have a Yahoo Gemini account in order to use this application. You can sign up a new Gemini account, and then resume this installation.\n    </div>\n  </div>\n  <div class=\"gemini-button-group\">\n    <div>\n      <button class=\"gemini-button\" (click)=\"signIn()\">\n        Sign In\n      </button>\n    </div>\n    <div>\n      <button class=\"gemini-button\" (click)=\"signUp()\" autofocus=\"true\">\n        <i class=\"fa fa-sign-in\" aria-hidden=\"true\" style=\"margin-right: 10px\"></i>Sign Up\n      </button>\n    </div>\n  </div>\n</div>\n"
+module.exports = "<div class=\"login-container\">\n  <div class=\"login-content\">\n    <div>\n      <i class=\"fa fa-exclamation-circle\" aria-hidden=\"true\"></i>\n    </div>\n    <div>\nYou need to have a Yahoo Gemini account in order to use this application. You can sign up a new Gemini account, and then resume this installation.\n    </div>\n  </div>\n  <div class=\"gemini-button-group\">\n    <div>\n      <button class=\"gemini-button\" (click)=\"signIn()\" autofocus=\"true\">\n        Sign In\n      </button>\n    </div>\n    <div>\n      <button class=\"gemini-button\" (click)=\"signUp()\">\n        Sign Up\n      </button>\n    </div>\n  </div>\n</div>\n"
 
 /***/ }),
 
