@@ -38,7 +38,7 @@ export class LoginComponent implements OnInit {
         value: ''
       },
       {
-        label: 'Confirm',
+        label: 'Proceed',
         value: 'confirm'
       }];
 
@@ -84,7 +84,7 @@ export class LoginComponent implements OnInit {
         value: ''
       },
       {
-        label: 'Confirm',
+        label: 'Proceed',
         value: 'confirm'
       }];
 

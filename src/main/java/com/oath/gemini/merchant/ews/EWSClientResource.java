@@ -11,6 +11,7 @@ import com.oath.gemini.merchant.db.DatabaseService;
 import com.oath.gemini.merchant.db.StoreAcctEntity;
 import com.oath.gemini.merchant.db.StoreCampaignEntity;
 import com.oath.gemini.merchant.ews.EWSConstant.ReportingJobStatusEnum;
+import com.oath.gemini.merchant.ews.json.AdGroupData;
 import com.oath.gemini.merchant.ews.json.AdvertiserData;
 import com.oath.gemini.merchant.ews.json.CampaignData;
 import com.oath.gemini.merchant.fe.UIAccountDTO;
@@ -33,6 +34,7 @@ import javax.ws.rs.core.Response.Status;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.http.HttpHeader;
@@ -119,12 +121,14 @@ public class EWSClientResource {
 
         // Fill the campaign object for UI consumption
         EWSResponseData<CampaignData> campaignResponse;
+        EWSResponseData<AdGroupData> adGroupResponse;
         AdvertiserData advData = null;
 
         try {
             EWSClientService ews = new EWSClientService(tokens);
             EWSResponseData<AdvertiserData> advResponse = ews.get(AdvertiserData.class, EWSEndpointEnum.ADVERTISER);
             campaignResponse = ews.get(CampaignData.class, EWSEndpointEnum.CAMPAIGN_BY_ID, id);
+            adGroupResponse = ews.get(AdGroupData.class, EWSEndpointEnum.ADGROUP_BY_ID, storeCampaign.getAdgroupId());
 
             if (advResponse.isOk() && !EWSResponseData.isEmpty(advResponse)) {
                 advData = advResponse.get(0);
@@ -133,18 +137,31 @@ public class EWSClientResource {
                 return errorResponse(ERR_EWS, Status.fromStatusCode(campaignResponse.getStatus()),
                         "No campaign found in Gemini with this id=%s", id);
             }
+            if (!adGroupResponse.isOk() || EWSResponseData.isEmpty(adGroupResponse)) {
+                return errorResponse(ERR_EWS, Status.fromStatusCode(campaignResponse.getStatus()),
+                        "No adgroup found in Gemini with this id=%s", storeCampaign.getAdgroupId());
+            }
+
         } catch (Exception e) {
             return errorResponse(ERR_EWS, Status.INTERNAL_SERVER_ERROR, "Failed to access Gemini: %s", e.getMessage());
         }
 
         CampaignData cmpData = campaignResponse.get(0);
+        AdGroupData adGroupData = adGroupResponse.get(0);
         UICampaignDTO uiCmpDTO = new UICampaignDTO(storeCampaign);
 
         uiCmpDTO.setCampaignStatus(cmpData.getStatus());
+        uiCmpDTO.setBudget(cmpData.getBudget().floatValue());
+        uiCmpDTO.setPrice(0);
+
+        if (adGroupData.getBidSet() != null && ArrayUtils.isNotEmpty(adGroupData.getBidSet().getBids())) {
+            uiCmpDTO.setPrice(adGroupData.getBidSet().getBids()[0].getValue());
+        }
         if (advData != null) {
             uiCmpDTO.setAdvStatus(advData.getStatus());
             uiCmpDTO.setAdvName(advData.getName());
         }
+
         return Response.ok(uiCmpDTO).build();
     }
 
@@ -199,9 +216,9 @@ public class EWSClientResource {
     @POST
     @Path("reporting/{cmpId}")
     public Response getReport(@PathParam("cmpId") long id, String payload) {
-//        if (true) {
-//            return Response.ok(data).build();
-//        }
+        // if (true) {
+        // return Response.ok(data).build();
+        // }
 
         StoreCampaignEntity storeCampaign;
         StoreAcctEntity storeAcct;

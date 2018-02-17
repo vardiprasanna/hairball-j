@@ -17,7 +17,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.rewrite.handler.RedirectPatternRule;
 import org.eclipse.jetty.rewrite.handler.RewriteHandler;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -81,7 +80,7 @@ public class App extends ResourceConfig {
         return instance;
     }
 
-    private void initialize(int localPort, boolean isNewUIEnabled) throws IOException, Exception {
+    private void initialize(int localPort) throws IOException, Exception {
         HttpConfiguration http_config = new HttpConfiguration();
         ServerConnector http = new ServerConnector(jetty, new HttpConnectionFactory(http_config));
 
@@ -104,11 +103,8 @@ public class App extends ResourceConfig {
         handlerCollection.addHandler(UIResourceHandler);
 
         // Angular resource rewriter
-        if (isNewUIEnabled) {
-            config.setProperty("campaign.setup.url", "index.html");
-            RewriteHandler rewriteHandler = buildRewriteHandler();
-            handlerCollection.addHandler(rewriteHandler);
-        }
+        RewriteHandler rewriteHandler = buildRewriteHandler();
+        handlerCollection.addHandler(rewriteHandler);
 
         ServletContextHandler servletContextHandler = new ServletContextHandler(jetty, "/", ServletContextHandler.SESSIONS);
         servletContextHandler.addServlet(new ServletFormHolder(new ServletContainer(this)), "/g/*");
@@ -204,6 +200,9 @@ public class App extends ResourceConfig {
      * The integration with Angular routings, that is, re-route any unknown UI resources under a given end-point.
      */
     private RewriteHandler buildRewriteHandler() {
+        String appName = config.getString("shopify.app.name", "");
+        boolean isLocalDev = appName.contains("local");
+
         RewriteHandler rewriteHandler = new RewriteHandler();
         RedirectPatternRule rule = new RedirectPatternRule() {
             public String matchAndApply(String target, HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -219,13 +218,15 @@ public class App extends ResourceConfig {
                     if (path.startsWith("/")) {
                         path = path.substring(1);
                     }
-                    if (true /*StringUtils.isBlank(query)*/) { // TODO - forward a query except a route
+                    if (true /* StringUtils.isBlank(query) */) { // TODO - forward a query except a route
                         redirectTo = HttpUtils.buildQueries("/index.html", "route", path);
                     } else {
                         redirectTo = HttpUtils.buildQueries("/index.html?" + query, "route", path);
                     }
                     this.setLocation(redirectTo);
-                    ((Request) request).setScheme("https");
+                    if (!isLocalDev) {
+                        ((Request) request).setScheme("https"); // force to use https in production
+                    }
                     return apply(target, request, response);
                 }
                 return null;
@@ -248,7 +249,6 @@ public class App extends ResourceConfig {
     }
 
     public static void main(String[] args) throws Exception {
-        boolean isNewUIEnabled = false;
         int port = -1;
 
         // Heroku passes a local port via the command line option
@@ -256,14 +256,11 @@ public class App extends ResourceConfig {
             if (args[i].endsWith("-port") && (i < args.length - 1)) {
                 port = Integer.parseInt(args[i + 1]);
                 System.err.println("overriding port to=" + port);
-            } else if (args[i].endsWith("-newui")) {
-                isNewUIEnabled = true;
-                System.err.println("forced to new ui");
             }
         }
 
         App app = getInstance();
-        app.initialize(port, isNewUIEnabled);
+        app.initialize(port);
         app.start();
     }
 }
