@@ -971,7 +971,7 @@ module.exports = module.exports.toString();
 /***/ "../../../../../src/app/components/login/login.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<div class=\"login-container\">\n  <div class=\"login-content\">\n    <div>\n      <i class=\"fa fa-exclamation-circle\" aria-hidden=\"true\"></i>\n    </div>\n    <div>\nYou need to have a Yahoo Gemini account in order to use this application. You can sign up a new Gemini account, and then resume this installation.\n    </div>\n  </div>\n  <div class=\"gemini-button-group\">\n    <div>\n      <button class=\"gemini-button\" (click)=\"signUp()\" autofocus=\"true\">\n        <i class=\"fa fa-sign-in\" aria-hidden=\"true\" style=\"margin-right: 10px\"></i>Sign Up\n      </button>\n    </div>\n    <div>\n      <button class=\"gemini-button\" (click)=\"signIn()\">\n        Sign In\n      </button>\n    </div>\n  </div>\n</div>\n"
+module.exports = "<div class=\"login-container\">\n  <div class=\"login-content\">\n    <div>\n      <i class=\"fa fa-exclamation-circle\" aria-hidden=\"true\"></i>\n    </div>\n    <div>\nYou need to have a Yahoo Gemini account in order to use this application. You can sign up a new Gemini account, and then resume this installation.\n    </div>\n  </div>\n  <div class=\"gemini-button-group\">\n    <div>\n      <button class=\"gemini-button\" (click)=\"signIn()\">\n        Sign In\n      </button>\n    </div>\n    <div>\n      <button class=\"gemini-button\" (click)=\"signUp()\" autofocus=\"true\">\n        <i class=\"fa fa-sign-in\" aria-hidden=\"true\" style=\"margin-right: 10px\"></i>Sign Up\n      </button>\n    </div>\n  </div>\n</div>\n"
 
 /***/ }),
 
@@ -1023,7 +1023,7 @@ var LoginComponent = (function () {
                 value: ''
             },
             {
-                label: 'Confirm',
+                label: 'Proceed',
                 value: 'confirm'
             }
         ];
@@ -1066,7 +1066,7 @@ var LoginComponent = (function () {
                 value: ''
             },
             {
-                label: 'Confirm',
+                label: 'Proceed',
                 value: 'confirm'
             }
         ];
@@ -1817,10 +1817,10 @@ var environment = {
     ewsBaseUrl: '',
     appTitle: 'promote your products and bring users to your site',
     geminiAcctInvalid: 'A Yahoo account you used to sign in has no Gemini access.',
-    geminiAcctInactive: 'Your Yahoo Gemini account is inactive. Please click the contact link at top left to reach out Oath for support.',
+    geminiAcctInactive: 'Your Yahoo Gemini account is inactive. Please click the contact link at top left to reach out to Oath for support.',
     geminiHomeUrl: 'https://gemini.yahoo.com/advertiser/home',
     geminiSigInMessage: 'You will be redirected to Yahoo\'s login page, and then automatically brought back here once you\'re done.',
-    geminiSigUpMessage: 'You will be redirected to Yahoo Gemini page to create a new account. Make sure that you complete your billing info as well because otherwise your product ads will not run.'
+    geminiSigUpMessage: 'You will be redirected to Yahoo Gemini page to create a new account. Make sure that you complete your billing info as well because otherwise your product ads will not be served.'
 };
 
 
