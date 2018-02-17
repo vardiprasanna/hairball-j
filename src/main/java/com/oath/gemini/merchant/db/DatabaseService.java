@@ -1,5 +1,7 @@
 package com.oath.gemini.merchant.db;
 
+import java.io.IOException;
+import java.io.File;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.sql.Date;
@@ -9,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
@@ -17,10 +20,13 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
+import org.hsqldb.lib.tar.DbBackupMain;
+import org.hsqldb.lib.tar.TarMalformatException;
 
 /**
  * @author tong on 10/1/2017
  */
+@Slf4j
 @Singleton
 public class DatabaseService {
     @Inject
@@ -207,6 +213,37 @@ public class DatabaseService {
             if (session != null) {
                 session.close();
             }
+        }
+    }
+
+    /**
+     * Note: this is HSQLDB specific restore. It is used only during the development
+     */
+    public void restore(String directory) throws IOException {
+        //extract application path
+        String appPath = System.getProperty("user.dir");
+        File f1 = new File(appPath + "/db/dev.lobs");
+        File f2 = new File(appPath + "/db/dev.properties");
+        File f3 = new File(appPath + "/db/dev.script");
+        //delete existing db files to restore them from backup
+        if (f1.delete()) {
+            log.info("Able to delete file dev.lobs");
+        }
+        if (f2.delete()) {
+            log.info("Able to delete file dev.properties");
+        }
+        if (f3.delete()) {
+            log.info("Able to delete file dev.script");
+        }
+
+        //Restoring the backed up files
+        try {
+            if (!directory.endsWith("/")) {
+                directory += "/";
+            }
+            DbBackupMain.main(new String[] { "--extract", directory, appPath + "/db/" });
+        } catch (TarMalformatException e) {
+            e.printStackTrace();
         }
     }
 

@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -47,7 +48,7 @@ public class ClosableFTPClient implements Closeable, AutoCloseable {
 
     /**
      * Copy a local file to the FTP server
-     * 
+     *
      * @param fromFile - a full pathname
      * @param toFile - an optional base file name if it differs from its from-file
      */
@@ -98,7 +99,7 @@ public class ClosableFTPClient implements Closeable, AutoCloseable {
 
     /**
      * Return true if a given file exists on the FTP server
-     * 
+     *
      * @param fileName - a full pathname
      */
     public boolean exits(String fileName) throws Exception {
@@ -132,7 +133,7 @@ public class ClosableFTPClient implements Closeable, AutoCloseable {
     /**
      * List all files that share the same parent directory as the given file
      */
-    private FTPFile[] listFiles(String fileName) throws Exception {
+    public FTPFile[] listFiles(String fileName) throws Exception {
         // setup FPT connection
         connect();
 
@@ -145,8 +146,43 @@ public class ClosableFTPClient implements Closeable, AutoCloseable {
         }
     }
 
+    /**
+     * Copy Files from remote location to local files to restore
+     */
+    public void copyFrom(String fromFile, String toFile) throws Exception {
+        // setup FTP. connection
+        connect();
+        OutputStream outStream = null;
+        InputStream inStream = null;
+        try {
+            inStream = ftp.retrieveFileStream(fromFile);
+        } catch (IOException e) {
+            log.error("Failed to download remote file'", fromFile);
+            throw new Exception("Failed to download the file from FTP");
+        }
+        outStream = new java.io.FileOutputStream(toFile);
+
+        int buffer;
+        try {
+            while ((buffer = inStream.read()) != -1) {
+                outStream.write(buffer);
+            }
+        } catch (IOException e) {
+            log.info(e.getMessage());
+        } finally {
+            if (inStream != null) {
+                inStream.close();
+            }
+            if (outStream != null) {
+                outStream.close();
+            }
+        }
+    }
+
+
     private void connect() throws Exception {
         ftp.setConnectTimeout(connectionTimeout);
+        ftp.setDefaultTimeout(connectionTimeout);
         ftp.connect(host);
 
         int reply = ftp.getReplyCode();

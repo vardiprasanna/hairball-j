@@ -46,10 +46,11 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.net.ftp.FTPFile;
 
 /**
  * This service is to access and backup database
- * 
+ *
  * @author tong on 10/1/2017
  */
 @Slf4j
@@ -60,6 +61,8 @@ import lombok.extern.slf4j.Slf4j;
 @Path("database")
 @QuartzCronAnnotation(cron = "db.backup.cron", method = "backup")
 public class DatabaseResource {
+    private static final SimpleDateFormat geminiDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    private static final String remoteBackUpDir = "/backup/";
     @Inject
     DatabaseService databaseService;
     @Inject
@@ -154,7 +157,7 @@ public class DatabaseResource {
                 try {
                     String prefix = InetAddress.getLocalHost().getHostName();
                     String baseName = prefix + "__" + local.getName(local.getNameCount() - 1).toString();
-                    java.nio.file.Path remoteFile = Paths.get("/backup/", baseName);
+                    java.nio.file.Path remoteFile = Paths.get(remoteBackUpDir, baseName);
                     failure.add(remoteFile.toString());
 
                     ftpClient.copyTo(local.toString(), remoteFile.toString());
@@ -188,6 +191,59 @@ public class DatabaseResource {
         }
 
         return Response.ok(objectNode).build();
+    }
+
+    /**
+     * This function should be triggered before starting the server
+     */
+    @GET
+    @Path("restore")
+    public Response restore() throws IOException {
+        java.nio.file.Path localPath = null;
+        String toFile = null;
+
+        try {
+            localPath = Files.createTempDirectory("hairball-Restore-");
+        } catch (Exception e) {
+            return badRequest("failed to create a temporary database restore dir", e);
+        }
+        try (ClosableFTPClient ftpClient = new ClosableFTPClient()) {
+            if (ftpClient.exits(remoteBackUpDir)) {
+                FTPFile[] ftpFiles = ftpClient.listFiles(remoteBackUpDir);
+                if (ftpFiles != null) {
+                    FTPFile file = extractLatestFile(ftpFiles);
+                    String fromFile = remoteBackUpDir + file.getName();
+                    if (ftpClient.exits(fromFile)) {
+                        toFile = localPath.toString() + "/" + file.getName();
+                        ftpClient.copyFrom(fromFile, toFile);
+                    }
+                }
+            } else {
+                log.info("That file doesn't exists");
+            }
+        } catch (Exception e) {
+            log.info("Not able to read the file");
+        }
+
+        try {
+            databaseService.restore(toFile.toString());
+        } catch (Exception e) {
+            return badRequest("failed to restore database", e);
+        }
+        return Response.ok().build();
+    }
+
+    /**
+     * This function finds the latest backed up file from remote to local
+     */
+    private FTPFile extractLatestFile(FTPFile[] ftpFiles) {
+        FTPFile file = ftpFiles[0];
+        for (FTPFile f : ftpFiles) {
+            if (f.getTimestamp().compareTo(file.getTimestamp()) > 0) {
+                file = f;
+            }
+        }
+        return file;
     }
 
     private <T> List<T> listAll(Class<T> entityClass, String id) {
@@ -277,6 +333,4 @@ public class DatabaseResource {
 
         return Response.ok().build();
     }
-
-    private static SimpleDateFormat geminiDateFormat = new SimpleDateFormat("yyyy-MM-dd");
 }
