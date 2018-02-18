@@ -95,7 +95,7 @@ public class HttpUtils {
 
     public static String forceToUseHttps(String url) throws URISyntaxException {
         if (url.startsWith("http://")) {
-            System.err.format("force to overwrite a non-SSL='%s'", url);
+            // System.err.format("force to overwrite a non-SSL='%s'", url);
             UriBuilder builder = UriBuilder.fromUri(new URI(url));
             builder.scheme("https");
             builder.port(config.getInt("ssl.port"));
