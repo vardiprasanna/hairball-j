@@ -14,7 +14,7 @@ export const environment = {
   appTitle: 'promote your products and bring users to your site',
   geminiAcctInvalid: 'A Yahoo account you used to sign in has no Gemini access.',
   geminiAcctInactive: 'Your Yahoo Gemini account is inactive. Please click the contact link at top left to reach out to Oath for support.',
-  geminiMaxBidPrice: 'Maximum bid is ${price}. To bid higher, raise budget to 50 times your desired bid',
+  geminiMaxBidPrice: 'Maximum bid is ${price}. To bid higher, raise budget to 50 times your desired bid.',
   geminiMinBidPrice: 'Minimum bid is $0.05',
   geminiMinBidBudget: 'Minimum budget is $5.00',
   geminiHomeUrl: 'https://gemini.yahoo.com/advertiser/home',
