@@ -24,7 +24,6 @@ import java.math.BigDecimal;
 import java.net.InetAddress;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -45,8 +44,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.net.ftp.FTPFile;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This service is to access and backup database
@@ -61,8 +60,8 @@ import org.apache.commons.net.ftp.FTPFile;
 @Path("database")
 @QuartzCronAnnotation(cron = "db.backup.cron", method = "backup")
 public class DatabaseResource {
-    private static final SimpleDateFormat geminiDateFormat = new SimpleDateFormat("yyyy-MM-dd");
     private static final String remoteBackUpDir = "/backup/";
+
     @Inject
     DatabaseService databaseService;
     @Inject
