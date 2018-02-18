@@ -24,7 +24,17 @@ export class CampaignComponent implements OnInit {
 
   ngOnInit() {
     if (!this.campaignService.isAccountReady()) {
-      this.campaign_loaded_err = environment.geminiAcctInvalid;
+      const acct = this.campaignService.account;
+
+      if (acct && acct.hasValidYahooToken() && !acct.adv_id) {
+        // With a valid Yahoo OAuth token but not a Gemini account ID
+        this.campaign_loaded_err = environment.geminiAcctInvalid;
+      } else {
+        this.router.navigateByUrl('f/login', {skipLocationChange: true});
+        this.campaign_loaded_err = 'user has not logged in yet.';
+        this.campaign_loaded = true;
+        return;
+      }
     } else {
       const acct = this.campaignService.account;
       this.advId = acct.adv_id; // 1643580;
@@ -37,7 +47,7 @@ export class CampaignComponent implements OnInit {
 
     if (this.campaign_loaded_err) {
       console.log(this.campaign_loaded_err);
-      this.router.navigateByUrl('f/login');
+      this.router.navigateByUrl('f/login', {skipLocationChange: true});
       this.messageService.push(this.campaign_loaded_err, 'danger');
     }
 
