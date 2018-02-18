@@ -112,7 +112,8 @@ public class HttpUtils {
     }
 
     public static Response badRequest(EWSResponseData<?> response, String format, Object... params) {
-        return badRequest(response.getStatus(), response.getErrors(), format, params);
+        String message = (StringUtils.isNotBlank(response.getBrief()) ? response.getBrief() : response.getErrors());
+        return badRequest(response.getStatus(), message, format, params);
     }
 
     public static Response badRequest(int status, String detail, String format, Object... params) {
