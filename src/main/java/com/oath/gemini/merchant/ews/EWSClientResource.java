@@ -121,14 +121,12 @@ public class EWSClientResource {
 
         // Fill the campaign object for UI consumption
         EWSResponseData<CampaignData> campaignResponse;
-        EWSResponseData<AdGroupData> adGroupResponse;
         AdvertiserData advData = null;
+        EWSClientService ews = new EWSClientService(tokens);
 
         try {
-            EWSClientService ews = new EWSClientService(tokens);
             EWSResponseData<AdvertiserData> advResponse = ews.get(AdvertiserData.class, EWSEndpointEnum.ADVERTISER);
             campaignResponse = ews.get(CampaignData.class, EWSEndpointEnum.CAMPAIGN_BY_ID, id);
-            adGroupResponse = ews.get(AdGroupData.class, EWSEndpointEnum.ADGROUP_BY_ID, storeCampaign.getAdgroupId());
 
             if (advResponse.isOk() && !EWSResponseData.isEmpty(advResponse)) {
                 advData = advResponse.get(0);
@@ -137,29 +135,38 @@ public class EWSClientResource {
                 return errorResponse(ERR_EWS, Status.fromStatusCode(campaignResponse.getStatus()),
                         "No campaign found in Gemini with this id=%s", id);
             }
-            if (!adGroupResponse.isOk() || EWSResponseData.isEmpty(adGroupResponse)) {
-                return errorResponse(ERR_EWS, Status.fromStatusCode(campaignResponse.getStatus()),
-                        "No adgroup found in Gemini with this id=%s", storeCampaign.getAdgroupId());
-            }
-
         } catch (Exception e) {
             return errorResponse(ERR_EWS, Status.INTERNAL_SERVER_ERROR, "Failed to access Gemini: %s", e.getMessage());
         }
 
         CampaignData cmpData = campaignResponse.get(0);
-        AdGroupData adGroupData = adGroupResponse.get(0);
         UICampaignDTO uiCmpDTO = new UICampaignDTO(storeCampaign);
 
         uiCmpDTO.setCampaignStatus(cmpData.getStatus());
         uiCmpDTO.setBudget(cmpData.getBudget().floatValue());
         uiCmpDTO.setPrice(0);
 
-        if (adGroupData.getBidSet() != null && ArrayUtils.isNotEmpty(adGroupData.getBidSet().getBids())) {
-            uiCmpDTO.setPrice(adGroupData.getBidSet().getBids()[0].getValue());
-        }
         if (advData != null) {
             uiCmpDTO.setAdvStatus(advData.getStatus());
             uiCmpDTO.setAdvName(advData.getName());
+        }
+
+        // Access an ad-group
+        EWSResponseData<AdGroupData> adGroupResponse;
+        try {
+            adGroupResponse = ews.get(AdGroupData.class, EWSEndpointEnum.ADGROUP_BY_ID, storeCampaign.getAdgroupId());
+            if (!adGroupResponse.isOk() || EWSResponseData.isEmpty(adGroupResponse)) {
+                return errorResponse(ERR_EWS, Status.fromStatusCode(campaignResponse.getStatus()),
+                        "No adgroup found in Gemini with this id=%s", storeCampaign.getAdgroupId());
+            }
+            AdGroupData adGroupData = adGroupResponse.get(0);
+            if (adGroupData.getBidSet() != null && ArrayUtils.isNotEmpty(adGroupData.getBidSet().getBids())) {
+                uiCmpDTO.setPrice(adGroupData.getBidSet().getBids()[0].getValue());
+            }
+
+        } catch (Exception e) {
+            System.err.println(e.toString());
+            // TODO: ignore it for now.
         }
 
         return Response.ok(uiCmpDTO).build();
