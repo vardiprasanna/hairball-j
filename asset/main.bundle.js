@@ -152,9 +152,12 @@ var AppComponent = (function () {
                     cachedAcct = JSON.parse(account);
                     advertiserId = cachedAcct.adv_id;
                     campaignId = cachedAcct.cmp_id;
+                    if (!this.campaignService.account) {
+                        this.campaignService.account = cachedAcct;
+                    }
                 }
                 catch (err) {
-                    console.log(err.getMessages());
+                    console.log('' + err);
                 }
             }
         }
@@ -951,7 +954,17 @@ var CampaignComponent = (function () {
     }
     CampaignComponent.prototype.ngOnInit = function () {
         if (!this.campaignService.isAccountReady()) {
-            this.campaign_loaded_err = __WEBPACK_IMPORTED_MODULE_5__environments_environment__["a" /* environment */].geminiAcctInvalid;
+            var acct = this.campaignService.account;
+            if (acct && acct.hasValidYahooToken() && !acct.adv_id) {
+                // With a valid Yahoo OAuth token but not a Gemini account ID
+                this.campaign_loaded_err = __WEBPACK_IMPORTED_MODULE_5__environments_environment__["a" /* environment */].geminiAcctInvalid;
+            }
+            else {
+                this.router.navigateByUrl('f/login', { skipLocationChange: true });
+                this.campaign_loaded_err = 'user has not logged in yet.';
+                this.campaign_loaded = true;
+                return;
+            }
         }
         else {
             var acct = this.campaignService.account;
@@ -963,7 +976,7 @@ var CampaignComponent = (function () {
         }
         if (this.campaign_loaded_err) {
             console.log(this.campaign_loaded_err);
-            this.router.navigateByUrl('f/login');
+            this.router.navigateByUrl('f/login', { skipLocationChange: true });
             this.messageService.push(this.campaign_loaded_err, 'danger');
         }
         this.campaign_loaded = true;
@@ -1248,7 +1261,8 @@ module.exports = ""
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__("../../../core/esm5/core.js");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__angular_router__ = __webpack_require__("../../../router/esm5/router.js");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__services_campaign_service__ = __webpack_require__("../../../../../src/app/services/campaign.service.ts");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_rxjs_add_operator_takeWhile__ = __webpack_require__("../../../../rxjs/_esm5/add/operator/takeWhile.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__services_message_service__ = __webpack_require__("../../../../../src/app/services/message.service.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_rxjs_add_operator_takeWhile__ = __webpack_require__("../../../../rxjs/_esm5/add/operator/takeWhile.js");
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -1262,10 +1276,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 
 
 
+
 var ShopifyComponent = (function () {
-    function ShopifyComponent(router, route, campaignService) {
+    function ShopifyComponent(router, route, messageService, campaignService) {
         this.router = router;
         this.route = route;
+        this.messageService = messageService;
         this.campaignService = campaignService;
         this.shopify_loaded = false;
     }
@@ -1380,6 +1396,7 @@ var ShopifyComponent = (function () {
         }, function (err) {
             console.log('afterYAuth err: ' + JSON.stringify(err));
             _this.shopify_loaded_err = (err.message ? err.message : JSON.stringify(err));
+            _this.messageService.push(err.error);
         }).then(function () {
             var acct = _this.campaignService.account;
             _this.shopify_loaded = true;
@@ -1435,7 +1452,7 @@ var ShopifyComponent = (function () {
             template: __webpack_require__("../../../../../src/app/components/shopify/shopify.component.html"),
             styles: [__webpack_require__("../../../../../src/app/components/shopify/shopify.component.css")]
         }),
-        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1__angular_router__["b" /* Router */], __WEBPACK_IMPORTED_MODULE_1__angular_router__["a" /* ActivatedRoute */], __WEBPACK_IMPORTED_MODULE_2__services_campaign_service__["a" /* CampaignService */]])
+        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1__angular_router__["b" /* Router */], __WEBPACK_IMPORTED_MODULE_1__angular_router__["a" /* ActivatedRoute */], __WEBPACK_IMPORTED_MODULE_3__services_message_service__["a" /* MessageService */], __WEBPACK_IMPORTED_MODULE_2__services_campaign_service__["a" /* CampaignService */]])
     ], ShopifyComponent);
     return ShopifyComponent;
 }());
@@ -1672,6 +1689,8 @@ var CampaignService = (function () {
             this._account = new __WEBPACK_IMPORTED_MODULE_2__model_account__["a" /* Account */](acct);
             if (this.isAccountReady()) {
                 acct.last_access = new Date();
+            }
+            if (acct) {
                 var account = JSON.stringify(acct);
                 if (window.sessionStorage) {
                     window.sessionStorage.setItem('geminiDpaAccount', account);
