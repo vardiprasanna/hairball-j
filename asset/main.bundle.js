@@ -1844,7 +1844,7 @@ var MessageService = (function () {
 // 'ng build --env=prod' then 'environment.prod.ts' will be used instead.
 // The list of which env maps to which file can be found in '.angular-cli.json'.
 var environment = {
-    production: true,
+    production: false,
     yauth_default: 'https://api.login.yahoo.com/oauth2/request_auth?response_type=code&language=en-us' +
         '&client_id=dj0yJmk9YTl4bFUxYXJYSFlpJmQ9WVdrOWVHTTFkMkprTm1jbWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmeD02OQ--' +
         '&redirect_uri=https%3A%2F%2Fgemini-shopify.herokuapp.com%2Findex.html%3Froute%3Df%2Fshopify%2Fews',
