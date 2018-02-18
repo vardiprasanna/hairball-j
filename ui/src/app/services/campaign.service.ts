@@ -27,6 +27,8 @@ export class CampaignService {
     this._account = new Account(acct);
     if (this.isAccountReady()) {
       acct.last_access = new Date();
+    }
+    if (acct) {
       const account = JSON.stringify(acct);
 
       if (window.sessionStorage) {

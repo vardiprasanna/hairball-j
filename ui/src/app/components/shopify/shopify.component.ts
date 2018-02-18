@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute, Params } from '@angular/router';
 
 import { CampaignService } from '../../services/campaign.service';
+import { MessageService } from '../../services/message.service';
 import { Account } from '../../model/account';
 import 'rxjs/add/operator/takeWhile';
 
@@ -14,7 +15,7 @@ export class ShopifyComponent implements OnInit {
   shopify_loaded = false;
   shopify_loaded_err: string;
 
-  constructor(private router: Router, private route: ActivatedRoute, private campaignService: CampaignService) {
+  constructor(private router: Router, private route: ActivatedRoute, private messageService: MessageService, private campaignService: CampaignService) {
   }
 
   ngOnInit() {
@@ -127,6 +128,7 @@ export class ShopifyComponent implements OnInit {
     }, err => {
       console.log('afterYAuth err: ' + JSON.stringify(err));
       this.shopify_loaded_err = (err.message ? err.message : JSON.stringify(err));
+      this.messageService.push(err.error);
     }).then(() => {
       const acct = this.campaignService.account;
       this.shopify_loaded = true;

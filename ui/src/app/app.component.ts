@@ -106,8 +106,12 @@ export class AppComponent implements OnInit, OnDestroy {
           cachedAcct = JSON.parse(account);
           advertiserId = cachedAcct.adv_id;
           campaignId = cachedAcct.cmp_id;
+
+          if (!this.campaignService.account) {
+            this.campaignService.account = cachedAcct;
+          }
         } catch (err) {
-          console.log(err.getMessages());
+          console.log('' + err);
         }
       }
     }
