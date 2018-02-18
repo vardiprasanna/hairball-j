@@ -181,14 +181,17 @@ public class EWSClientResource {
             }
             if (cmpDTO.getBudget() >= 0f && (storeCampaign.getBudget() == null || storeCampaign.getBudget() != cmpDTO.getBudget())) {
                 modifiedStoreCampaign.setBudget(cmpDTO.getBudget());
+                storeCampaign.setBudget(cmpDTO.getBudget());
                 isModified = true;
             }
             if (cmpDTO.getPrice() >= 0f && (storeCampaign.getPrice() == null || storeCampaign.getPrice() != cmpDTO.getPrice())) {
                 modifiedStoreCampaign.setPrice(cmpDTO.getPrice());
+                storeCampaign.setPrice(cmpDTO.getPrice());
                 isModified = true;
             }
             if (cmpDTO.getCampaignStatus() != null) {
                 modifiedStoreCampaign.setStatus(cmpDTO.getCampaignStatus());
+                storeCampaign.setStatus(cmpDTO.getCampaignStatus());
                 isModified = true;
             }
 
@@ -202,9 +205,13 @@ public class EWSClientResource {
 
                 modifiedStoreCampaign.setAdgroupId(storeCampaign.getAdgroupId());
                 modifiedStoreCampaign.setCampaignId(storeCampaign.getCampaignId());
-                db.updateAdGroup(storeAcct.getYahooAccessToken(), modifiedStoreCampaign);
+                Response result = db.updateAdGroup(storeAcct.getYahooAccessToken(), modifiedStoreCampaign);
 
-                databaseService.update(storeCampaign);
+                if (result.getStatus() == Status.OK.getStatusCode()) {
+                    databaseService.update(storeCampaign);
+                } else {
+                    return result;
+                }
             }
         } catch (Exception e) {
             return errorResponse(ERR_LOCAL_DB, Status.INTERNAL_SERVER_ERROR, "Failed to fetch the campaign=%s: %s", id, e.getMessage());

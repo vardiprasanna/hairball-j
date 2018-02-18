@@ -38,7 +38,7 @@ module.exports = module.exports.toString();
 /***/ "../../../../../src/app/app.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<div class=\"app-root\" *ngIf=\"app_loaded\">\n  <div class=\"app-header-group\">\n    <div class=\"app-header\">\n      <div class=\"app-header-label\"></div>\n      <div>GEMINI</div>\n    </div>\n    <div>\n      <i class=\"fa fa-hand-o-right\" aria-hidden=\"true\"></i>\n      <a class=\"app-header-contact\" href=\"https://www.oath.com/advertising/contact-us/\" target=\"_blank\">Contact Us</a>\n    </div>\n  </div>\n  <div class=\"app-header-sub\">\n    {{ environment.appTitle }}\n  </div>\n  <div class=\"alert alert-warning app-alert\" role=\"alert\" [hidden]=\"!alert_msg\">\n    <button type=\"button\" class=\"close\" data-dismiss=\"alert\">&times;</button>\n    {{ alert_msg }}.\n  </div>\n  <router-outlet></router-outlet>\n</div>\n"
+module.exports = "<div class=\"app-root\" *ngIf=\"app_loaded\">\n  <div class=\"app-header-group\">\n    <div class=\"app-header\">\n      <div class=\"app-header-label\"></div>\n      <div>GEMINI</div>\n    </div>\n    <div>\n      <i class=\"fa fa-hand-o-right\" aria-hidden=\"true\"></i>\n      <a class=\"app-header-contact\" href=\"https://www.oath.com/advertising/contact-us/\" target=\"_blank\">Contact Us</a>\n    </div>\n  </div>\n  <div class=\"app-header-sub\">\n    {{ environment.appTitle }}\n  </div>\n  <div [ngClass]=\"alert_css\" role=\"alert\" [hidden]=\"!alert_msg\">\n    <button type=\"button\" class=\"close\" data-dismiss=\"alert\">&times;</button>\n    {{ alert_msg }}.\n  </div>\n  <router-outlet></router-outlet>\n</div>\n"
 
 /***/ }),
 
@@ -79,7 +79,7 @@ var AppComponent = (function () {
         this.environment = __WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */];
         this.messageService.on()
             .subscribe(function (msg) {
-            _this.alert_css = 'alert-' + msg.severity;
+            _this.alert_css = 'alert app-alert alert-' + msg.severity;
             _this.alert_msg = msg.text;
         });
     }
@@ -749,6 +749,8 @@ module.exports = "<form #campaignForm=\"ngForm\" *ngIf=\"campaign_config_loaded 
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__("../../../core/esm5/core.js");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__services_campaign_service__ = __webpack_require__("../../../../../src/app/services/campaign.service.ts");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__model_campaign__ = __webpack_require__("../../../../../src/app/model/campaign.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__services_message_service__ = __webpack_require__("../../../../../src/app/services/message.service.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__environments_environment__ = __webpack_require__("../../../../../src/environments/environment.ts");
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -761,8 +763,11 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 
 
 
+
+
 var CampaignConfigComponent = (function () {
-    function CampaignConfigComponent(campaignService) {
+    function CampaignConfigComponent(messageService, campaignService) {
+        this.messageService = messageService;
         this.campaignService = campaignService;
         this.campaign_config_loaded = false;
         this.is_changed = false;
@@ -802,17 +807,46 @@ var CampaignConfigComponent = (function () {
         if (!this.campaign_original || !this.campaign) {
             return; // cannot update because we're not even able to load the campaign
         }
-        if (this.campaign.price >= 0 && this.campaign.budget >= 0) {
-            this.campaignService.updateCampaign(this.campaignId, this.campaign).then(function () {
-                _this.campaign_original.price = _this.campaign.price;
-                _this.campaign_original.budget = _this.campaign.budget;
-            }, function (err) {
-                _this.campaign_config_loaded_err = (err.message ? err.message : JSON.stringify(err));
-            });
+        var errorMsg;
+        /**
+         * Valid price and budget values
+         */
+        if (this.campaign.price < 0.05) {
+            errorMsg = __WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].geminiMinBidPrice;
         }
-        else {
-            console.log('invalid amount: ' + JSON.stringify(this.campaign));
+        else if (this.campaign.budget < 5) {
+            errorMsg = __WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].geminiMinBidBudget;
         }
+        else if ((this.campaign.price * 50) > this.campaign.budget) {
+            var price = this.campaign.budget / 50;
+            errorMsg = __WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].geminiMaxBidPrice.replace('\${price}', '' + price);
+        }
+        if (errorMsg) {
+            this.campaign.price = this.campaign_original.price;
+            this.campaign.budget = this.campaign_original.budget;
+            this.messageService.push(errorMsg);
+            this.is_changed = false;
+            return false;
+        }
+        /**
+         * Update the price and/or budget
+         */
+        this.campaignService.updateCampaign(this.campaignId, this.campaign).then(function () {
+            _this.campaign_original.price = _this.campaign.price;
+            _this.campaign_original.budget = _this.campaign.budget;
+            _this.is_changed = false;
+        }, function (err) {
+            if (err.error && err.error.message) {
+                errorMsg = err.error.message;
+            }
+            else {
+                errorMsg = (err.message ? err.message : JSON.stringify(err));
+            }
+            _this.campaign.price = _this.campaign_original.price;
+            _this.campaign.budget = _this.campaign_original.budget;
+            _this.messageService.push(errorMsg, 'danger');
+            _this.is_changed = false;
+        });
         return false;
     };
     CampaignConfigComponent.prototype.updateStatus = function () {
@@ -846,7 +880,7 @@ var CampaignConfigComponent = (function () {
             template: __webpack_require__("../../../../../src/app/components/campaign-config/campaign-config.component.html"),
             styles: [__webpack_require__("../../../../../src/app/components/campaign-config/campaign-config.component.css")]
         }),
-        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1__services_campaign_service__["a" /* CampaignService */]])
+        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_3__services_message_service__["a" /* MessageService */], __WEBPACK_IMPORTED_MODULE_1__services_campaign_service__["a" /* CampaignService */]])
     ], CampaignConfigComponent);
     return CampaignConfigComponent;
 }());
@@ -1818,6 +1852,9 @@ var environment = {
     appTitle: 'promote your products and bring users to your site',
     geminiAcctInvalid: 'A Yahoo account you used to sign in has no Gemini access.',
     geminiAcctInactive: 'Your Yahoo Gemini account is inactive. Please click the contact link at top left to reach out to Oath for support.',
+    geminiMaxBidPrice: 'Maximum bid is ${price}. To bid higher, raise budget to 50 times your desired bid',
+    geminiMinBidPrice: 'Minimum bid is $0.05',
+    geminiMinBidBudget: 'Minimum budget is $5.00',
     geminiHomeUrl: 'https://gemini.yahoo.com/advertiser/home',
     geminiSigInMessage: 'You will be redirected to Yahoo\'s login page, and then automatically brought back here once you\'re done.',
     geminiSigUpMessage: 'You will be redirected to Yahoo Gemini page to create a new account. Make sure that you complete your billing info as well because otherwise your product ads will not be served.'

@@ -1,6 +1,8 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { CampaignService } from '../../services/campaign.service';
 import { Campaign } from '../../model/campaign';
+import { MessageService } from '../../services/message.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-campaign-config',
@@ -19,7 +21,7 @@ export class CampaignConfigComponent implements OnInit {
   campaign_config_loaded_err: any;
   is_changed = false;
 
-  constructor(private campaignService: CampaignService) {
+  constructor(private messageService: MessageService, private campaignService: CampaignService) {
     this.campaign = new Campaign();
   }
 
@@ -57,16 +59,49 @@ export class CampaignConfigComponent implements OnInit {
     if (!this.campaign_original || !this.campaign) {
       return; // cannot update because we're not even able to load the campaign
     }
-    if (this.campaign.price >= 0 && this.campaign.budget >= 0) {
-      this.campaignService.updateCampaign(this.campaignId, this.campaign).then(() => {
-        this.campaign_original.price = this.campaign.price;
-        this.campaign_original.budget = this.campaign.budget;
-      }, err => {
-        this.campaign_config_loaded_err = (err.message ? err.message : JSON.stringify(err));
-      });
-    } else {
-      console.log('invalid amount: ' + JSON.stringify(this.campaign));
+
+    let errorMsg: string;
+    /**
+     * Valid price and budget values
+     */
+    if (this.campaign.price < 0.05) {
+      errorMsg = environment.geminiMinBidPrice;
+    } else if (this.campaign.budget < 5) {
+      errorMsg = environment.geminiMinBidBudget;
+    } else if ((this.campaign.price * 50) > this.campaign.budget) {
+      const price = this.campaign.budget / 50;
+      errorMsg = environment.geminiMaxBidPrice.replace('\${price}', '' + price);
     }
+
+    if (errorMsg) {
+      this.campaign.price = this.campaign_original.price;
+      this.campaign.budget = this.campaign_original.budget;
+      this.messageService.push(errorMsg);
+      this.is_changed = false;
+      return false;
+    }
+
+    /**
+     * Update the price and/or budget
+     */
+    this.campaignService.updateCampaign(this.campaignId, this.campaign).then(() => {
+      this.campaign_original.price = this.campaign.price;
+      this.campaign_original.budget = this.campaign.budget;
+      this.is_changed = false;
+
+    }, err => {
+      if (err.error && err.error.message) {
+        errorMsg = err.error.message;
+      } else {
+        errorMsg = (err.message ? err.message : JSON.stringify(err));
+      }
+
+      this.campaign.price = this.campaign_original.price;
+      this.campaign.budget = this.campaign_original.budget;
+      this.messageService.push(errorMsg, 'danger');
+      this.is_changed = false;
+    });
+
     return false;
   }
 

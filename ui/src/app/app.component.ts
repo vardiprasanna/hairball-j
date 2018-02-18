@@ -26,7 +26,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
     this.messageService.on()
       .subscribe(msg => {
-        this.alert_css = 'alert-' + msg.severity;
+        this.alert_css = 'alert app-alert alert-' + msg.severity;
         this.alert_msg = msg.text;
       });
   }

@@ -113,6 +113,12 @@ public class EWSClientService {
                         response.setObjects(ewsObjects);
                     }
 
+                    if (errorMsg.has("errors")) {
+                        JsonNode errorNode = errorMsg.get("errors");
+                        if (errorNode.has(0) && errorNode.get(0).has("message")) {
+                            response.setBrief(errorNode.get(0).get("message").asText());
+                        }
+                    }
                     if (errorMsg.has("timestamp")) {
                         response.setTimestamp(errorMsg.get("timestamp").toString());
                     }
