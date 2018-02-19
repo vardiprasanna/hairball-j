@@ -53,6 +53,7 @@ module.exports = "<div class=\"app-root\" *ngIf=\"app_loaded\">\n  <div class=\"
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__services_message_service__ = __webpack_require__("../../../../../src/app/services/message.service.ts");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__environments_environment__ = __webpack_require__("../../../../../src/environments/environment.ts");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5_rxjs_add_operator_take__ = __webpack_require__("../../../../rxjs/_esm5/add/operator/take.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6_rxjs_observable_TimerObservable__ = __webpack_require__("../../../../rxjs/_esm5/observable/TimerObservable.js");
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -62,6 +63,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+
 
 
 
@@ -79,8 +81,15 @@ var AppComponent = (function () {
         this.environment = __WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */];
         this.messageService.on()
             .subscribe(function (msg) {
+            _this.messageService.pop();
             _this.alert_css = 'alert app-alert alert-' + msg.severity;
             _this.alert_msg = msg.text;
+            if (msg.duration && msg.duration > 0) {
+                // const wait = (msg.duration < 1000 ? 1000 : msg.duration);
+                __WEBPACK_IMPORTED_MODULE_6_rxjs_observable_TimerObservable__["a" /* TimerObservable */].create(2000).subscribe(function () {
+                    _this.alert_msg = null;
+                });
+            }
         });
     }
     AppComponent_1 = AppComponent;
@@ -838,6 +847,7 @@ var CampaignConfigComponent = (function () {
             _this.campaign_original.price = _this.campaign.price;
             _this.campaign_original.budget = _this.campaign.budget;
             _this.is_changed = false;
+            _this.messageService.push(__WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].geminiUpdateSuccessful, 'info', 10000);
         }, function (err) {
             if (err.error && err.error.message) {
                 errorMsg = err.error.message;
@@ -849,6 +859,7 @@ var CampaignConfigComponent = (function () {
             _this.campaign.budget = _this.campaign_original.budget;
             _this.messageService.push(errorMsg, 'danger');
             _this.is_changed = false;
+            console.log(err.message ? err.message : JSON.stringify(err));
         });
         return false;
     };
@@ -864,8 +875,22 @@ var CampaignConfigComponent = (function () {
         this.campaignService.updateCampaign(this.campaignId, cmp).then(function () {
             _this.campaign_original.is_running = !_this.campaign_original.is_running;
             _this.campaign.is_running = _this.campaign_original.is_running;
+            if (_this.campaign.is_running) {
+                _this.messageService.push(__WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].geminiStartSuccessful, 'info', 10000);
+            }
+            else {
+                _this.messageService.push(__WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].geminiStopSuccessful, 'info', 10000);
+            }
         }, function (err) {
-            _this.campaign_config_loaded_err = (err.message ? err.message : JSON.stringify(err));
+            var errorMsg;
+            if (err.error && err.error.message) {
+                errorMsg = err.error.message;
+            }
+            else {
+                errorMsg = (err.message ? err.message : JSON.stringify(err));
+            }
+            _this.messageService.push(errorMsg, 'danger');
+            console.log(err.message ? err.message : JSON.stringify(err));
         });
         return false;
     };
@@ -1792,7 +1817,14 @@ var MessageService = (function () {
     MessageService.prototype.isEmpty = function () {
         return !this.messages || this.messages.length === 0;
     };
-    MessageService.prototype.push = function (msg, type) {
+    /**
+     * A text message to be displayed
+     *
+     * @param {string} msg
+     * @param {string} type indicates the seriousness of the message
+     * @param {number} duration is how long the display lasts before it is closed automatically in milliseconds
+     */
+    MessageService.prototype.push = function (msg, type, duration) {
         if (!this.messages) {
             this.messages = [];
         }
@@ -1801,7 +1833,8 @@ var MessageService = (function () {
         }
         var typedMessage = {
             text: msg,
-            severity: type
+            severity: type,
+            duration: duration
         };
         this.messages.push(typedMessage);
         this.alertBroadcaster.next(typedMessage);
@@ -1876,7 +1909,10 @@ var environment = {
     geminiMinBidBudget: 'Minimum budget is $5.00',
     geminiHomeUrl: 'https://gemini.yahoo.com/advertiser/home',
     geminiSigInMessage: 'You will be redirected to Yahoo\'s login page, and then automatically brought back here once you\'re done.',
-    geminiSigUpMessage: 'You will be redirected to Yahoo Gemini page to create a new account. Make sure that you complete your billing info as well because otherwise your product ads will not be served.'
+    geminiSigUpMessage: 'You will be redirected to Yahoo Gemini page to create a new account. Make sure that you complete your billing info as well because otherwise your product ads will not be served.',
+    geminiUpdateSuccessful: 'Successfully updated.',
+    geminiStartSuccessful: 'Successfully started.',
+    geminiStopSuccessful: 'Successfully stopped.'
 };
 
 
