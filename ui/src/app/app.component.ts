@@ -5,6 +5,7 @@ import { MessageService } from './services/message.service';
 import { Account } from './model/account';
 import { environment } from '../environments/environment';
 import 'rxjs/add/operator/take';
+import { TimerObservable } from 'rxjs/observable/TimerObservable';
 
 @Component({
   selector: 'app-root',
@@ -26,8 +27,16 @@ export class AppComponent implements OnInit, OnDestroy {
 
     this.messageService.on()
       .subscribe(msg => {
+        this.messageService.pop();
         this.alert_css = 'alert app-alert alert-' + msg.severity;
         this.alert_msg = msg.text;
+
+        if (msg.duration && msg.duration > 0) {
+          // const wait = (msg.duration < 1000 ? 1000 : msg.duration);
+          TimerObservable.create(2000).subscribe(() => {
+            this.alert_msg = null;
+          });
+        }
       });
   }
 
