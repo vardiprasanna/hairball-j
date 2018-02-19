@@ -35,6 +35,10 @@ input.ng-invalid {
   border-left: 5px solid #a94442;
 }
 
+button.gemini-button:first-child {
+  margin-left: 0
+}
+
 button.gemini-button {
   margin: 0 10px;
 }
