@@ -7,6 +7,7 @@ import { Observable } from 'rxjs/Observable';
 export interface Message {
   text: string;
   severity?: string;
+  duration?: number;
 }
 
 @Injectable()
@@ -27,7 +28,14 @@ export class MessageService {
     return !this.messages || this.messages.length === 0;
   }
 
-  push(msg: string, type?: string): void {
+  /**
+   * A text message to be displayed
+   *
+   * @param {string} msg
+   * @param {string} type indicates the seriousness of the message
+   * @param {number} duration is how long the display lasts before it is closed automatically in milliseconds
+   */
+  push(msg: string, type?: string, duration?: number): void {
     if (!this.messages) {
       this.messages = [];
     }
@@ -37,7 +45,8 @@ export class MessageService {
 
     const typedMessage: Message = {
       text: msg,
-      severity: type
+      severity: type,
+      duration: duration
     };
     this.messages.push(typedMessage);
     this.alertBroadcaster.next(typedMessage);
