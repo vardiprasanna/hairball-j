@@ -88,6 +88,7 @@ export class CampaignConfigComponent implements OnInit {
       this.campaign_original.price = this.campaign.price;
       this.campaign_original.budget = this.campaign.budget;
       this.is_changed = false;
+      this.messageService.push(environment.geminiUpdateSuccessful, 'info', 10000);
 
     }, err => {
       if (err.error && err.error.message) {
@@ -100,6 +101,7 @@ export class CampaignConfigComponent implements OnInit {
       this.campaign.budget = this.campaign_original.budget;
       this.messageService.push(errorMsg, 'danger');
       this.is_changed = false;
+      console.log (err.message ? err.message : JSON.stringify(err));
     });
 
     return false;
@@ -117,8 +119,23 @@ export class CampaignConfigComponent implements OnInit {
     this.campaignService.updateCampaign(this.campaignId, cmp).then(() => {
       this.campaign_original.is_running = !this.campaign_original.is_running;
       this.campaign.is_running = this.campaign_original.is_running;
+
+      if (this.campaign.is_running) {
+        this.messageService.push(environment.geminiStartSuccessful, 'info', 10000);
+      } else {
+        this.messageService.push(environment.geminiStopSuccessful, 'info', 10000);
+      }
     }, err => {
-      this.campaign_config_loaded_err = (err.message ? err.message : JSON.stringify(err));
+      let errorMsg;
+
+      if (err.error && err.error.message) {
+        errorMsg = err.error.message;
+      } else {
+        errorMsg = (err.message ? err.message : JSON.stringify(err));
+      }
+
+      this.messageService.push(errorMsg, 'danger');
+      console.log (err.message ? err.message : JSON.stringify(err));
     });
     return false;
   }
