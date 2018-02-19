@@ -33,7 +33,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
         if (msg.duration && msg.duration > 0) {
           // const wait = (msg.duration < 1000 ? 1000 : msg.duration);
-          TimerObservable.create(2000).subscribe(() => {
+          TimerObservable.create(msg.duration).subscribe(() => {
             this.alert_msg = null;
           });
         }
@@ -160,5 +160,10 @@ export class AppComponent implements OnInit, OnDestroy {
       return campaignId;
     }
     return null; // 364670647; // TODO;
+  }
+
+  hideAlert(): boolean {
+    this.alert_msg = null;
+    return false;
   }
 }

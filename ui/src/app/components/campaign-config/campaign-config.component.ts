@@ -88,20 +88,16 @@ export class CampaignConfigComponent implements OnInit {
       this.campaign_original.price = this.campaign.price;
       this.campaign_original.budget = this.campaign.budget;
       this.is_changed = false;
-      this.messageService.push(environment.geminiUpdateSuccessful, 'info', 10000);
+      this.messageService.push(environment.geminiUpdateSuccessful, 'success', 8000);
 
     }, err => {
-      if (err.error && err.error.message) {
-        errorMsg = err.error.message;
-      } else {
-        errorMsg = (err.message ? err.message : JSON.stringify(err));
-      }
+      errorMsg = this.fetchErrorMessage(err);
 
       this.campaign.price = this.campaign_original.price;
       this.campaign.budget = this.campaign_original.budget;
       this.messageService.push(errorMsg, 'danger');
       this.is_changed = false;
-      console.log (err.message ? err.message : JSON.stringify(err));
+      console.log(err.message ? err.message : JSON.stringify(err));
     });
 
     return false;
@@ -121,22 +117,25 @@ export class CampaignConfigComponent implements OnInit {
       this.campaign.is_running = this.campaign_original.is_running;
 
       if (this.campaign.is_running) {
-        this.messageService.push(environment.geminiStartSuccessful, 'info', 10000);
+        this.messageService.push(environment.geminiStartSuccessful, 'success', 8000);
       } else {
-        this.messageService.push(environment.geminiStopSuccessful, 'info', 10000);
+        this.messageService.push(environment.geminiStopSuccessful, 'success', 8000);
       }
     }, err => {
-      let errorMsg;
-
-      if (err.error && err.error.message) {
-        errorMsg = err.error.message;
-      } else {
-        errorMsg = (err.message ? err.message : JSON.stringify(err));
-      }
-
+      const errorMsg = this.fetchErrorMessage(err);
       this.messageService.push(errorMsg, 'danger');
-      console.log (err.message ? err.message : JSON.stringify(err));
+      console.log(err.message ? err.message : JSON.stringify(err));
     });
     return false;
+  }
+
+  private fetchErrorMessage(err: any) {
+    if (err.error && err.error.message) {
+      return err.error.message;
+    }
+    if (err.error && err.error.brief) {
+      return err.error.brief;
+    }
+    return (err.message ? err.message : JSON.stringify(err));
   }
 }

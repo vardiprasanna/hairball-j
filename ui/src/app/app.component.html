@@ -13,7 +13,7 @@
     {{ environment.appTitle }}
   </div>
   <div [ngClass]="alert_css" role="alert" [hidden]="!alert_msg">
-    <button type="button" class="close" data-dismiss="alert">&times;</button>
+    <div class="close" (click)="hideAlert()">&times;</div>
     {{ alert_msg }}
   </div>
   <router-outlet></router-outlet>
