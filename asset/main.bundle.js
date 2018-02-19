@@ -38,7 +38,7 @@ module.exports = module.exports.toString();
 /***/ "../../../../../src/app/app.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<div class=\"app-root\" *ngIf=\"app_loaded\">\n  <div class=\"app-header-group\">\n    <div class=\"app-header\">\n      <div class=\"app-header-label\"></div>\n      <div>GEMINI</div>\n    </div>\n    <div>\n      <i class=\"fa fa-hand-o-right\" aria-hidden=\"true\"></i>\n      <a class=\"app-header-contact\" href=\"https://www.oath.com/advertising/contact-us/\" target=\"_blank\">Contact Us</a>\n    </div>\n  </div>\n  <div class=\"app-header-sub\">\n    {{ environment.appTitle }}\n  </div>\n  <div [ngClass]=\"alert_css\" role=\"alert\" [hidden]=\"!alert_msg\">\n    <button type=\"button\" class=\"close\" data-dismiss=\"alert\">&times;</button>\n    {{ alert_msg }}\n  </div>\n  <router-outlet></router-outlet>\n</div>\n"
+module.exports = "<div class=\"app-root\" *ngIf=\"app_loaded\">\n  <div class=\"app-header-group\">\n    <div class=\"app-header\">\n      <div class=\"app-header-label\"></div>\n      <div>GEMINI</div>\n    </div>\n    <div>\n      <i class=\"fa fa-hand-o-right\" aria-hidden=\"true\"></i>\n      <a class=\"app-header-contact\" href=\"https://www.oath.com/advertising/contact-us/\" target=\"_blank\">Contact Us</a>\n    </div>\n  </div>\n  <div class=\"app-header-sub\">\n    {{ environment.appTitle }}\n  </div>\n  <div [ngClass]=\"alert_css\" role=\"alert\" [hidden]=\"!alert_msg\">\n    <div class=\"close\" (click)=\"hideAlert()\">&times;</div>\n    {{ alert_msg }}\n  </div>\n  <router-outlet></router-outlet>\n</div>\n"
 
 /***/ }),
 
@@ -86,7 +86,7 @@ var AppComponent = (function () {
             _this.alert_msg = msg.text;
             if (msg.duration && msg.duration > 0) {
                 // const wait = (msg.duration < 1000 ? 1000 : msg.duration);
-                __WEBPACK_IMPORTED_MODULE_6_rxjs_observable_TimerObservable__["a" /* TimerObservable */].create(2000).subscribe(function () {
+                __WEBPACK_IMPORTED_MODULE_6_rxjs_observable_TimerObservable__["a" /* TimerObservable */].create(msg.duration).subscribe(function () {
                     _this.alert_msg = null;
                 });
             }
@@ -203,6 +203,10 @@ var AppComponent = (function () {
             return campaignId;
         }
         return null; // 364670647; // TODO;
+    };
+    AppComponent.prototype.hideAlert = function () {
+        this.alert_msg = null;
+        return false;
     };
     AppComponent = AppComponent_1 = __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["o" /* Component */])({
@@ -847,14 +851,9 @@ var CampaignConfigComponent = (function () {
             _this.campaign_original.price = _this.campaign.price;
             _this.campaign_original.budget = _this.campaign.budget;
             _this.is_changed = false;
-            _this.messageService.push(__WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].geminiUpdateSuccessful, 'info', 10000);
+            _this.messageService.push(__WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].geminiUpdateSuccessful, 'success', 8000);
         }, function (err) {
-            if (err.error && err.error.message) {
-                errorMsg = err.error.message;
-            }
-            else {
-                errorMsg = (err.message ? err.message : JSON.stringify(err));
-            }
+            errorMsg = _this.fetchErrorMessage(err);
             _this.campaign.price = _this.campaign_original.price;
             _this.campaign.budget = _this.campaign_original.budget;
             _this.messageService.push(errorMsg, 'danger');
@@ -876,23 +875,26 @@ var CampaignConfigComponent = (function () {
             _this.campaign_original.is_running = !_this.campaign_original.is_running;
             _this.campaign.is_running = _this.campaign_original.is_running;
             if (_this.campaign.is_running) {
-                _this.messageService.push(__WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].geminiStartSuccessful, 'info', 10000);
+                _this.messageService.push(__WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].geminiStartSuccessful, 'success', 8000);
             }
             else {
-                _this.messageService.push(__WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].geminiStopSuccessful, 'info', 10000);
+                _this.messageService.push(__WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].geminiStopSuccessful, 'success', 8000);
             }
         }, function (err) {
-            var errorMsg;
-            if (err.error && err.error.message) {
-                errorMsg = err.error.message;
-            }
-            else {
-                errorMsg = (err.message ? err.message : JSON.stringify(err));
-            }
+            var errorMsg = _this.fetchErrorMessage(err);
             _this.messageService.push(errorMsg, 'danger');
             console.log(err.message ? err.message : JSON.stringify(err));
         });
         return false;
+    };
+    CampaignConfigComponent.prototype.fetchErrorMessage = function (err) {
+        if (err.error && err.error.message) {
+            return err.error.message;
+        }
+        if (err.error && err.error.brief) {
+            return err.error.brief;
+        }
+        return (err.message ? err.message : JSON.stringify(err));
     };
     __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["G" /* Input */])(),
