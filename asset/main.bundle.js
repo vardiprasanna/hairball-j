@@ -383,7 +383,8 @@ module.exports = "<div class=\"campaign-chart-option container\" [hidden]=\"!rep
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_highcharts__ = __webpack_require__("../../../../highcharts/highcharts.js");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_highcharts___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_highcharts__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__services_campaign_service__ = __webpack_require__("../../../../../src/app/services/campaign.service.ts");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__model_metric__ = __webpack_require__("../../../../../src/app/model/metric.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__services_message_service__ = __webpack_require__("../../../../../src/app/services/message.service.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__model_metric__ = __webpack_require__("../../../../../src/app/model/metric.ts");
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -393,6 +394,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+
 
 
 
@@ -441,7 +443,8 @@ var report_choices = [
 var LIGHT_PINK = '#D050D0';
 var LIGHT_BLUE = 'DeepSkyBlue';
 var CampaignChartComponent = (function () {
-    function CampaignChartComponent(campaignService) {
+    function CampaignChartComponent(messageService, campaignService) {
+        this.messageService = messageService;
         this.campaignService = campaignService;
         this.report_choices = report_choices; // define a local to work around angular's static var access
         this.report_loaded = false;
@@ -456,7 +459,7 @@ var CampaignChartComponent = (function () {
         var days = [];
         var one_day = 24 * 3600 * 1000;
         for (var next_date = start_date.getTime(); next_date <= end_date.getTime(); next_date += one_day) {
-            days.push(__WEBPACK_IMPORTED_MODULE_3__model_metric__["a" /* Metric */].dateFormat(new Date(next_date)));
+            days.push(__WEBPACK_IMPORTED_MODULE_4__model_metric__["a" /* Metric */].dateFormat(new Date(next_date)));
         }
         return days;
     };
@@ -473,19 +476,27 @@ var CampaignChartComponent = (function () {
             campaignId: this.campaignId,
             rollup: 'Day'
         };
-        this.stats = new __WEBPACK_IMPORTED_MODULE_3__model_metric__["a" /* Metric */]();
+        this.stats = new __WEBPACK_IMPORTED_MODULE_4__model_metric__["a" /* Metric */]();
         var opt = this.current_report;
         var query = this.stats.prepareQuery(opt.advertiserId, opt.campaignId, opt.rollup, opt.stats_x_start, opt.stats_x_end);
         this.campaignService.getMetric(this.campaignId, query).then(function (rpt) {
-            _this.stats.reset(rpt);
-            _this.initChart(opt);
-            _this.report_empty = (_this.stats.dataRows == null || _this.stats.dataRows.length === 0);
-            _this.report_loaded = true;
-            _this.report_loaded_err = null;
+            try {
+                _this.stats.reset(rpt);
+                _this.initChart(opt);
+                _this.report_empty = (_this.stats.dataRows == null || _this.stats.dataRows.length === 0);
+                _this.report_loaded_err = null;
+            }
+            catch (err) {
+                _this.report_empty = true;
+                _this.messageService.push(_this.fetchErrorMessage(err), 'danger');
+                console.log(err.message ? err.message : JSON.stringify(err));
+            }
         }, function (err) {
             _this.report_empty = true;
+            _this.messageService.push(_this.fetchErrorMessage(err), 'danger');
+            console.log(err.message ? err.message : JSON.stringify(err));
+        }).then(function () {
             _this.report_loaded = true;
-            _this.report_loaded_err = (err.message ? err.message : JSON.stringify(err));
         });
     };
     CampaignChartComponent.prototype.ngAfterContentInit = function () {
@@ -572,12 +583,23 @@ var CampaignChartComponent = (function () {
         var query = this.stats.prepareQuery(new_report.advertiserId, new_report.campaignId, new_report.rollup, new_report.stats_x_start, new_report.stats_x_end);
         // Load a new report, and update a current report options afterward
         this.campaignService.getMetric(this.campaignId, query).then(function (rpt) {
-            _this.stats.reset(rpt);
-            _this.updateChart(new_report);
-            // console.log('report data: ' + JSON.stringify(rpt));
-            report_choices[_this.current_report.report_choice_idx].selected = false;
-            report_choices[new_report.report_choice_idx].selected = true;
-            _this.current_report = new_report;
+            try {
+                _this.stats.reset(rpt);
+                _this.updateChart(new_report);
+                // console.log('report data: ' + JSON.stringify(rpt));
+                report_choices[_this.current_report.report_choice_idx].selected = false;
+                report_choices[new_report.report_choice_idx].selected = true;
+                _this.current_report = new_report;
+            }
+            catch (err) {
+                _this.report_empty = true;
+                _this.messageService.push(_this.fetchErrorMessage(err), 'danger');
+                console.log(err.message ? err.message : JSON.stringify(err));
+            }
+        }, function (err) {
+            _this.report_empty = true;
+            _this.messageService.push(_this.fetchErrorMessage(err), 'danger');
+            console.log(err.message ? err.message : JSON.stringify(err));
         });
         return false;
     };
@@ -704,6 +726,15 @@ var CampaignChartComponent = (function () {
         }
         return col_data;
     };
+    CampaignChartComponent.prototype.fetchErrorMessage = function (err) {
+        if (err.error && err.error.message) {
+            return err.error.message;
+        }
+        if (err.error && err.error.brief) {
+            return err.error.brief;
+        }
+        return (err.message ? err.message : JSON.stringify(err));
+    };
     __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["G" /* Input */])(),
         __metadata("design:type", Number)
@@ -722,7 +753,7 @@ var CampaignChartComponent = (function () {
             template: __webpack_require__("../../../../../src/app/components/campaign-chart/campaign-chart.component.html"),
             styles: [__webpack_require__("../../../../../src/app/components/campaign-chart/campaign-chart.component.css")]
         }),
-        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_2__services_campaign_service__["a" /* CampaignService */]])
+        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_3__services_message_service__["a" /* MessageService */], __WEBPACK_IMPORTED_MODULE_2__services_campaign_service__["a" /* CampaignService */]])
     ], CampaignChartComponent);
     return CampaignChartComponent;
     var CampaignChartComponent_1;
@@ -851,7 +882,7 @@ var CampaignConfigComponent = (function () {
             _this.campaign_original.price = _this.campaign.price;
             _this.campaign_original.budget = _this.campaign.budget;
             _this.is_changed = false;
-            _this.messageService.push(__WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].geminiUpdateSuccessful, 'success', 8000);
+            _this.messageService.push(__WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].geminiUpdateSuccessful, 'success', 5000);
         }, function (err) {
             errorMsg = _this.fetchErrorMessage(err);
             _this.campaign.price = _this.campaign_original.price;
@@ -875,10 +906,10 @@ var CampaignConfigComponent = (function () {
             _this.campaign_original.is_running = !_this.campaign_original.is_running;
             _this.campaign.is_running = _this.campaign_original.is_running;
             if (_this.campaign.is_running) {
-                _this.messageService.push(__WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].geminiStartSuccessful, 'success', 8000);
+                _this.messageService.push(__WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].geminiStartSuccessful, 'success', 5000);
             }
             else {
-                _this.messageService.push(__WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].geminiStopSuccessful, 'success', 8000);
+                _this.messageService.push(__WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].geminiStopSuccessful, 'success', 5000);
             }
         }, function (err) {
             var errorMsg = _this.fetchErrorMessage(err);

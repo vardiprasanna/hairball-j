@@ -88,7 +88,7 @@ export class CampaignConfigComponent implements OnInit {
       this.campaign_original.price = this.campaign.price;
       this.campaign_original.budget = this.campaign.budget;
       this.is_changed = false;
-      this.messageService.push(environment.geminiUpdateSuccessful, 'success', 8000);
+      this.messageService.push(environment.geminiUpdateSuccessful, 'success', 5000);
 
     }, err => {
       errorMsg = this.fetchErrorMessage(err);
@@ -117,9 +117,9 @@ export class CampaignConfigComponent implements OnInit {
       this.campaign.is_running = this.campaign_original.is_running;
 
       if (this.campaign.is_running) {
-        this.messageService.push(environment.geminiStartSuccessful, 'success', 8000);
+        this.messageService.push(environment.geminiStartSuccessful, 'success', 5000);
       } else {
-        this.messageService.push(environment.geminiStopSuccessful, 'success', 8000);
+        this.messageService.push(environment.geminiStopSuccessful, 'success', 5000);
       }
     }, err => {
       const errorMsg = this.fetchErrorMessage(err);
