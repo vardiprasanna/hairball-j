@@ -2,6 +2,7 @@ import { AfterContentInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, 
 import { chart } from 'highcharts';
 
 import { CampaignService } from '../../services/campaign.service';
+import { MessageService } from '../../services/message.service';
 import { Metric } from '../../model/metric';
 
 const stats_options = {
@@ -83,7 +84,7 @@ export class CampaignChartComponent implements OnInit, AfterContentInit, OnDestr
   report_empty = true;
   stats: Metric;
 
-  constructor(private campaignService: CampaignService) {
+  constructor(private messageService: MessageService, private campaignService: CampaignService) {
   }
 
   private static subtractDays(srcDate: Date, days: number): Date {
@@ -119,17 +120,25 @@ export class CampaignChartComponent implements OnInit, AfterContentInit, OnDestr
     const query = this.stats.prepareQuery(opt.advertiserId, opt.campaignId, opt.rollup, opt.stats_x_start, opt.stats_x_end);
 
     this.campaignService.getMetric(this.campaignId, query).then(rpt => {
-      this.stats.reset(rpt);
-      this.initChart(opt);
+      try {
+        this.stats.reset(rpt);
+        this.initChart(opt);
 
-      this.report_empty = (this.stats.dataRows == null || this.stats.dataRows.length === 0);
-      this.report_loaded = true;
-      this.report_loaded_err = null;
+        this.report_empty = (this.stats.dataRows == null || this.stats.dataRows.length === 0);
+        this.report_loaded_err = null;
+      } catch (err) {
+        this.report_empty = true;
+        this.messageService.push(this.fetchErrorMessage(err), 'danger');
+        console.log(err.message ? err.message : JSON.stringify(err));
+      }
     }, err => {
       this.report_empty = true;
-      this.report_loaded = true;
-      this.report_loaded_err = (err.message ? err.message : JSON.stringify(err));
-    });
+      this.messageService.push(this.fetchErrorMessage(err), 'danger');
+      console.log(err.message ? err.message : JSON.stringify(err));
+    }).then(() => {
+        this.report_loaded = true;
+      }
+    );
   }
 
   ngAfterContentInit() {
@@ -232,13 +241,23 @@ export class CampaignChartComponent implements OnInit, AfterContentInit, OnDestr
 
     // Load a new report, and update a current report options afterward
     this.campaignService.getMetric(this.campaignId, query).then(rpt => {
-      this.stats.reset(rpt);
-      this.updateChart(new_report);
+      try {
+        this.stats.reset(rpt);
+        this.updateChart(new_report);
 
-      // console.log('report data: ' + JSON.stringify(rpt));
-      report_choices[this.current_report.report_choice_idx].selected = false;
-      report_choices[new_report.report_choice_idx].selected = true;
-      this.current_report = new_report;
+        // console.log('report data: ' + JSON.stringify(rpt));
+        report_choices[this.current_report.report_choice_idx].selected = false;
+        report_choices[new_report.report_choice_idx].selected = true;
+        this.current_report = new_report;
+      } catch (err) {
+        this.report_empty = true;
+        this.messageService.push(this.fetchErrorMessage(err), 'danger');
+        console.log(err.message ? err.message : JSON.stringify(err));
+      }
+    }, err => {
+      this.report_empty = true;
+      this.messageService.push(this.fetchErrorMessage(err), 'danger');
+      console.log(err.message ? err.message : JSON.stringify(err));
     });
 
     return false;
@@ -384,5 +403,15 @@ export class CampaignChartComponent implements OnInit, AfterContentInit, OnDestr
       }
     }
     return col_data;
+  }
+
+  private fetchErrorMessage(err: any) {
+    if (err.error && err.error.message) {
+      return err.error.message;
+    }
+    if (err.error && err.error.brief) {
+      return err.error.brief;
+    }
+    return (err.message ? err.message : JSON.stringify(err));
   }
 }
