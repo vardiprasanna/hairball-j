@@ -226,23 +226,17 @@ public class DatabaseService {
         File f2 = new File(appPath + "/db/dev.properties");
         File f3 = new File(appPath + "/db/dev.script");
         //delete existing db files to restore them from backup
-        if (f1.delete()) {
-            log.info("Able to delete file dev.lobs");
-        }
-        if (f2.delete()) {
-            log.info("Able to delete file dev.properties");
-        }
-        if (f3.delete()) {
-            log.info("Able to delete file dev.script");
+        if (f1.delete() && f2.delete() &&  f3.delete()) {
+            log.info("Able to delete files from db");
         }
 
+        if (!directory.endsWith("/")) {
+            directory += "/";
+        }
         //Restoring the backed up files
         try {
-            if (!directory.endsWith("/")) {
-                directory += "/";
-            }
             if (!directory.isEmpty()) {
-                DbBackupMain.main(new String[] { "--extract", directory, appPath+"/db/" });
+                DbBackupMain.main(new String[] { "--extract", directory, appPath + "/db/" });
             }
         } catch (TarMalformatException e) {
             e.printStackTrace();
