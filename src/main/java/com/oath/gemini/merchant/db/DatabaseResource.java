@@ -20,6 +20,7 @@ import com.oath.gemini.merchant.ews.json.BidSetArrayData;
 import com.oath.gemini.merchant.ews.json.BidSetData;
 import com.oath.gemini.merchant.ews.json.CampaignData;
 import java.io.IOException;
+import java.io.File;
 import java.math.BigDecimal;
 import java.net.InetAddress;
 import java.nio.file.Files;
@@ -172,7 +173,7 @@ public class DatabaseResource {
             });
         } finally {
             // Remove this temporary directory
-            Files.delete(path);
+            //Files.delete(path);
         }
 
         ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -199,7 +200,7 @@ public class DatabaseResource {
     @Path("restore")
     public Response restore() throws IOException {
         java.nio.file.Path localPath = null;
-        String toFile = null;
+        File toFile = null;
 
         try {
             localPath = Files.createTempDirectory("hairball-Restore-");
@@ -213,8 +214,8 @@ public class DatabaseResource {
                     FTPFile file = extractLatestFile(ftpFiles);
                     String fromFile = remoteBackUpDir + file.getName();
                     if (ftpClient.exits(fromFile)) {
-                        toFile = localPath.toString() + "/" + file.getName();
-                        ftpClient.copyFrom(fromFile, toFile);
+                        toFile = new File (localPath.toString() + "/" + file.getName());
+                        ftpClient.copyFrom(fromFile, toFile.toString());
                     }
                 }
             } else {
