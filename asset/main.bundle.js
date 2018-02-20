@@ -1321,6 +1321,7 @@ module.exports = ""
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__services_campaign_service__ = __webpack_require__("../../../../../src/app/services/campaign.service.ts");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__services_message_service__ = __webpack_require__("../../../../../src/app/services/message.service.ts");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_rxjs_add_operator_takeWhile__ = __webpack_require__("../../../../rxjs/_esm5/add/operator/takeWhile.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__environments_environment__ = __webpack_require__("../../../../../src/environments/environment.ts");
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -1330,6 +1331,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+
 
 
 
@@ -1460,11 +1462,16 @@ var ShopifyComponent = (function () {
             _this.shopify_loaded = true;
             console.log('afterYAuth with acct: ' + JSON.stringify(acct));
             // User may install and uninstall our app n-number of times. So the account may come from a previous installation, so we should ask user's permission
-            if (acct && acct.hasValidYahooToken()) {
-                _this.redirectForShopifyAccess();
+            if (!acct || !acct.hasValidYahooToken()) {
+                _this.router.navigateByUrl('f/login', { skipLocationChange: true });
+            }
+            else if (!acct.adv_id) {
+                // With a valid Yahoo OAuth token but not a Gemini account ID
+                _this.messageService.push(__WEBPACK_IMPORTED_MODULE_5__environments_environment__["a" /* environment */].geminiAcctInvalid, 'danger');
+                _this.router.navigateByUrl('f/login', { skipLocationChange: true });
             }
             else {
-                _this.router.navigateByUrl('f/login', { skipLocationChange: true });
+                _this.redirectForShopifyAccess();
             }
         });
     };
@@ -1942,7 +1949,7 @@ var environment = {
     geminiMinBidBudget: 'Minimum budget is $5.00',
     geminiHomeUrl: 'https://gemini.yahoo.com/advertiser/home',
     geminiSigInMessage: 'You will be redirected to Yahoo\'s login page, and then automatically brought back here once you\'re done.',
-    geminiSigUpMessage: 'You will be redirected to Yahoo Gemini page to create a new account. Make sure that you complete your billing info as well because otherwise your product ads will not be served.',
+    geminiSigUpMessage: "You will be redirected to Yahoo Gemini page to create a new account.\n                          Make sure that you complete your billing info as well because otherwise your product ads will not be served.",
     geminiUpdateSuccessful: 'Successfully updated.',
     geminiStartSuccessful: 'Successfully started.',
     geminiStopSuccessful: 'Successfully stopped.'

@@ -5,6 +5,7 @@ import { CampaignService } from '../../services/campaign.service';
 import { MessageService } from '../../services/message.service';
 import { Account } from '../../model/account';
 import 'rxjs/add/operator/takeWhile';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-shopify',
@@ -136,10 +137,14 @@ export class ShopifyComponent implements OnInit {
       console.log('afterYAuth with acct: ' + JSON.stringify(acct));
 
       // User may install and uninstall our app n-number of times. So the account may come from a previous installation, so we should ask user's permission
-      if (acct && acct.hasValidYahooToken()) {
-        this.redirectForShopifyAccess();
-      } else {
+      if (!acct || !acct.hasValidYahooToken()) {
         this.router.navigateByUrl('f/login', {skipLocationChange: true});
+      } else if (!acct.adv_id) {
+        // With a valid Yahoo OAuth token but not a Gemini account ID
+        this.messageService.push(environment.geminiAcctInvalid, 'danger');
+        this.router.navigateByUrl('f/login', {skipLocationChange: true});
+      } else {
+        this.redirectForShopifyAccess();
       }
     });
   }
