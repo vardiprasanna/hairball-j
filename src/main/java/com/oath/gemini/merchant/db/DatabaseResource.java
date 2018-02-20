@@ -173,7 +173,7 @@ public class DatabaseResource {
             });
         } finally {
             // Remove this temporary directory
-            //Files.delete(path);
+            Files.delete(path);
         }
 
         ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
