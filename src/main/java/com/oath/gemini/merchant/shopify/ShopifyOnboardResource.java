@@ -336,8 +336,6 @@ public class ShopifyOnboardResource {
             try {
                 // Prepare Yahoo authentication URI
                 String yahooAuthUrl = config.getString("y.oauth.auth.request.url");
-
-                rd = HttpUtils.forceToUseHttps(rd);
                 rd = buildQueries(rd, "shop", shop);
 
                 yahooAuthUrl = yahooAuthUrl.replace("${y.oauth.redirect}", URLEncoder.encode(rd, "UTF-8"));
@@ -345,8 +343,7 @@ public class ShopifyOnboardResource {
 
                 // Prepare Shopify authentication URI
                 String path = info.getAbsolutePath().toString();
-                String redirectUrl = HttpUtils
-                        .forceToUseHttps(path.substring(0, path.indexOf("/", 8)) + "/index.html?route=f/shopify/home"); // skip "https://"
+                String redirectUrl = HttpUtils.forceToUseHttps(path.substring(0, path.indexOf("/", 8)) + "/index.html?route=f/shopify/home"); // skip "https://"
                 URI uri = buildScopeRequestUrl(keyEntry, shop, redirectUrl);
                 accountDTO.setStoreAuthUrl(uri.toString());
             } catch (Exception e) {

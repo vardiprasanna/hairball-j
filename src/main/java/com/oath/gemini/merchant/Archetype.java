@@ -216,6 +216,9 @@ public class Archetype {
             for (AdGroupData g : adGroupResponse.getObjects()) {
                 if (g.getAdGroupName().contains(entityAutoGenName) && g.getStatus() != EWSConstant.StatusEnum.DELETED) {
                     adGroupData = changeStatus(AdGroupData.class, g, StatusEnum.ACTIVE, EWSEndpointEnum.ADGROUP_OPS);
+                    if (adGroupData == null) {
+                        adGroupData = g;
+                    }
                     break;
                 }
             }
@@ -228,7 +231,7 @@ public class Archetype {
 
             bidSetData.setChannel(EWSConstant.ChannelEnum.NATIVE);
             bidSetData.setPriceType(EWSConstant.PriceTypeEnum.CPC);
-            bidSetData.setValue(0.2f); // TODO
+            bidSetData.setValue(Math.min(cmp.getBudget().floatValue() / 50, 0.2f)); // Gemini requires budget to be minimum 50 times
             bidSet.setBids(new BidSetData[] { bidSetData });
 
             group.setStatus(EWSConstant.StatusEnum.ACTIVE);
@@ -259,6 +262,9 @@ public class Archetype {
             for (ProductFeedData fs : feedResponse.getObjects()) {
                 if (fs.getFileName().equals(feedFileName) && fs.getStatus() != StatusEnum.DELETED) {
                     productFeedData = changeStatus(ProductFeedData.class, fs, StatusEnum.ACTIVE, EWSEndpointEnum.PRODUCT_FEED_OPS);
+                    if (productFeedData == null) {
+                        productFeedData = fs;
+                    }
                 }
             }
         }
