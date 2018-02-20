@@ -225,12 +225,31 @@ public class DatabaseResource {
             log.info("Not able to read the file");
         }
 
+        List<String> successful = new ArrayList<>();
+        List<String> failure = new ArrayList<>();
+        failure.add(toFile.toString());
         try {
             databaseService.restore(toFile.toString());
+            successful.add(toFile.toString());
+            failure.remove(toFile.toString());
         } catch (Exception e) {
             return badRequest("failed to restore database", e);
         }
-        return Response.ok().build();
+        ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        ObjectNode objectNode = mapper.createObjectNode();
+
+        if (successful.size() > 0) {
+            ArrayNode arrayNode = mapper.createArrayNode();
+            successful.stream().forEach(f -> arrayNode.add(f));
+            objectNode.set("successful", arrayNode);
+        }
+        if (failure.size() > 0) {
+            ArrayNode arrayNode = mapper.createArrayNode();
+            successful.stream().forEach(f -> arrayNode.add(f));
+            objectNode.set("failure", arrayNode);
+        }
+
+        return Response.ok(objectNode).build();
     }
 
     /**
