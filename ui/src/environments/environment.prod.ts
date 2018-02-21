@@ -20,6 +20,6 @@ export const environment = {
   geminiStartSuccessful: 'Successfully started.',
   geminiStopSuccessful: 'Successfully stopped.',
   installInst0: `Sign in to Yahoo Gemini account in order to use this application. If you do not have an account with Gemini, click on the register button and follow the steps.`,
-  installInst1: 'During signing in, you will be asked to grant the access of your Gemini account.',
+  installInst1: 'When signing in, you will be asked to allow us to access your Gemini account.',
   installInst2: `Before a Gemini product campaign can be setup, you will be asked to grant Gemini to view your Shopify products and add a product pixel. Gemini will not view your customers or orders.`
 };
