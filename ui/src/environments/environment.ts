@@ -23,5 +23,8 @@ export const environment = {
                           Make sure that you complete your billing info as well because otherwise your product ads will not be served.`,
   geminiUpdateSuccessful: 'Successfully updated.',
   geminiStartSuccessful: 'Successfully started.',
-  geminiStopSuccessful: 'Successfully stopped.'
+  geminiStopSuccessful: 'Successfully stopped.',
+  installInst0: `Sign in to Yahoo Gemini account in order to use this application. If you do not have an account with Gemini, click on the register button and follow the steps.`,
+  installInst1: 'After you sign in, we will request your permission to access your Gemini account.',
+  installInst2: `Before we set up a Gemini product campaign for you, we will also need your permissions to view your Shopify products and add a product pixel.`
 };

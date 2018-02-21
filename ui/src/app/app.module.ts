@@ -50,6 +50,13 @@ import { PopupComponent } from './components/popup/popup.component';
         component: LoginComponent,
       },
       {
+        path: 'f/install',
+        component: LoginComponent,
+        data: {
+          installation: true
+        }
+      },
+      {
         path: 'f/shopify/welcome',
         component: ShopifyComponent,
         data: {reason: 'welcome'}

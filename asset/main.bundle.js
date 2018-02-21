@@ -304,6 +304,13 @@ var AppModule = (function () {
                         component: __WEBPACK_IMPORTED_MODULE_14__components_login_login_component__["a" /* LoginComponent */],
                     },
                     {
+                        path: 'f/install',
+                        component: __WEBPACK_IMPORTED_MODULE_14__components_login_login_component__["a" /* LoginComponent */],
+                        data: {
+                            installation: true
+                        }
+                    },
+                    {
                         path: 'f/shopify/welcome',
                         component: __WEBPACK_IMPORTED_MODULE_15__components_shopify_shopify_component__["a" /* ShopifyComponent */],
                         data: { reason: 'welcome' }
@@ -1063,7 +1070,7 @@ exports = module.exports = __webpack_require__("../../../../css-loader/lib/css-b
 
 
 // module
-exports.push([module.i, ".login-container {\n  margin-top: 100px;\n  margin-left: 40px;\n}\n\n.login-content {\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -ms-flex-wrap: nowrap;\n      flex-wrap: nowrap;\n  -webkit-box-pack: start;\n      -ms-flex-pack: start;\n          justify-content: start;\n  -webkit-box-align: start;\n      -ms-flex-align: start;\n          align-items: flex-start;\n  max-width: 600px;\n  margin: 0 10px;\n}\n\n.login-content > div:first-child {\n  margin: 10px;\n  color: #461aa0;\n  font-size: 200%;\n}\n\n.login-content > div {\n  margin: 10px;\n  font-size: 125%;\n}\n\ndiv[class=gemini-button-group] {\n  padding-left: 10px;\n  margin-top: 30px;\n}\n\n.gemini-button-group > div {\n  margin: 0 10px;\n}\n", ""]);
+exports.push([module.i, ".login-container {\n  margin-top: 100px;\n  margin-left: 40px;\n  font-size: 125%;\n}\n\n.install-info {\n  display: table;\n  margin: -60px 0 10px 20px;\n  max-width: 600px;\n}\n\n.login-content {\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -ms-flex-wrap: nowrap;\n      flex-wrap: nowrap;\n  -webkit-box-pack: start;\n      -ms-flex-pack: start;\n          justify-content: start;\n  -webkit-box-align: start;\n      -ms-flex-align: start;\n          align-items: flex-start;\n  max-width: 600px;\n  margin: 0 10px;\n}\n\n.login-content > div:first-child {\n  color: #461aa0;\n  font-size: 200%;\n}\n\n.login-content > div {\n  margin: 10px;\n}\n\ndiv[class=gemini-button-group] {\n  padding-left: 10px;\n  margin-top: 30px;\n}\n\n.gemini-button-group > div {\n  margin: 0 10px;\n}\n", ""]);
 
 // exports
 
@@ -1076,7 +1083,7 @@ module.exports = module.exports.toString();
 /***/ "../../../../../src/app/components/login/login.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<div class=\"login-container\">\n  <div class=\"login-content\">\n    <div>\n      <i class=\"fa fa-exclamation-circle\" aria-hidden=\"true\"></i>\n    </div>\n    <div>\nYou need to have a Yahoo Gemini account in order to use this application. You can sign up a new Gemini account, and then resume this installation.\n    </div>\n  </div>\n  <div class=\"gemini-button-group\">\n    <div>\n      <button class=\"gemini-button\" (click)=\"signIn()\" autofocus=\"true\">\n        Sign In\n      </button>\n    </div>\n    <div>\n      <button class=\"gemini-button\" (click)=\"signUp()\">\n        Sign Up\n      </button>\n    </div>\n  </div>\n</div>\n"
+module.exports = "<div class=\"login-container\">\n  <div class=\"install-info\" *ngIf=\"first_timer\">\n    <div style=\"display:table-row; vertical-align: middle\">\n      <div style=\"display:table-cell; width: 70%; white-space: nowrap\">\n        <img src=\"../../../favicon.ico\">\n        <img src=\"../../../assets/dot-double-arrow.png\">\n        <img src=\"../../../assets/shopify-logo.png\">\n      </div>\n    </div>\n    <hr/>\n    <div style=\"display:table-row\">\n      <div style=\"display:table-cell\">\n        <ul *ngFor=\"let info of first_timer\">\n          <li>{{info}}</li>\n        </ul>\n      </div>\n    </div>\n  </div>\n  <div class=\"login-content\" *ngIf=\"!first_timer\">\n    <div>\n      <i class=\"fa fa-exclamation-circle\" aria-hidden=\"true\"></i>\n    </div>\n    <div>\n      {{login_instruction}}\n    </div>\n  </div>\n  <div class=\"gemini-button-group\">\n    <div>\n      <button class=\"gemini-button\" (click)=\"signIn()\" autofocus=\"true\">\n        Sign In\n      </button>\n    </div>\n    <div>\n      <button class=\"gemini-button\" (click)=\"signUp()\">\n        Register\n      </button>\n    </div>\n  </div>\n</div>\n"
 
 /***/ }),
 
@@ -1086,9 +1093,10 @@ module.exports = "<div class=\"login-container\">\n  <div class=\"login-content\
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LoginComponent; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__("../../../core/esm5/core.js");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__services_message_service__ = __webpack_require__("../../../../../src/app/services/message.service.ts");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__services_campaign_service__ = __webpack_require__("../../../../../src/app/services/campaign.service.ts");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__environments_environment__ = __webpack_require__("../../../../../src/environments/environment.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__angular_router__ = __webpack_require__("../../../router/esm5/router.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__services_message_service__ = __webpack_require__("../../../../../src/app/services/message.service.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__services_campaign_service__ = __webpack_require__("../../../../../src/app/services/campaign.service.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__environments_environment__ = __webpack_require__("../../../../../src/environments/environment.ts");
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -1102,17 +1110,25 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 
 
 
+
 var LoginComponent = (function () {
-    function LoginComponent(messageService, campaignService) {
+    function LoginComponent(route, messageService, campaignService) {
+        this.route = route;
         this.messageService = messageService;
         this.campaignService = campaignService;
         this.login_loaded = false;
+        this.login_instruction = __WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].installInst0;
     }
     LoginComponent.prototype.ngOnInit = function () {
         if (!this.campaignService.account || !this.campaignService.account.yahoo_auth_uri) {
-            console.log('yauth_default: ' + __WEBPACK_IMPORTED_MODULE_3__environments_environment__["a" /* environment */].yauth_default);
+            console.log('yauth_default: ' + __WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].yauth_default);
             this.login_loaded_err = 'it seems that the link is not from Shopify directly';
             console.log(this.login_loaded_err);
+        }
+        else if (this.route.snapshot.data['installation']) {
+            this.first_timer = [
+                __WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].installInst0, __WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].installInst1, __WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].installInst2
+            ];
         }
         this.login_loaded = true;
     };
@@ -1132,7 +1148,7 @@ var LoginComponent = (function () {
                 value: 'confirm'
             }
         ];
-        var dialogRef = this.messageService.show(__WEBPACK_IMPORTED_MODULE_3__environments_environment__["a" /* environment */].geminiSigInMessage, buttons);
+        var dialogRef = this.messageService.show(__WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].geminiSigInMessage, buttons);
         if (dialogRef) {
             dialogRef.afterClosed().subscribe(function (c) {
                 if (c === 'confirm') {
@@ -1142,7 +1158,7 @@ var LoginComponent = (function () {
                         oauthUri = _this.campaignService.account.yahoo_auth_uri;
                     }
                     if (!oauthUri) {
-                        oauthUri = __WEBPACK_IMPORTED_MODULE_3__environments_environment__["a" /* environment */].yauth_default; // likely user opens our app outside Shopify admin console
+                        oauthUri = __WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].yauth_default; // likely user opens our app outside Shopify admin console
                         console.log('use a default yauth url: ' + oauthUri);
                     }
                     if (isEmbedded) {
@@ -1175,11 +1191,11 @@ var LoginComponent = (function () {
                 value: 'confirm'
             }
         ];
-        var dialogRef = this.messageService.show(__WEBPACK_IMPORTED_MODULE_3__environments_environment__["a" /* environment */].geminiSigUpMessage, buttons);
+        var dialogRef = this.messageService.show(__WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].geminiSigUpMessage, buttons);
         if (dialogRef) {
             dialogRef.afterClosed().subscribe(function (c) {
                 if (c === 'confirm') {
-                    var gwin = window.open(__WEBPACK_IMPORTED_MODULE_3__environments_environment__["a" /* environment */].geminiHomeUrl, '_blank');
+                    var gwin = window.open(__WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].geminiHomeUrl, '_blank');
                     if (gwin && gwin.focus) {
                         gwin.focus();
                     }
@@ -1194,7 +1210,7 @@ var LoginComponent = (function () {
             template: __webpack_require__("../../../../../src/app/components/login/login.component.html"),
             styles: [__webpack_require__("../../../../../src/app/components/login/login.component.css")]
         }),
-        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1__services_message_service__["a" /* MessageService */], __WEBPACK_IMPORTED_MODULE_2__services_campaign_service__["a" /* CampaignService */]])
+        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1__angular_router__["a" /* ActivatedRoute */], __WEBPACK_IMPORTED_MODULE_2__services_message_service__["a" /* MessageService */], __WEBPACK_IMPORTED_MODULE_3__services_campaign_service__["a" /* CampaignService */]])
     ], LoginComponent);
     return LoginComponent;
 }());
@@ -1440,6 +1456,9 @@ var ShopifyComponent = (function () {
             // User may install and uninstall our app n-number of times. So the account may come from a previous installation, so we should ask user's permission
             if (_this.campaignService.isAccountReady()) {
                 _this.redirectForShopifyAccess();
+            }
+            else if (params['hmac']) {
+                _this.router.navigateByUrl('f/install', { skipLocationChange: true });
             }
             else {
                 _this.router.navigateByUrl('f/login', { skipLocationChange: true });
@@ -1952,7 +1971,10 @@ var environment = {
     geminiSigUpMessage: "You will be redirected to Yahoo Gemini page to create a new account.\n                          Make sure that you complete your billing info as well because otherwise your product ads will not be served.",
     geminiUpdateSuccessful: 'Successfully updated.',
     geminiStartSuccessful: 'Successfully started.',
-    geminiStopSuccessful: 'Successfully stopped.'
+    geminiStopSuccessful: 'Successfully stopped.',
+    installInst0: "Sign in to Yahoo Gemini account in order to use this application. If you do not have an account with Gemini, click on the register button and follow the steps.",
+    installInst1: 'After you sign in, we will request your permission to access your Gemini account.',
+    installInst2: "Before we set up a Gemini product campaign for you, we will also need your permissions to view your Shopify products and add a product pixel."
 };
 
 
