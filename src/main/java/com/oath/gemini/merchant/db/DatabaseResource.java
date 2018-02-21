@@ -33,10 +33,10 @@ import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -127,11 +127,11 @@ public class DatabaseResource {
         }
         return Response.ok(originStoreCampaign).build();
     }
-    
+
     @RolesAllowed({ "SIG", "YBY", "localhost" })
     @DELETE
-    @Path("acct/{id:.*}/delete")
-    public Response deleteAccount(@PathParam("id") @DefaultValue("") String id) {
+    @Path("acct/{id}")
+    public Response deleteAccount(@PathParam("id") String id) {
         List<StoreAcctEntity> storeAcctEntities = listAll(StoreAcctEntity.class, id);
         for (StoreAcctEntity sa : storeAcctEntities) {
             databaseService.delete(sa);
@@ -141,8 +141,8 @@ public class DatabaseResource {
 
     @RolesAllowed({ "SIG", "YBY", "localhost" })
     @DELETE
-    @Path("campaign/{id}/delete")
-    public Response deleteCampaign(@PathParam("id") @DefaultValue("") String id) {
+    @Path("campaign/{id}")
+    public Response deleteCampaign(@PathParam("id") String id) {
         List<StoreCampaignEntity> storeCampaignEntities = listAll(StoreCampaignEntity.class, id);
         for (StoreCampaignEntity sc : storeCampaignEntities) {
             databaseService.delete(sc);
