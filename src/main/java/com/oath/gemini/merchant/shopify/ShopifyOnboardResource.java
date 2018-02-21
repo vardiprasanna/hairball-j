@@ -233,6 +233,7 @@ public class ShopifyOnboardResource {
                 EWSClientService ews = new EWSClientService(tokens);
 
                 new Archetype(ps, ews, databaseService).tearDown(acctEntity);
+                databaseService.delete(acctEntity);
             } else {
                 log.warn("No store account found for shop {}", shop);
             }
