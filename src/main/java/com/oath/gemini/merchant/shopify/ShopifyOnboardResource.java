@@ -622,7 +622,12 @@ public class ShopifyOnboardResource {
         ShopifyWebHookData webhook = new ShopifyWebHookData();
         String address = req.getRequestURL().toString();
 
-        webhook.setAddress(address.substring(0, address.indexOf("/shopify/")) + "/shopify/uninstall");
+        address = address.substring(0, address.indexOf("/shopify/")) + "/shopify/uninstall";
+        System.err.println("a callback will be converted to use SSL: " + address);
+        address = HttpUtils.forceToUseHttps(address);
+        System.err.println("a callback is converted to use SSL: " + address);
+
+        webhook.setAddress(address);
         webhook.setTopic("app/uninstalled");
 
         if (webhooks != null) {
