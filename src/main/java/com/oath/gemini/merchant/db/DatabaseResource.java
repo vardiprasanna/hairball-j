@@ -33,12 +33,7 @@ import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -127,40 +122,20 @@ public class DatabaseResource {
         return Response.ok(originStoreCampaign).build();
     }
 
-    @RolesAllowed({ "SIG", "YBY", "localhost" })
-    @PUT
-    @Path("campaign/{id}/delete")
-    public Response delete(@PathParam("id") String id, @Context HttpServletRequest req, StoreCampaignEntity modifiedStoreCampaign) {
-        StoreCampaignEntity originStoreCampaign = listOne(StoreCampaignEntity.class, id);
-        if (originStoreCampaign == null) {
-            return badRequest("Missing a unique campaigns: ", id);
-        }
+    //@RolesAllowed({ "SIG", "YBY", "localhost" })
+    @DELETE
+    @Path("acct/{id:.*}/delete")
+    public Response deleteAccount(@PathParam("id") @DefaultValue("") String id) {
+        List<StoreAcctEntity> storeAcctEntities = listAll(StoreAcctEntity.class, id);
 
-        StoreAcctEntity storeAcct = listOne(StoreAcctEntity.class, originStoreCampaign.getStoreAcctId().toString());
-        if (storeAcct == null) {
-            return badRequest("Missing store account for the campaigns: ", id);
-        }
-
-        // Update the corresponding Gemini adgroup first
-        try {
-            Response status = updateAdGroup(storeAcct.getYahooAccessToken(), modifiedStoreCampaign);
-
-            if (status.getStatus() != 200) {
-                return status;
+        for (StoreAcctEntity SA : storeAcctEntities) {
+            List<StoreCampaignEntity> storeCampaignEntities = listAll(StoreCampaignEntity.class, id);
+            for (StoreCampaignEntity SC : storeCampaignEntities) {
+                databaseService.delete(SC);
             }
-        } catch (Exception e) {
-            return badRequest("Failed to retrieve EWS token for the campaign: ", id, e);
+            databaseService.delete(SA);
         }
-
-        // Update the store campaign record
-        try {
-            if (DatabaseService.copyNonNullProperties(originStoreCampaign, modifiedStoreCampaign)) {
-                databaseService.update(originStoreCampaign);
-            }
-        } catch (Exception e) {
-            return badRequest("failed to copy properties", e);
-        }
-        return Response.ok(originStoreCampaign).build();
+        return Response.ok().build();
     }
 
     /**

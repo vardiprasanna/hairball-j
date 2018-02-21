@@ -64,6 +64,22 @@ public class DatabaseService {
         }
     }
 
+
+    public <T> void delete(T o) {
+        Session session = sessionFactory.openSession();
+        Transaction tx;
+
+        try {
+            tx = session.beginTransaction();
+            session.delete(o);
+            tx.commit();
+        } finally {
+            if (session != null) {
+                session.close();
+            }
+        }
+    }
+
     @SuppressWarnings("unchecked")
     public StoreAcctEntity findStoreAcctByDomain(String domain) {
         Session session = sessionFactory.openSession();
