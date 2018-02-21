@@ -126,7 +126,7 @@ public class Archetype {
             tearCampaign(sce.getCampaignId());
 
             sce.setStatus(StatusEnum.PAUSED);
-            databaseService.update(sce);
+            databaseService.delete(sce);
         }
     }
 
