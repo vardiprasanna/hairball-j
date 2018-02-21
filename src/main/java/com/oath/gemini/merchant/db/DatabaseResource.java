@@ -133,7 +133,7 @@ public class DatabaseResource {
     }
 
     @DELETE
-    @Path("campaign/{id:.*}/delete")
+    @Path("campaign/{id}/delete")
     public Response deleteCampaign(@PathParam("id") @DefaultValue("") String id) {
         List<StoreCampaignEntity> storeCampaignEntities = listAll(StoreCampaignEntity.class, id);
         for (StoreCampaignEntity SC : storeCampaignEntities) {
