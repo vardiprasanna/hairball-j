@@ -122,18 +122,22 @@ public class DatabaseResource {
         return Response.ok(originStoreCampaign).build();
     }
 
-    //@RolesAllowed({ "SIG", "YBY", "localhost" })
     @DELETE
     @Path("acct/{id:.*}/delete")
     public Response deleteAccount(@PathParam("id") @DefaultValue("") String id) {
         List<StoreAcctEntity> storeAcctEntities = listAll(StoreAcctEntity.class, id);
-
         for (StoreAcctEntity SA : storeAcctEntities) {
-            List<StoreCampaignEntity> storeCampaignEntities = listAll(StoreCampaignEntity.class, id);
-            for (StoreCampaignEntity SC : storeCampaignEntities) {
-                databaseService.delete(SC);
-            }
             databaseService.delete(SA);
+        }
+        return Response.ok().build();
+    }
+
+    @DELETE
+    @Path("campaign/{id:.*}/delete")
+    public Response deleteCampaign(@PathParam("id") @DefaultValue("") String id) {
+        List<StoreCampaignEntity> storeCampaignEntities = listAll(StoreCampaignEntity.class, id);
+        for (StoreCampaignEntity SC : storeCampaignEntities) {
+            databaseService.delete(SC);
         }
         return Response.ok().build();
     }
