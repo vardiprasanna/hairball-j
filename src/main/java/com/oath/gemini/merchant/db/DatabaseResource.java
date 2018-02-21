@@ -127,7 +127,8 @@ public class DatabaseResource {
         }
         return Response.ok(originStoreCampaign).build();
     }
-
+    
+    @RolesAllowed({ "SIG", "YBY", "localhost" })
     @DELETE
     @Path("acct/{id:.*}/delete")
     public Response deleteAccount(@PathParam("id") @DefaultValue("") String id) {
@@ -138,6 +139,7 @@ public class DatabaseResource {
         return Response.ok().build();
     }
 
+    @RolesAllowed({ "SIG", "YBY", "localhost" })
     @DELETE
     @Path("campaign/{id}/delete")
     public Response deleteCampaign(@PathParam("id") @DefaultValue("") String id) {
