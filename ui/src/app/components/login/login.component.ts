@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, Data } from '@angular/router';
 import { MessageService } from '../../services/message.service';
 import { MatDialogRef } from '@angular/material/dialog';
 import { ButtonConfig } from '../popup/popup.component';
@@ -14,8 +15,11 @@ import { environment } from '../../../environments/environment';
 export class LoginComponent implements OnInit {
   login_loaded = false;
   login_loaded_err: string;
+  login_instruction: string;
+  first_timer: string[];
 
-  constructor(private messageService: MessageService, private campaignService: CampaignService) {
+  constructor(private route: ActivatedRoute, private messageService: MessageService, private campaignService: CampaignService) {
+    this.login_instruction = environment.installInst0;
   }
 
   ngOnInit() {
@@ -23,7 +27,12 @@ export class LoginComponent implements OnInit {
       console.log('yauth_default: ' + environment.yauth_default);
       this.login_loaded_err = 'it seems that the link is not from Shopify directly';
       console.log(this.login_loaded_err);
+    } else if (this.route.snapshot.data['installation']) {
+      this.first_timer = [
+        environment.installInst0, environment.installInst1, environment.installInst2
+      ];
     }
+
     this.login_loaded = true;
   }
 

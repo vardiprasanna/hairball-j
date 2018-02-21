@@ -1,10 +1,27 @@
 <div class="login-container">
-  <div class="login-content">
+  <div class="install-info" *ngIf="first_timer">
+    <div style="display:table-row; vertical-align: middle">
+      <div style="display:table-cell; width: 70%; white-space: nowrap">
+        <img src="../../../favicon.ico">
+        <img src="../../../assets/dot-double-arrow.png">
+        <img src="../../../assets/shopify-logo.png">
+      </div>
+    </div>
+    <hr/>
+    <div style="display:table-row">
+      <div style="display:table-cell">
+        <ul *ngFor="let info of first_timer">
+          <li>{{info}}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="login-content" *ngIf="!first_timer">
     <div>
       <i class="fa fa-exclamation-circle" aria-hidden="true"></i>
     </div>
     <div>
-You need to have a Yahoo Gemini account in order to use this application. You can sign up a new Gemini account, and then resume this installation.
+      {{login_instruction}}
     </div>
   </div>
   <div class="gemini-button-group">
@@ -15,7 +32,7 @@ You need to have a Yahoo Gemini account in order to use this application. You ca
     </div>
     <div>
       <button class="gemini-button" (click)="signUp()">
-        Sign Up
+        Register
       </button>
     </div>
   </div>
