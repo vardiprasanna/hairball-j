@@ -36,6 +36,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -147,6 +148,22 @@ public class DatabaseResource {
     public Response deleteCampaign(@PathParam("id") String id) {
         StoreCampaignEntity sc = listOne(StoreCampaignEntity.class, id);
         databaseService.delete(sc);
+        return Response.ok().build();
+    }
+
+    @RolesAllowed({ "SIG", "YBY", "localhost" })
+    @POST
+    @Path("campaign/")
+    public Response addCampaign(StoreCampaignEntity storeCampaignEntity) {
+        databaseService.save(storeCampaignEntity);
+        return Response.ok().build();
+    }
+
+    @RolesAllowed({ "SIG", "YBY", "localhost" })
+    @POST
+    @Path("acct/")
+    public Response addAccount(StoreAcctEntity storeAcctEntity) {
+        databaseService.save(storeAcctEntity);
         return Response.ok().build();
     }
 

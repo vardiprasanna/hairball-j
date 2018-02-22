@@ -79,6 +79,21 @@ public class DatabaseService {
         }
     }
 
+    public <T> void add(T o) {
+        Session session = sessionFactory.openSession();
+        Transaction tx;
+
+        try {
+            tx = session.beginTransaction();
+            session.save(o);
+            tx.commit();
+        } finally {
+            if (session != null) {
+                session.close();
+            }
+        }
+    }
+
     @SuppressWarnings("unchecked")
     public StoreAcctEntity findStoreAcctByDomain(String domain) {
         Session session = sessionFactory.openSession();
