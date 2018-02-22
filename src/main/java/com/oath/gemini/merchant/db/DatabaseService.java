@@ -114,7 +114,7 @@ public class DatabaseService {
     }
 
     @SuppressWarnings("unchecked")
-    public StoreCampaignEntity findStoreCampaignByStoreAccountID(long id) {
+    public StoreCampaignEntity findStoreCampaignByStoreAccountID(int id) {
         Session session = sessionFactory.openSession();
 
         try {
