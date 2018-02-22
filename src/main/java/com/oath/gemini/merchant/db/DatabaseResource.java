@@ -130,7 +130,7 @@ public class DatabaseResource {
 
     @RolesAllowed({ "SIG", "YBY", "localhost" })
     @DELETE
-    @Path("acct/{id}")
+    @Path("acct/{id}/")
     public Response deleteAccount(@PathParam("id") String id) {
         List<StoreAcctEntity> storeAcctEntities = listAll(StoreAcctEntity.class, id);
         for (StoreAcctEntity sa : storeAcctEntities) {
@@ -141,7 +141,7 @@ public class DatabaseResource {
 
     @RolesAllowed({ "SIG", "YBY", "localhost" })
     @DELETE
-    @Path("campaign/{id}")
+    @Path("campaign/{id}/")
     public Response deleteCampaign(@PathParam("id") String id) {
         List<StoreCampaignEntity> storeCampaignEntities = listAll(StoreCampaignEntity.class, id);
         for (StoreCampaignEntity sc : storeCampaignEntities) {
