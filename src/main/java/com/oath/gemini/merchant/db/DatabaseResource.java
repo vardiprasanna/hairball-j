@@ -133,7 +133,7 @@ public class DatabaseResource {
     @Path("acct/{id}/")
     public Response deleteAccount(@PathParam("id") String id) {
         StoreAcctEntity sa = listOne(StoreAcctEntity.class, id);
-        StoreCampaignEntity sc = databaseService.findStoreCampaignByStoreAccountID(Integer.parseInt( id));
+        StoreCampaignEntity sc = databaseService.findStoreCampaignByStoreAccountID(Integer.parseInt(id));
         databaseService.delete(sc);
         databaseService.delete(sa);
         return Response.ok().build();
