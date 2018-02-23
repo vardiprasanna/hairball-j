@@ -127,7 +127,7 @@ public class DatabaseService {
             }
         }
     }
-    
+
     @SuppressWarnings("unchecked")
     public StoreSysEntity findStoreSysByDoman(String domain) {
         Session session = sessionFactory.openSession();
