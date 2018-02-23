@@ -129,6 +129,23 @@ public class DatabaseService {
     }
 
     @SuppressWarnings("unchecked")
+    public StoreCampaignEntity findStoreCampaignByStoreAccountID(long id) {
+        Session session = sessionFactory.openSession();
+
+        try {
+            Criteria criteria = session.createCriteria(StoreCampaignEntity.class);
+            criteria.add(Restrictions.eq("storeAcctId", id));
+            List<StoreCampaignEntity> list = criteria.list();
+            return (list != null && list.size() == 1 ? list.get(0) : null);
+
+        } finally {
+            if (session != null) {
+                session.close();
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
     public StoreSysEntity findStoreSysByDoman(String domain) {
         Session session = sessionFactory.openSession();
 
