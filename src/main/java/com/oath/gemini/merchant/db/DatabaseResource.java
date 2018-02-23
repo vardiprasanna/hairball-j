@@ -153,7 +153,7 @@ public class DatabaseResource {
 
     @RolesAllowed({ "SIG", "YBY", "localhost" })
     @POST
-    @Path("campaign/")
+    @Path("campaign")
     public Response addCampaign(StoreCampaignEntity storeCampaignEntity) {
         databaseService.save(storeCampaignEntity);
         return Response.ok().build();
@@ -161,7 +161,7 @@ public class DatabaseResource {
 
     @RolesAllowed({ "SIG", "YBY", "localhost" })
     @POST
-    @Path("acct/")
+    @Path("acct")
     public Response addAccount(StoreAcctEntity storeAcctEntity) {
         databaseService.save(storeAcctEntity);
         return Response.ok().build();
