@@ -132,10 +132,12 @@ public class DatabaseResource {
     @DELETE
     @Path("acct/{id}/")
     public Response deleteAccount(@PathParam("id") String id) {
-        List<StoreAcctEntity> storeAcctEntities = listAll(StoreAcctEntity.class, id);
-        for (StoreAcctEntity sa : storeAcctEntities) {
-            databaseService.delete(sa);
+        StoreAcctEntity sa = listOne(StoreAcctEntity.class, id);
+        StoreCampaignEntity sc = databaseService.findByAcctId(StoreCampaignEntity.class, Integer.parseInt(id));
+        if (sc != null) {
+            databaseService.delete(sc);
         }
+        databaseService.delete(sa);
         return Response.ok().build();
     }
 
@@ -143,10 +145,8 @@ public class DatabaseResource {
     @DELETE
     @Path("campaign/{id}/")
     public Response deleteCampaign(@PathParam("id") String id) {
-        List<StoreCampaignEntity> storeCampaignEntities = listAll(StoreCampaignEntity.class, id);
-        for (StoreCampaignEntity sc : storeCampaignEntities) {
-            databaseService.delete(sc);
-        }
+        StoreCampaignEntity sc = listOne(StoreCampaignEntity.class, id);
+        databaseService.delete(sc);
         return Response.ok().build();
     }
 
