@@ -115,7 +115,8 @@ export class ShopifyComponent implements OnInit {
       if (this.campaignService.isAccountReady()) {
         this.redirectForShopifyAccess();
       } else if (params['hmac']) {
-        this.router.navigateByUrl('f/install', {skipLocationChange: true});
+        this.redirectForShopifyAccess();
+        // this.router.navigateByUrl('f/install', {skipLocationChange: true});
       } else {
         this.router.navigateByUrl('f/login', {skipLocationChange: true});
       }
