@@ -533,9 +533,8 @@ public class ShopifyOnboardResource {
             databaseService.save(newStoreAcct);
             return newStoreAcct;
         } else {
-            StoreAcctEntity storeAcct = databaseService.findStoreAcctByDomain(ps.getShop());
-            if (storeAcct == null) {
-                throw new Exception("This Gemini Account already used by another shop. Use different geimini account");
+            if (!shop.equals(oldStoreAcct.getName())) {
+                throw new Exception("This Gemini account already used by another shop. Use different Gemini account");
             }
             // Only the following fields can be modified
             databaseService.replaceIfDummyOrBlank(oldStoreAcct, "name", shop.getName());
@@ -587,9 +586,8 @@ public class ShopifyOnboardResource {
                 databaseService.save(newStoreAcct);
                 return newStoreAcct;
             } else {
-                StoreAcctEntity storeAcct = databaseService.findStoreAcctByDomain(shop);
-                if (storeAcct == null) {
-                    throw new Exception("This Gemini Account already used by another shop. Use different geimini account");
+                if (!shop.equals(oldStoreAcct.getName())) {
+                    throw new Exception("This Gemini account already used by another shop. Use different Gemini account");
                 }
                 databaseService.replaceIfDummyOrBlank(oldStoreAcct, "domain", shop);
 
