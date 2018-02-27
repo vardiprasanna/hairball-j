@@ -56,8 +56,37 @@ export class CampaignConfigComponent implements OnInit {
   }
 
   public updateCost() {
+    if (this.validate()) {
+      this.updateAll(function (thisObj) {
+        thisObj.messageService.push(environment.geminiUpdateSuccessful, 'success', 5000);
+      });
+    }
+    return false;
+  }
+
+  public updateStatus() {
+    if (this.validate()) {
+      this.campaign.is_running = !this.campaign_original.is_running;
+
+      this.updateAll(function (thisObj) {
+        if (thisObj.campaign.is_running) {
+          thisObj.messageService.push(environment.geminiStartSuccessful, 'success', 5000);
+        } else {
+          thisObj.messageService.push(environment.geminiStopSuccessful, 'success', 5000);
+        }
+      });
+    }
+
+    return false;
+  }
+
+  /**
+   * Validate whether price and/or budget changes are valid
+   * @returns true if the changes can proceed
+   */
+  private validate(): boolean {
     if (!this.campaign_original || !this.campaign) {
-      return; // cannot update because we're not even able to load the campaign
+      return false; // cannot update because we're not even able to load the campaign
     }
 
     let errorMsg: string;
@@ -74,59 +103,43 @@ export class CampaignConfigComponent implements OnInit {
     }
 
     if (errorMsg) {
-      this.campaign.price = this.campaign_original.price;
-      this.campaign.budget = this.campaign_original.budget;
+      // this.campaign.price = this.campaign_original.price;
+      // this.campaign.budget = this.campaign_original.budget;
+      this.campaign.is_running = this.campaign_original.is_running;
       this.messageService.push(errorMsg);
-      this.is_changed = false;
+      this.change();
       return false;
     }
 
+    return true;
+  }
+
+  /**
+   * Update the price, and/or budget, and/or the status
+   * @param okCallback is a callback function upon a successful update
+   */
+  private updateAll(okCallback) {
     /**
      * Update the price and/or budget
      */
     this.campaignService.updateCampaign(this.campaignId, this.campaign).then(() => {
       this.campaign_original.price = this.campaign.price;
       this.campaign_original.budget = this.campaign.budget;
+      this.campaign_original.is_running = this.campaign.is_running;
       this.is_changed = false;
-      this.messageService.push(environment.geminiUpdateSuccessful, 'success', 5000);
+      okCallback(this);
 
-    }, err => {
-      errorMsg = this.fetchErrorMessage(err);
-
-      this.campaign.price = this.campaign_original.price;
-      this.campaign.budget = this.campaign_original.budget;
-      this.messageService.push(errorMsg, 'danger');
-      this.is_changed = false;
-      console.log(err.message ? err.message : JSON.stringify(err));
-    });
-
-    return false;
-  }
-
-  public updateStatus() {
-    if (!this.campaign_original) {
-      return; // cannot update because we're not even able to load the campaign
-    }
-    const cmp: Campaign = new Campaign();
-    cmp.is_running = !this.campaign_original.is_running;
-    cmp.price = this.campaign_original.price;
-    cmp.budget = this.campaign_original.budget;
-
-    this.campaignService.updateCampaign(this.campaignId, cmp).then(() => {
-      this.campaign_original.is_running = !this.campaign_original.is_running;
-      this.campaign.is_running = this.campaign_original.is_running;
-
-      if (this.campaign.is_running) {
-        this.messageService.push(environment.geminiStartSuccessful, 'success', 5000);
-      } else {
-        this.messageService.push(environment.geminiStopSuccessful, 'success', 5000);
-      }
     }, err => {
       const errorMsg = this.fetchErrorMessage(err);
+
+      // this.campaign.price = this.campaign_original.price;
+      // this.campaign.budget = this.campaign_original.budget;
+      this.campaign.is_running = this.campaign_original.is_running;
+
       this.messageService.push(errorMsg, 'danger');
+      this.change();
       console.log(err.message ? err.message : JSON.stringify(err));
     });
-    return false;
   }
 
   private fetchErrorMessage(err: any) {

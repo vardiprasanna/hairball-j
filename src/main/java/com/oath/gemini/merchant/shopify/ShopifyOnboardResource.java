@@ -45,6 +45,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -117,7 +118,12 @@ public class ShopifyOnboardResource {
     @GET
     @Path("home")
     public Response home(@Context UriInfo info, @Context HttpServletRequest req, @QueryParam("hmac") String hmac,
-                         @QueryParam("shop") String shop, @QueryParam("code") String code, @QueryParam("state") String state) {
+            @QueryParam("shop") String shop, @QueryParam("code") String code, @QueryParam("state") String state) {
+        return _home(info, req, hmac, shop, code, state, null);
+    }
+
+    public Response _home(UriInfo info, HttpServletRequest req, String hmac, String shop, String code, String state,
+            ShopifyAccessTokenData outputToken) {
         int keyEntry = -1;
 
         // Verify the signature of the call
@@ -138,6 +144,8 @@ public class ShopifyOnboardResource {
                 // The shopify code may have expired when user clicks the Browser's Back button to re-play an earlier on-boarding
                 log.error("a shopify code '{}' likely has expired", code);
                 return Response.status(Status.BAD_REQUEST).entity("a shopify code has expired").build();
+            } else if (outputToken != null) {
+                BeanUtils.copyProperties(outputToken, tokens);
             }
 
             // If Shopify's shop account does not exist, we certainly do not have his Yahoo's Refresh Token, and therefore asks him
@@ -268,7 +276,12 @@ public class ShopifyOnboardResource {
 
         StoreAcctEntity storeAcct = databaseService.findStoreAcctByDomain(shop);
         UIAccountDTO accountDTO = mapToAccountDTO(storeAcct);
+        prepareAuthUrls(req, info, shop, accountDTO);
 
+        return Response.ok(accountDTO).build();
+    }
+
+    private void prepareAuthUrls(HttpServletRequest req, UriInfo info, String shop, UIAccountDTO accountDTO) {
         try {
             // Prepare Yahoo authentication URI
             String yahooAuthUrl = config.getString("y.oauth.auth.request.url");
@@ -276,7 +289,7 @@ public class ShopifyOnboardResource {
             String rd = builder.append("/index.html?route=f/shopify/ews").toString();
 
             rd = HttpUtils.forceToUseHttps(rd);
-            rd = buildQueries(rd, "shop", shop);
+            rd = buildQueries(rd, "shop", shop, "_mc", accountDTO.getStoreAccessToken());
 
             yahooAuthUrl = yahooAuthUrl.replace("${y.oauth.redirect}", URLEncoder.encode(rd, "UTF-8"));
             accountDTO.setYahooAuthUrl(yahooAuthUrl);
@@ -284,12 +297,11 @@ public class ShopifyOnboardResource {
             // Prepare Shopify authentication URI
             String path = info.getAbsolutePath().toString();
             String redirectUrl = HttpUtils.forceToUseHttps(path.substring(0, path.indexOf("/", 8)) + "/index.html?route=f/shopify/home"); // skip "https://"
-            URI uri = buildScopeRequestUrl(keyEntry, shop, redirectUrl);
+            URI uri = buildScopeRequestUrl(0, shop, redirectUrl);
             accountDTO.setStoreAuthUrl(uri.toString());
         } catch (Exception e) {
             log.error("failed for constructing shopify and yahoo authentication URL", e);
         }
-        return Response.ok(accountDTO).build();
     }
 
     /**
@@ -300,7 +312,7 @@ public class ShopifyOnboardResource {
     @GET
     @Path("yauth")
     public Response loginShopify(@Context HttpServletRequest req, @Context UriInfo info, @DefaultValue("") @QueryParam("code") String code,
-            @QueryParam("shop") String shop) {
+            @QueryParam("shop") String shop, @QueryParam("_mc") String _mc) {
 
         StringBuilder builder = new StringBuilder(req.getScheme()).append("://").append(config.getString("app.host"));
         String rd = builder.append("/index.html?route=f/shopify/ews").toString();
@@ -310,18 +322,23 @@ public class ShopifyOnboardResource {
             rd = HttpUtils.forceToUseHttps(rd);
             EWSAccessTokenData tokens = ewsAuthService.getAccessTokenFromAuthCode(code, rd);
 
-            accountDTO.setYahooAccessToken(tokens.getRefreshToken());
-            accountDTO.setIsYahooTokenValid(tokens.isOk());
-
             // Redirect user to a campaign setup page
             if (tokens == null || tokens.getRefreshToken() == null) {
                 log.error("invalid EWS authorization code, which could have expired");
                 return Response.status(Status.UNAUTHORIZED).entity("failed to retrieve EWS oAuth token").build();
             }
+            
+            StoreAcctEntity storeAcct = null;
+            if (StringUtils.isNotBlank(_mc)) {
+                // Shopify access token is available, so we can set up
+                setupOrRepaireIfRequired(req, shop, tokens, _mc);
+                storeAcct = databaseService.findStoreAcctByDomain(shop);
+            } else {
+                // Create a placeholder for a partially installed account
+                EWSClientService ews = new EWSClientService(tokens);
+                storeAcct = registerStoreAccountIfRequired(shop, ews);
+            }
 
-            // Create a placeholder for a partially installed account
-            EWSClientService ews = new EWSClientService(tokens);
-            StoreAcctEntity storeAcct = registerStoreAccountIfRequired(shop, ews);
             accountDTO = mapToAccountDTO(storeAcct);
 
         } catch (EWSAccountAccessException ae) {
@@ -359,10 +376,18 @@ public class ShopifyOnboardResource {
     @Path("sauth")
     public Response lastStep(@Context UriInfo info, @Context HttpServletRequest req, @QueryParam("hmac") String hmac,
             @QueryParam("shop") String shop, @QueryParam("code") String code, @QueryParam("state") String state) {
-        home(info, req, hmac, shop, code, state);
+        ShopifyAccessTokenData tokens = new ShopifyAccessTokenData();
+        _home(info, req, hmac, shop, code, state, tokens);
 
         StoreAcctEntity storeAcct = databaseService.findStoreAcctByDomain(shop);
-        return Response.ok(mapToAccountDTO(storeAcct)).build();
+        UIAccountDTO accountDTO = mapToAccountDTO(storeAcct);
+
+        if (StringUtils.isNotBlank(tokens.getAccessToken())) {
+            accountDTO.setStoreAccessToken(tokens.getAccessToken());
+            accountDTO.setIsStoreTokenValid(true);
+            prepareAuthUrls(req, info, shop, accountDTO);
+        }
+        return Response.ok(accountDTO).build();
     }
 
     private UIAccountDTO mapToAccountDTO(StoreAcctEntity storeAcct) {

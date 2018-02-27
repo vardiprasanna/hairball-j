@@ -857,9 +857,34 @@ var CampaignConfigComponent = (function () {
         this.is_changed = false;
     };
     CampaignConfigComponent.prototype.updateCost = function () {
-        var _this = this;
+        if (this.validate()) {
+            this.updateAll(function (thisObj) {
+                thisObj.messageService.push(__WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].geminiUpdateSuccessful, 'success', 5000);
+            });
+        }
+        return false;
+    };
+    CampaignConfigComponent.prototype.updateStatus = function () {
+        if (this.validate()) {
+            this.campaign.is_running = !this.campaign_original.is_running;
+            this.updateAll(function (thisObj) {
+                if (thisObj.campaign.is_running) {
+                    thisObj.messageService.push(__WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].geminiStartSuccessful, 'success', 5000);
+                }
+                else {
+                    thisObj.messageService.push(__WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].geminiStopSuccessful, 'success', 5000);
+                }
+            });
+        }
+        return false;
+    };
+    /**
+     * Validate whether price and/or budget changes are valid
+     * @returns true if the changes can proceed
+     */
+    CampaignConfigComponent.prototype.validate = function () {
         if (!this.campaign_original || !this.campaign) {
-            return; // cannot update because we're not even able to load the campaign
+            return false; // cannot update because we're not even able to load the campaign
         }
         var errorMsg;
         /**
@@ -876,54 +901,39 @@ var CampaignConfigComponent = (function () {
             errorMsg = __WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].geminiMaxBidPrice.replace('\${price}', '' + price);
         }
         if (errorMsg) {
-            this.campaign.price = this.campaign_original.price;
-            this.campaign.budget = this.campaign_original.budget;
+            // this.campaign.price = this.campaign_original.price;
+            // this.campaign.budget = this.campaign_original.budget;
+            this.campaign.is_running = this.campaign_original.is_running;
             this.messageService.push(errorMsg);
-            this.is_changed = false;
+            this.change();
             return false;
         }
+        return true;
+    };
+    /**
+     * Update the price, and/or budget, and/or the status
+     * @param okCallback is a callback function upon a successful update
+     */
+    CampaignConfigComponent.prototype.updateAll = function (okCallback) {
+        var _this = this;
         /**
          * Update the price and/or budget
          */
         this.campaignService.updateCampaign(this.campaignId, this.campaign).then(function () {
             _this.campaign_original.price = _this.campaign.price;
             _this.campaign_original.budget = _this.campaign.budget;
+            _this.campaign_original.is_running = _this.campaign.is_running;
             _this.is_changed = false;
-            _this.messageService.push(__WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].geminiUpdateSuccessful, 'success', 5000);
-        }, function (err) {
-            errorMsg = _this.fetchErrorMessage(err);
-            _this.campaign.price = _this.campaign_original.price;
-            _this.campaign.budget = _this.campaign_original.budget;
-            _this.messageService.push(errorMsg, 'danger');
-            _this.is_changed = false;
-            console.log(err.message ? err.message : JSON.stringify(err));
-        });
-        return false;
-    };
-    CampaignConfigComponent.prototype.updateStatus = function () {
-        var _this = this;
-        if (!this.campaign_original) {
-            return; // cannot update because we're not even able to load the campaign
-        }
-        var cmp = new __WEBPACK_IMPORTED_MODULE_2__model_campaign__["a" /* Campaign */]();
-        cmp.is_running = !this.campaign_original.is_running;
-        cmp.price = this.campaign_original.price;
-        cmp.budget = this.campaign_original.budget;
-        this.campaignService.updateCampaign(this.campaignId, cmp).then(function () {
-            _this.campaign_original.is_running = !_this.campaign_original.is_running;
-            _this.campaign.is_running = _this.campaign_original.is_running;
-            if (_this.campaign.is_running) {
-                _this.messageService.push(__WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].geminiStartSuccessful, 'success', 5000);
-            }
-            else {
-                _this.messageService.push(__WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].geminiStopSuccessful, 'success', 5000);
-            }
+            okCallback(_this);
         }, function (err) {
             var errorMsg = _this.fetchErrorMessage(err);
+            // this.campaign.price = this.campaign_original.price;
+            // this.campaign.budget = this.campaign_original.budget;
+            _this.campaign.is_running = _this.campaign_original.is_running;
             _this.messageService.push(errorMsg, 'danger');
+            _this.change();
             console.log(err.message ? err.message : JSON.stringify(err));
         });
-        return false;
     };
     CampaignConfigComponent.prototype.fetchErrorMessage = function (err) {
         if (err.error && err.error.message) {
@@ -1458,7 +1468,8 @@ var ShopifyComponent = (function () {
                 _this.redirectForShopifyAccess();
             }
             else if (params['hmac']) {
-                _this.router.navigateByUrl('f/install', { skipLocationChange: true });
+                _this.redirectForShopifyAccess();
+                // this.router.navigateByUrl('f/install', {skipLocationChange: true});
             }
             else {
                 _this.router.navigateByUrl('f/login', { skipLocationChange: true });
