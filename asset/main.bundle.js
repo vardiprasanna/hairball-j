@@ -179,6 +179,9 @@ var AppComponent = (function () {
                         _this.campaignService.account = cachedAcct;
                     }
                 }, function (err) {
+                    if (_this.campaignService.account) {
+                        _this.campaignService.account.yahoo_token_valid = false;
+                    }
                     console.log(err.message ? err.message : JSON.stringify(err));
                 }).then((function () {
                     resolve(true);

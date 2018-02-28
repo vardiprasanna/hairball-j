@@ -134,6 +134,9 @@ export class AppComponent implements OnInit, OnDestroy {
             this.campaignService.account = cachedAcct;
           }
         }, err => {
+          if (this.campaignService.account) {
+            this.campaignService.account.yahoo_token_valid = false;
+          }
           console.log(err.message ? err.message : JSON.stringify(err));
         }).then((() => {
           resolve(true);
