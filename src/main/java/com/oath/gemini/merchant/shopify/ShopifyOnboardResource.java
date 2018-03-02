@@ -223,10 +223,11 @@ public class ShopifyOnboardResource {
      */
     @Path("uninstall")
     public Response uninstall(@Context HttpServletRequest req, @HeaderParam("X-Shopify-Topic") String topics,
-                              @HeaderParam("X-Shopify-Shop-Domain") String shop, @HeaderParam("X-Shopify-Hmac-Sha256") String hmac) {
+            @HeaderParam("X-Shopify-Shop-Domain") String shop, @HeaderParam("X-Shopify-Hmac-Sha256") String hmac) {
         String data = HttpUtils.getContent(req);
 
         if (ShopifyOauthHelper.matchHMac64(hmac, data) < 0) {
+            System.err.println("<h3>Unauthorized uninstallation due to a mismatched key</h3>");
             return Response.status(Status.UNAUTHORIZED).entity("<h3>Unauthorized uninstallation due to a mismatched key</h3>").build();
         }
         try {
@@ -243,10 +244,12 @@ public class ShopifyOnboardResource {
                 new Archetype(ps, ews, databaseService).tearDown(acctEntity);
                 databaseService.delete(acctEntity);
             } else {
+                System.err.println("No store account found for shop " + shop);
                 log.warn("No store account found for shop {}", shop);
             }
 
         } catch (Exception e) {
+            System.err.println("Fail to uninstall shop " + shop + "; " + e.toString());
             log.error("Failed to update the database and/or Gemini");
             return Response.serverError().entity(e.toString()).build();
         }
