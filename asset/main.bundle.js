@@ -38,7 +38,7 @@ module.exports = module.exports.toString();
 /***/ "../../../../../src/app/app.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<div class=\"app-root\" *ngIf=\"app_loaded\">\n  <div class=\"app-header-group\">\n    <div class=\"app-header\">\n      <div class=\"app-header-label\"></div>\n      <div>GEMINI</div>\n    </div>\n    <div>\n      <i class=\"fa fa-hand-o-right\" aria-hidden=\"true\"></i>\n      <a class=\"app-header-contact\" href=\"https://www.oath.com/advertising/contact-us/\" target=\"_blank\">Contact Us</a>\n    </div>\n  </div>\n  <div class=\"app-header-sub\">\n    {{ environment.appTitle }}\n  </div>\n  <div [ngClass]=\"alert_css\" role=\"alert\" [hidden]=\"!alert_msg\">\n    <div class=\"close\" (click)=\"hideAlert()\">&times;</div>\n    {{ alert_msg }}\n  </div>\n  <router-outlet></router-outlet>\n</div>\n"
+module.exports = "<div class=\"app-root\" *ngIf=\"app_loaded && !is_shopify\">\n  <div class=\"app-header-group\">\n    <div class=\"app-header\">\n      <div class=\"app-header-label\"></div>\n      <div>GEMINI</div>\n    </div>\n    <div>\n      <i class=\"fa fa-hand-o-right\" aria-hidden=\"true\"></i>\n      <a class=\"app-header-contact\" href=\"https://www.oath.com/advertising/contact-us/\" target=\"_blank\">Contact Us</a>\n    </div>\n  </div>\n  <div class=\"app-header-sub\">\n    {{ environment.appTitle }}\n  </div>\n  <div [ngClass]=\"alert_css\" role=\"alert\" [hidden]=\"!alert_msg\">\n    <div class=\"close\" (click)=\"hideAlert()\">&times;</div>\n    {{ alert_msg }}\n  </div>\n  <router-outlet></router-outlet>\n</div>\n\n<div class=\"app-root\" *ngIf=\"app_loaded && is_shopify\">\n  <router-outlet></router-outlet>\n</div>\n"
 
 /***/ }),
 
@@ -77,6 +77,7 @@ var AppComponent = (function () {
         this.route = route;
         this.campaignService = campaignService;
         this.app_loaded = false;
+        this.is_shopify = false;
         this.messageService = messageService; // workaround an angular bug by redefining this var locally
         this.environment = __WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */];
         this.messageService.on()
@@ -101,9 +102,9 @@ var AppComponent = (function () {
     AppComponent.prototype.ngOnInit = function () {
         var _this = this;
         this._ngOnInit().then(function () {
-            _this.app_loaded = true;
             if (_this.campaignService.isAccountReady()) {
                 _this.router.navigateByUrl('f/campaign', { skipLocationChange: true });
+                _this.app_loaded = true;
                 return;
             }
             _this.subscription = _this.route
@@ -128,9 +129,20 @@ var AppComponent = (function () {
                         if (query) {
                             redirect += query;
                         }
+                        _this.is_shopify = redirect.startsWith('f/shopify/');
                         _this.router.navigateByUrl(redirect, { skipLocationChange: true });
+                        // A sub component may reroute to a non-shopify path, so we should update the flag accordingly
+                        if (_this.is_shopify) {
+                            _this.router.events.subscribe(function (event) {
+                                if (event instanceof __WEBPACK_IMPORTED_MODULE_1__angular_router__["b" /* NavigationStart */]) {
+                                    var start = event.url.indexOf('f/shopify/');
+                                    _this.is_shopify = (start === 0 || start === 1);
+                                }
+                            });
+                        }
                     }
                 }
+                _this.app_loaded = true;
             });
         });
     };
@@ -217,7 +229,7 @@ var AppComponent = (function () {
             template: __webpack_require__("../../../../../src/app/app.component.html"),
             styles: [__webpack_require__("../../../../../src/app/app.component.css")]
         }),
-        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1__angular_router__["b" /* Router */], __WEBPACK_IMPORTED_MODULE_1__angular_router__["a" /* ActivatedRoute */], __WEBPACK_IMPORTED_MODULE_2__services_campaign_service__["a" /* CampaignService */], __WEBPACK_IMPORTED_MODULE_3__services_message_service__["a" /* MessageService */]])
+        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1__angular_router__["c" /* Router */], __WEBPACK_IMPORTED_MODULE_1__angular_router__["a" /* ActivatedRoute */], __WEBPACK_IMPORTED_MODULE_2__services_campaign_service__["a" /* CampaignService */], __WEBPACK_IMPORTED_MODULE_3__services_message_service__["a" /* MessageService */]])
     ], AppComponent);
     return AppComponent;
     var AppComponent_1;
@@ -297,7 +309,7 @@ var AppModule = (function () {
                 __WEBPACK_IMPORTED_MODULE_6__angular_material__["b" /* MatButtonModule */],
                 __WEBPACK_IMPORTED_MODULE_6__angular_material__["c" /* MatCheckboxModule */],
                 __WEBPACK_IMPORTED_MODULE_7__angular_material_dialog__["c" /* MatDialogModule */],
-                __WEBPACK_IMPORTED_MODULE_1__angular_router__["c" /* RouterModule */].forRoot([
+                __WEBPACK_IMPORTED_MODULE_1__angular_router__["d" /* RouterModule */].forRoot([
                     {
                         path: 'f/campaign',
                         component: __WEBPACK_IMPORTED_MODULE_13__components_campaign_campaign_component__["a" /* CampaignComponent */],
@@ -340,7 +352,7 @@ var AppModule = (function () {
                 ], { enableTracing: false })
             ],
             exports: [
-                __WEBPACK_IMPORTED_MODULE_1__angular_router__["c" /* RouterModule */],
+                __WEBPACK_IMPORTED_MODULE_1__angular_router__["d" /* RouterModule */],
                 __WEBPACK_IMPORTED_MODULE_6__angular_material__["b" /* MatButtonModule */],
                 __WEBPACK_IMPORTED_MODULE_6__angular_material__["c" /* MatCheckboxModule */],
             ],
@@ -1066,7 +1078,7 @@ var CampaignComponent = (function () {
             template: __webpack_require__("../../../../../src/app/components/campaign/campaign.component.html"),
             styles: [__webpack_require__("../../../../../src/app/components/campaign/campaign.component.css")],
         }),
-        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1__angular_router__["b" /* Router */], __WEBPACK_IMPORTED_MODULE_2__services_campaign_service__["a" /* CampaignService */], __WEBPACK_IMPORTED_MODULE_6__services_message_service__["a" /* MessageService */]])
+        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1__angular_router__["c" /* Router */], __WEBPACK_IMPORTED_MODULE_2__services_campaign_service__["a" /* CampaignService */], __WEBPACK_IMPORTED_MODULE_6__services_message_service__["a" /* MessageService */]])
     ], CampaignComponent);
     return CampaignComponent;
 }());
@@ -1550,7 +1562,7 @@ var ShopifyComponent = (function () {
             template: __webpack_require__("../../../../../src/app/components/shopify/shopify.component.html"),
             styles: [__webpack_require__("../../../../../src/app/components/shopify/shopify.component.css")]
         }),
-        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1__angular_router__["b" /* Router */], __WEBPACK_IMPORTED_MODULE_1__angular_router__["a" /* ActivatedRoute */], __WEBPACK_IMPORTED_MODULE_3__services_message_service__["a" /* MessageService */], __WEBPACK_IMPORTED_MODULE_2__services_campaign_service__["a" /* CampaignService */]])
+        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1__angular_router__["c" /* Router */], __WEBPACK_IMPORTED_MODULE_1__angular_router__["a" /* ActivatedRoute */], __WEBPACK_IMPORTED_MODULE_3__services_message_service__["a" /* MessageService */], __WEBPACK_IMPORTED_MODULE_2__services_campaign_service__["a" /* CampaignService */]])
     ], ShopifyComponent);
     return ShopifyComponent;
 }());
@@ -1803,7 +1815,7 @@ var CampaignService = (function () {
         configurable: true
     });
     CampaignService.prototype.isAccountReady = function () {
-        return this._account && this._account.hasValidTokens();
+        return this._account && this._account.hasValidTokens() && this._account.adv_id;
     };
     CampaignService.prototype.queryShopify = function (query) {
         var path = '/g/shopify/query';
