@@ -223,10 +223,11 @@ public class ShopifyOnboardResource {
      */
     @Path("uninstall")
     public Response uninstall(@Context HttpServletRequest req, @HeaderParam("X-Shopify-Topic") String topics,
-                              @HeaderParam("X-Shopify-Shop-Domain") String shop, @HeaderParam("X-Shopify-Hmac-Sha256") String hmac) {
+            @HeaderParam("X-Shopify-Shop-Domain") String shop, @HeaderParam("X-Shopify-Hmac-Sha256") String hmac) {
         String data = HttpUtils.getContent(req);
 
         if (ShopifyOauthHelper.matchHMac64(hmac, data) < 0) {
+            System.err.println("<h3>Unauthorized uninstallation due to a mismatched key</h3>");
             return Response.status(Status.UNAUTHORIZED).entity("<h3>Unauthorized uninstallation due to a mismatched key</h3>").build();
         }
         try {
@@ -243,10 +244,12 @@ public class ShopifyOnboardResource {
                 new Archetype(ps, ews, databaseService).tearDown(acctEntity);
                 databaseService.delete(acctEntity);
             } else {
+                System.err.println("No store account found for shop " + shop);
                 log.warn("No store account found for shop {}", shop);
             }
 
         } catch (Exception e) {
+            System.err.println("Fail to uninstall shop " + shop + "; " + e.toString());
             log.error("Failed to update the database and/or Gemini");
             return Response.serverError().entity(e.toString()).build();
         }
@@ -317,10 +320,11 @@ public class ShopifyOnboardResource {
         StringBuilder builder = new StringBuilder(req.getScheme()).append("://").append(config.getString("app.host"));
         String rd = builder.append("/index.html?route=f/shopify/ews").toString();
         UIAccountDTO accountDTO = new UIAccountDTO();
+        EWSAccessTokenData tokens = null;
 
         try {
             rd = HttpUtils.forceToUseHttps(rd);
-            EWSAccessTokenData tokens = ewsAuthService.getAccessTokenFromAuthCode(code, rd);
+            tokens = ewsAuthService.getAccessTokenFromAuthCode(code, rd);
 
             // Redirect user to a campaign setup page
             if (tokens == null || tokens.getRefreshToken() == null) {
@@ -343,6 +347,14 @@ public class ShopifyOnboardResource {
 
         } catch (EWSAccountAccessException ae) {
             // keep going so that UI can tell user that this Yahoo account is not associated with Gemini
+            if (tokens != null && tokens.getRefreshToken() != null) {
+                accountDTO.setYahooAccessToken(tokens.getRefreshToken());
+                accountDTO.setIsYahooTokenValid(true);
+            }
+            if (StringUtils.isNotBlank(_mc)) {
+                accountDTO.setStoreAccessToken(_mc);
+                accountDTO.setIsStoreTokenValid(true);
+            }
         } catch (Exception e) {
             log.error("failed to validate the legitimate of the call", req.getRequestURI());
             return Response.serverError().entity(e.getMessage() != null ? e.getMessage() : e.toString()).build();
@@ -354,6 +366,7 @@ public class ShopifyOnboardResource {
             try {
                 // Prepare Yahoo authentication URI
                 String yahooAuthUrl = config.getString("y.oauth.auth.request.url");
+                rd = buildQueries(rd, "_mc", _mc);
                 rd = buildQueries(rd, "shop", shop);
 
                 yahooAuthUrl = yahooAuthUrl.replace("${y.oauth.redirect}", URLEncoder.encode(rd, "UTF-8"));

@@ -1,4 +1,4 @@
-<div class="app-root" *ngIf="app_loaded">
+<div class="app-root" *ngIf="app_loaded && !is_shopify">
   <div class="app-header-group">
     <div class="app-header">
       <div class="app-header-label"></div>
@@ -16,5 +16,9 @@
     <div class="close" (click)="hideAlert()">&times;</div>
     {{ alert_msg }}
   </div>
+  <router-outlet></router-outlet>
+</div>
+
+<div class="app-root" *ngIf="app_loaded && is_shopify">
   <router-outlet></router-outlet>
 </div>

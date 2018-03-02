@@ -46,7 +46,7 @@ export class CampaignService {
   }
 
   isAccountReady() {
-    return this._account && this._account.hasValidTokens();
+    return this._account && this._account.hasValidTokens() && this._account.adv_id;
   }
 
   queryShopify(query: Params): Promise<Account> {
