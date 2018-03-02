@@ -142,7 +142,7 @@ public class DatabaseResource {
         return Response.ok().build();
     }
 
-    @RolesAllowed({ "SIG", "YBY", "localhost" })
+    @RolesAllowed({ "SIG", "YBY" })
     @DELETE
     @Path("campaign/{id}/")
     public Response deleteCampaign(@PathParam("id") String id) {

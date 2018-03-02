@@ -6,6 +6,7 @@ import com.oath.gemini.merchant.security.SigningService;
 import org.apache.commons.configuration.Configuration;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.hibernate.SessionFactory;
+import com.yahoo.bouncer.sso.CookieValidator;
 
 /**
  * Bind instantces/classes so that they will be available for injection
@@ -14,9 +15,11 @@ import org.hibernate.SessionFactory;
  */
 public class AppInjectionBinder extends AbstractBinder {
     private final SessionFactory sessionFactory;
+    private final CookieValidator cookieValidator;
 
-    public AppInjectionBinder(SessionFactory sessionFactory) {
+    public AppInjectionBinder(SessionFactory sessionFactory, CookieValidator cookieValidator) {
         this.sessionFactory = sessionFactory;
+        this.cookieValidator = cookieValidator;
     }
 
     @Override
@@ -27,5 +30,6 @@ public class AppInjectionBinder extends AbstractBinder {
         bind(sessionFactory).to(SessionFactory.class);
         bind(DatabaseService.class).to(DatabaseService.class);
         bind(EWSAuthenticationService.class).to(EWSAuthenticationService.class);
+        bind(cookieValidator).to(CookieValidator.class);
     }
 }

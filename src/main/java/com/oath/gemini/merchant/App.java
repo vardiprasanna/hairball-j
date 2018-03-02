@@ -10,11 +10,19 @@ import com.oath.gemini.merchant.ews.EWSClientResource;
 import com.oath.gemini.merchant.shopify.ShopifyOnboardResource;
 import java.io.File;
 import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Iterator;
+import java.util.Map;
 import javax.servlet.DispatcherType;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.Cookie;
+
+import com.yahoo.bouncer.sso.CookieInfo;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.eclipse.jetty.rewrite.handler.RedirectPatternRule;
@@ -39,6 +47,7 @@ import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import com.yahoo.bouncer.sso.CookieValidator;
 
 /**
  * @author tong on 10/1/2017
@@ -65,8 +74,9 @@ public class App extends ResourceConfig {
 
     private void setFields(Configuration cfg) {
         SessionFactory sessions = buildSessionFactory(cfg);
+        CookieValidator cookieValidator = new CookieValidator();
 
-        super.register(new AppInjectionBinder(sessions));
+        super.register(new AppInjectionBinder(sessions, cookieValidator));
         super.register(JacksonFeature.class);
         super.register(ShopifyOnboardResource.class);
         super.register(DatabaseResource.class);
@@ -250,6 +260,30 @@ public class App extends ResourceConfig {
 
     public static void main(String[] args) throws Exception {
         int port = -1;
+        String cookieValue = "id%3D2147737484%26userid%3Dpvardi%26sign%3DhG7rGi3kvpRP5t59NINvEYJEd4TpT4eQaMaGUbbC0VCQp0MXtMpJzQ0kaEF9XPX5IHye4So3OKj384RK2I08M0jdNxuLKGWqjG_7.vsJ9DsFAP06CeYQzxbc_mIRNPXdRs7xO.jZSt7p7ZFZqdLgELRCup2HEMntftjrUWcz1JIySiPImtnoYX320RMNKaSPt4x.iYabX.QFwbv5zWSRzBGHdkSO3FvmrcD61PMxPW.eJrt2QaQjcxGpZJqBxFjzOaOAb60f94_1JTxWnwbRT2ELkEguHkacyjXZ.X9KAyU8zC63A2iVaD1sDzLToV5ECgkOKfPvg9uqzWO2yX.46Q--%26time%3D1519941900%26expires%3D600%26ip%3D216.145.53.0%26roles%3D%7C1.IE%7C10197.B%7C10481.CF%7C10806.U%7C11353.B%7C121.U%7C13.V%7C20.U%7C3.I%7C4.E%7C50.U%7C6951.I%7C6982.I%7C7181.I%7C7741.U%7C8031.B%7C8165.E%7C9026.T%7C9108.R%7C%5BProperty%7CViewers%5D%7Cdomain.yahoo.com%7Cip2.172.142.24.240%7Ckve.5%7Ckvr.5%7Csign2.MEYCIQCCaw6AGLMbGK9xfq8oDU3YGgP9ckxODCyV1ZH8bUR3pQIhAMEb0V7GLUxk0g.quRwwslfmtae63CrBc7OuwrpN8iOF%7C";
+        if (initYBY()) {
+            System.out.println("Init return true");
+            try {
+                CookieInfo info = cookieValidator.authSig(cookieValue);
+                System.out.println("===============================");
+                System.out.println("===============================");
+                System.out.println("the Info is");
+                System.out.println(info.getUserId().equals("pvardi"));
+                System.out.println(Arrays.asList(info.getUserRoles()).contains("121.U"));
+                System.out.println("===============================");
+                System.out.println("===============================");
+                if(info.isValid()){
+                    System.out.println("The cookie is valid");
+                }
+                else{
+                    System.out.println("Not valid");
+                }
+
+            } catch (Exception e) {
+                System.out.println("not able to validate");
+            }
+        }
+
 
         // Heroku passes a local port via the command line option
         for (int i = 0; i < args.length; i++) {
@@ -263,4 +297,19 @@ public class App extends ResourceConfig {
         app.initialize(port);
         app.start();
     }
+
+    static boolean initYBY() {
+        System.out.println("Inside Init");
+
+            try {
+                cookieValidator.initialize();
+                System.out.println("Returning Init");
+                return true;
+            } catch (InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException | IOException e) {
+                return  false;
+            }
+
+    }
+
+    private static CookieValidator cookieValidator = new CookieValidator();
 }

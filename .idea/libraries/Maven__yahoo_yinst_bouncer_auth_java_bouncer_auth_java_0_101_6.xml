@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: yahoo.yinst.bouncer_auth_java:bouncer_auth_java:0.101.6">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/yahoo/yinst/bouncer_auth_java/bouncer_auth_java/0.101.6/bouncer_auth_java-0.101.6.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/yahoo/yinst/bouncer_auth_java/bouncer_auth_java/0.101.6/bouncer_auth_java-0.101.6-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/yahoo/yinst/bouncer_auth_java/bouncer_auth_java/0.101.6/bouncer_auth_java-0.101.6-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

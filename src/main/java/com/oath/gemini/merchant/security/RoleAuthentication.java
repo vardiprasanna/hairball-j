@@ -69,8 +69,8 @@ public class RoleAuthentication implements ContainerRequestFilter {
                 case "YBY":
                     // Yahoo user is permitted
                     Map<String, Cookie> cookies = requestContext.getCookies();
-                    boolean authorized = cookies.keySet().stream().anyMatch(k -> k.equals("YBY"));
-
+                    YBYCookieValidator cookieValidator = new YBYCookieValidator();
+                    boolean authorized = cookieValidator.validateCookie(cookies);
                     if (authorized) {
                         return true;
                     }

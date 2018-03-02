@@ -1,9 +1,13 @@
 package com.oath.gemini.merchant;
 
 import com.oath.gemini.merchant.security.RoleAuthentication;
+import com.oath.gemini.merchant.security.YBYCookieValidator;
+
 import java.lang.reflect.Method;
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.container.DynamicFeature;
+import javax.ws.rs.POST;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.container.ResourceInfo;
 import javax.ws.rs.core.FeatureContext;
 
