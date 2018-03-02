@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, NavigationStart } from '@angular/router';
 import { CampaignService } from './services/campaign.service';
 import { MessageService } from './services/message.service';
 import { Account } from './model/account';
@@ -20,6 +20,7 @@ export class AppComponent implements OnInit, OnDestroy {
   app_loaded = false;
   alert_css: string;
   alert_msg: string;
+  is_shopify = false;
 
   constructor(private router: Router, private route: ActivatedRoute, private campaignService: CampaignService, messageService: MessageService) {
     this.messageService = messageService; // workaround an angular bug by redefining this var locally
@@ -48,10 +49,9 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this._ngOnInit().then(() => {
-      this.app_loaded = true;
-
       if (this.campaignService.isAccountReady()) {
         this.router.navigateByUrl('f/campaign', {skipLocationChange: true});
+        this.app_loaded = true;
         return;
       }
 
@@ -79,9 +79,21 @@ export class AppComponent implements OnInit, OnDestroy {
                 redirect += query;
               }
 
+              this.is_shopify = redirect.startsWith('f/shopify/');
               this.router.navigateByUrl(redirect, {skipLocationChange: true});
+
+              // A sub component may reroute to a non-shopify path, so we should update the flag accordingly
+              if (this.is_shopify) {
+                this.router.events.subscribe((event: NavigationStart) => {
+                  if (event instanceof NavigationStart) {
+                    const start = event.url.indexOf('f/shopify/');
+                    this.is_shopify = (start === 0 || start === 1);
+                  }
+                });
+              }
             }
           }
+          this.app_loaded = true;
         });
     });
   }
