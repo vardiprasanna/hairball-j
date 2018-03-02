@@ -15,7 +15,6 @@ import java.util.Iterator;
 import javax.servlet.DispatcherType;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.eclipse.jetty.rewrite.handler.RedirectPatternRule;
@@ -40,7 +39,6 @@ import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
-import com.yahoo.bouncer.sso.CookieValidator;
 
 /**
  * @author tong on 10/1/2017
@@ -67,9 +65,8 @@ public class App extends ResourceConfig {
 
     private void setFields(Configuration cfg) {
         SessionFactory sessions = buildSessionFactory(cfg);
-        CookieValidator cookieValidator = new CookieValidator();
 
-        super.register(new AppInjectionBinder(sessions, cookieValidator));
+        super.register(new AppInjectionBinder(sessions));
         super.register(JacksonFeature.class);
         super.register(ShopifyOnboardResource.class);
         super.register(DatabaseResource.class);

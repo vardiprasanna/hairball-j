@@ -15,11 +15,9 @@ import com.yahoo.bouncer.sso.CookieValidator;
  */
 public class AppInjectionBinder extends AbstractBinder {
     private final SessionFactory sessionFactory;
-    private final CookieValidator cookieValidator;
 
-    public AppInjectionBinder(SessionFactory sessionFactory, CookieValidator cookieValidator) {
+    public AppInjectionBinder(SessionFactory sessionFactory) {
         this.sessionFactory = sessionFactory;
-        this.cookieValidator = cookieValidator;
     }
 
     @Override
@@ -30,6 +28,5 @@ public class AppInjectionBinder extends AbstractBinder {
         bind(sessionFactory).to(SessionFactory.class);
         bind(DatabaseService.class).to(DatabaseService.class);
         bind(EWSAuthenticationService.class).to(EWSAuthenticationService.class);
-        bind(cookieValidator).to(CookieValidator.class);
     }
 }
