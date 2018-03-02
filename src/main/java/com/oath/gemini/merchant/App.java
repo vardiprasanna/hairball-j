@@ -250,6 +250,7 @@ public class App extends ResourceConfig {
 
     public static void main(String[] args) throws Exception {
         int port = -1;
+
         // Heroku passes a local port via the command line option
         for (int i = 0; i < args.length; i++) {
             if (args[i].endsWith("-port") && (i < args.length - 1)) {

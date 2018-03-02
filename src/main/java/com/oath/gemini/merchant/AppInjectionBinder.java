@@ -6,7 +6,6 @@ import com.oath.gemini.merchant.security.SigningService;
 import org.apache.commons.configuration.Configuration;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.hibernate.SessionFactory;
-import com.yahoo.bouncer.sso.CookieValidator;
 
 /**
  * Bind instantces/classes so that they will be available for injection
