@@ -317,10 +317,11 @@ public class ShopifyOnboardResource {
         StringBuilder builder = new StringBuilder(req.getScheme()).append("://").append(config.getString("app.host"));
         String rd = builder.append("/index.html?route=f/shopify/ews").toString();
         UIAccountDTO accountDTO = new UIAccountDTO();
+        EWSAccessTokenData tokens = null;
 
         try {
             rd = HttpUtils.forceToUseHttps(rd);
-            EWSAccessTokenData tokens = ewsAuthService.getAccessTokenFromAuthCode(code, rd);
+            tokens = ewsAuthService.getAccessTokenFromAuthCode(code, rd);
 
             // Redirect user to a campaign setup page
             if (tokens == null || tokens.getRefreshToken() == null) {
@@ -343,6 +344,14 @@ public class ShopifyOnboardResource {
 
         } catch (EWSAccountAccessException ae) {
             // keep going so that UI can tell user that this Yahoo account is not associated with Gemini
+            if (tokens != null && tokens.getRefreshToken() != null) {
+                accountDTO.setYahooAccessToken(tokens.getRefreshToken());
+                accountDTO.setIsYahooTokenValid(true);
+            }
+            if (StringUtils.isNotBlank(_mc)) {
+                accountDTO.setStoreAccessToken(_mc);
+                accountDTO.setIsStoreTokenValid(true);
+            }
         } catch (Exception e) {
             log.error("failed to validate the legitimate of the call", req.getRequestURI());
             return Response.serverError().entity(e.getMessage() != null ? e.getMessage() : e.toString()).build();
@@ -354,6 +363,7 @@ public class ShopifyOnboardResource {
             try {
                 // Prepare Yahoo authentication URI
                 String yahooAuthUrl = config.getString("y.oauth.auth.request.url");
+                rd = buildQueries(rd, "_mc", _mc);
                 rd = buildQueries(rd, "shop", shop);
 
                 yahooAuthUrl = yahooAuthUrl.replace("${y.oauth.redirect}", URLEncoder.encode(rd, "UTF-8"));
