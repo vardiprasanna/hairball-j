@@ -31,6 +31,8 @@ import lombok.extern.slf4j.Slf4j;
 public class RoleAuthentication implements ContainerRequestFilter {
     private static final Insider insider = new Insider();
     private static final Pattern regex = Pattern.compile("[?/&;,]?sig=(.*)[&;,]?$");
+    private static YBYCookieValidator cookieValidator = new YBYCookieValidator();
+    private static boolean cookieValidatorInit = YBYCookieValidator.init();
 
     private ContainerRequestContext requestContext;
 
@@ -68,11 +70,12 @@ public class RoleAuthentication implements ContainerRequestFilter {
 
                 case "YBY":
                     // Yahoo user is permitted
-                    Map<String, Cookie> cookies = requestContext.getCookies();
-                    YBYCookieValidator cookieValidator = new YBYCookieValidator();
-                    boolean authorized = cookieValidator.validateCookie(cookies);
-                    if (authorized) {
-                        return true;
+                    if (cookieValidatorInit) {
+                        Map<String, Cookie> cookies = requestContext.getCookies();
+                        boolean authorized = cookieValidator.validateCookie(cookies);
+                        if (authorized) {
+                            return true;
+                        }
                     }
                     break;
 
