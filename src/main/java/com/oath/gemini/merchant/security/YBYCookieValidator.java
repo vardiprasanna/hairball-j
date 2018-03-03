@@ -1,5 +1,8 @@
 package com.oath.gemini.merchant.security;
 
+import com.oath.gemini.merchant.AppConfiguration;
+import com.yahoo.bouncer.sso.CookieInfo;
+import com.yahoo.bouncer.sso.CookieValidator;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -7,11 +10,8 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 import java.util.Map;
 import javax.ws.rs.core.Cookie;
-import com.oath.gemini.merchant.AppConfiguration;
-import lombok.extern.slf4j.Slf4j;
-import com.yahoo.bouncer.sso.CookieInfo;
-import com.yahoo.bouncer.sso.CookieValidator;
 import org.apache.commons.configuration.Configuration;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author tong on 10/1/2017
