@@ -8,7 +8,6 @@ import java.util.Arrays;
 import java.util.GregorianCalendar;
 import java.util.Map;
 import javax.ws.rs.core.Cookie;
-
 import com.oath.gemini.merchant.AppConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import com.yahoo.bouncer.sso.CookieInfo;
