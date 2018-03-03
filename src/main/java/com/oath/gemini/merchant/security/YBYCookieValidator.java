@@ -19,34 +19,33 @@ import org.apache.commons.configuration.Configuration;
 @Slf4j
 public class YBYCookieValidator {
     private static CookieValidator cookieValidator = new CookieValidator();
-    private static String AppId;
+    private static String appId;
     private static String userArray;
+    private static boolean initialized;
     static {
         Configuration config = AppConfiguration.getConfig();
-        AppId = config.getString("app.id");
+        appId = config.getString("app.id");
         userArray = config.getString("app.users");
-    }
-
-    static boolean init() {
         try {
             cookieValidator.initialize();
+            initialized = true;
         } catch (InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException | IOException e) {
             log.warn("CookieValidator exception", e.getMessage());
-            return false;
+            initialized = false;
         }
-        return true;
     }
 
     public boolean validateCookie(Map<String, Cookie> cookies) {
-
-        Cookie cookie = cookies.get("YBY");
-        if (cookie != null) {
-            final CookieInfo cookieInfo = cookieValidator.authSig(cookie.getValue());
-            if (cookieInfo != null) {
-                String[] userRoles = cookieInfo.getUserRoles();
-                boolean contains = Arrays.asList(userRoles).contains(AppId);
-                String[] users = userArray.split(",");
-                return (contains && Arrays.asList(users).contains(cookieInfo.getUserId()));
+        if(initialized){
+            Cookie cookie = cookies.get("YBY");
+            if (cookie != null) {
+                final CookieInfo cookieInfo = cookieValidator.authSig(cookie.getValue());
+                if (cookieInfo != null) {
+                    String[] userRoles = cookieInfo.getUserRoles();
+                    boolean contains = Arrays.asList(userRoles).contains(appId);
+                    String[] users = userArray.split(",");
+                    return (contains && Arrays.asList(users).contains(cookieInfo.getUserId()));
+                }
             }
         }
         return false;

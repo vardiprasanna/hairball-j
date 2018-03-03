@@ -32,7 +32,6 @@ public class RoleAuthentication implements ContainerRequestFilter {
     private static final Insider insider = new Insider();
     private static final Pattern regex = Pattern.compile("[?/&;,]?sig=(.*)[&;,]?$");
     private static YBYCookieValidator cookieValidator = new YBYCookieValidator();
-    private static boolean cookieValidatorInit = YBYCookieValidator.init();
 
     private ContainerRequestContext requestContext;
 
@@ -70,12 +69,10 @@ public class RoleAuthentication implements ContainerRequestFilter {
 
                 case "YBY":
                     // Yahoo user is permitted
-                    if (cookieValidatorInit) {
-                        Map<String, Cookie> cookies = requestContext.getCookies();
-                        boolean authorized = cookieValidator.validateCookie(cookies);
-                        if (authorized) {
-                            return true;
-                        }
+                    Map<String, Cookie> cookies = requestContext.getCookies();
+                    boolean authorized = cookieValidator.validateCookie(cookies);
+                    if (authorized) {
+                        return true;
                     }
                     break;
 
