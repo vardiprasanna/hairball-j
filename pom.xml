@@ -197,6 +197,11 @@
       <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>yahoo.yinst.bouncer_auth_java</groupId>
+      <artifactId>bouncer_auth_java</artifactId>
+      <version>0.101.6</version>
+    </dependency>
   </dependencies>
 
   <build>
