@@ -173,12 +173,9 @@ var AppComponent = (function () {
                     cachedAcct = JSON.parse(account);
                     advertiserId = cachedAcct.adv_id;
                     campaignId = cachedAcct.cmp_id;
-                    if (!this.campaignService.account) {
-                        this.campaignService.account = cachedAcct;
-                    }
                 }
                 catch (err) {
-                    console.log('' + err);
+                    console.log('cached acct: ' + err);
                 }
             }
         }
@@ -200,6 +197,11 @@ var AppComponent = (function () {
                 }));
             }
             else {
+                if (!_this.campaignService.account) {
+                    _this.campaignService.account = cachedAcct;
+                    _this.campaignService.account.adv_id = null;
+                    _this.campaignService.account.cmp_id = null;
+                }
                 resolve(true);
             }
         });
