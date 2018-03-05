@@ -534,7 +534,7 @@ public class ShopifyOnboardResource {
             return newStoreAcct;
         } else {
 
-             if (!shop.equals(oldStoreAcct.getName())) {
+             if (!shop.getDomain().equals(oldStoreAcct.getName())) {
                 throw new Exception("This Gemini account already used by another shop. Use different Gemini account");
              }
 
