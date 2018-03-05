@@ -127,12 +127,8 @@ export class AppComponent implements OnInit, OnDestroy {
           cachedAcct = JSON.parse(account);
           advertiserId = cachedAcct.adv_id;
           campaignId = cachedAcct.cmp_id;
-
-          if (!this.campaignService.account) {
-            this.campaignService.account = cachedAcct;
-          }
         } catch (err) {
-          console.log('' + err);
+          console.log('cached acct: ' + err);
         }
       }
     }
@@ -154,6 +150,11 @@ export class AppComponent implements OnInit, OnDestroy {
           resolve(true);
         }));
       } else {
+        if (!this.campaignService.account) {
+          this.campaignService.account = cachedAcct;
+          this.campaignService.account.adv_id = null;
+          this.campaignService.account.cmp_id = null;
+        }
         resolve(true);
       }
     });
