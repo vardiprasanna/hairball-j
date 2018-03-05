@@ -14,7 +14,7 @@ import org.apache.commons.configuration.Configuration;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * @author tong on 10/1/2017
+ * @author pvardi on 2/24/2017
  */
 @Slf4j
 public class YBYCookieValidator {
