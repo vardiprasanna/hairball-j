@@ -536,7 +536,6 @@ public class ShopifyOnboardResource {
              if (!shop.getDomain().equals(oldStoreAcct.getName())) {
                 throw new Exception("This Gemini account already used by another shop. Use different Gemini account");
              }
-
             // Only the following fields can be modified
             databaseService.replaceIfDummyOrBlank(oldStoreAcct, "name", shop.getName());
             databaseService.replaceIfDummyOrBlank(oldStoreAcct, "domain", shop.getDomain());
