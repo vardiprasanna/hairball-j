@@ -6,17 +6,33 @@
     </div>
     <div>
       <i class="fa fa-hand-o-right" aria-hidden="true"></i>
-      <a class="app-header-contact" href="https://www.oath.com/advertising/contact-us/" target="_blank">Contact Us</a>
+      <a class="app-header-contact" [href]="environment.prodContact" target="_blank">Contact Us</a>
     </div>
   </div>
   <div class="app-header-sub">
     {{ environment.appTitle }}
   </div>
-  <div [ngClass]="alert_css" role="alert" [hidden]="!alert_msg">
+  <div [class]="alert_css" role="alert" [hidden]="!alert_msg">
     <div class="close" (click)="hideAlert()">&times;</div>
     {{ alert_msg }}
   </div>
   <router-outlet></router-outlet>
+
+  <div class="app-footer">
+    <div>
+      <a class="app-header-contact" href="#" (click)="openwin(environment.legalTC, 'legalTC', 800,1000)">Terms
+        and Conditions</a>
+    </div>
+    <div>
+      <a class="app-header-contact" href="#" (click)="openwin(environment.legalPrivacy, 'legalPrivacy', 800,600)">Privacy</a>
+    </div>
+    <div>
+      <a class="app-header-contact" href="#" (click)="openwin(environment.prodFQA, 'prodFQA', 800,600)">FQA</a>
+    </div>
+    <div>
+      <a class="app-header-contact" [href]="environment.prodFeedback" target="_blank">Feedback</a>
+    </div>
+  </div>
 </div>
 
 <div class="app-root" *ngIf="app_loaded && is_shopify">

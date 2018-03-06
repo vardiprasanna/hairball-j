@@ -1,6 +1,11 @@
 .app-root {
   margin: 0 50px;
   background-color: white;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
 
 .app-header-group {
@@ -44,6 +49,19 @@
 
 .app-header-label + div {
   color: #461aa0;
+}
+
+.app-footer {
+  display: flex;
+  flex-direction: row;
+  position: absolute;
+  z-index: 99;
+  width: 100%;
+  padding: 10px 0;
+  font-size: 10px;
+  color: darkgray;
+  bottom: 0;
+  left: 0;
 }
 
 .app-alert {
