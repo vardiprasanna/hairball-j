@@ -34,12 +34,6 @@
   color: #461aa0;
 }
 
-.app-header-contact {
-  text-decoration: underline overline #461aa0;
-  padding: 0 10px;
-  color: #461aa0;
-}
-
 .app-header-label {
   background-image: url(../assets/yahoo-logo.png);
   background-repeat: no-repeat;
@@ -62,6 +56,11 @@
   color: darkgray;
   bottom: 0;
   left: 0;
+}
+
+.app-footer a {
+  padding: 0 10px;
+  color: #461aa0;
 }
 
 .app-alert {

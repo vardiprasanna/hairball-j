@@ -4,10 +4,6 @@
       <div class="app-header-label"></div>
       <div>GEMINI</div>
     </div>
-    <div>
-      <i class="fa fa-hand-o-right" aria-hidden="true"></i>
-      <a class="app-header-contact" [href]="environment.prodContact" target="_blank">Contact Us</a>
-    </div>
   </div>
   <div class="app-header-sub">
     {{ environment.appTitle }}
@@ -20,17 +16,19 @@
 
   <div class="app-footer">
     <div>
-      <a class="app-header-contact" href="#" (click)="openwin(environment.legalTC, 'legalTC', 800,1000)">Terms
-        and Conditions</a>
+      <a href="#" (click)="openwin(environment.legalTC, 'legalTC', 1100,1000)">Terms and Conditions</a>
     </div>
     <div>
-      <a class="app-header-contact" href="#" (click)="openwin(environment.legalPrivacy, 'legalPrivacy', 800,600)">Privacy</a>
+      <a href="#" (click)="openwin(environment.legalPrivacy, 'legalPrivacy', 1100,800)">Privacy</a>
     </div>
     <div>
-      <a class="app-header-contact" href="#" (click)="openwin(environment.prodFQA, 'prodFQA', 800,600)">FQA</a>
+      <a href="#" (click)="openwin(environment.prodContact, 'prodContact', 1400,1000)">Contact Us</a>
     </div>
     <div>
-      <a class="app-header-contact" [href]="environment.prodFeedback" target="_blank">Feedback</a>
+      <a href="#" (click)="openwin(environment.prodFQA, 'prodFQA', 1100, 800)">FQA</a>
+    </div>
+    <div>
+      <a [href]="environment.prodFeedback" target="_blank">Feedback</a>
     </div>
   </div>
 </div>
