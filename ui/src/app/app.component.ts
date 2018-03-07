@@ -127,12 +127,8 @@ export class AppComponent implements OnInit, OnDestroy {
           cachedAcct = JSON.parse(account);
           advertiserId = cachedAcct.adv_id;
           campaignId = cachedAcct.cmp_id;
-
-          if (!this.campaignService.account) {
-            this.campaignService.account = cachedAcct;
-          }
         } catch (err) {
-          console.log('' + err);
+          console.log('cached acct: ' + err);
         }
       }
     }
@@ -154,6 +150,11 @@ export class AppComponent implements OnInit, OnDestroy {
           resolve(true);
         }));
       } else {
+        if (!this.campaignService.account && cachedAcct) {
+          this.campaignService.account = cachedAcct;
+          this.campaignService.account.adv_id = null;
+          this.campaignService.account.cmp_id = null;
+        }
         resolve(true);
       }
     });
@@ -175,6 +176,26 @@ export class AppComponent implements OnInit, OnDestroy {
       return campaignId;
     }
     return null; // 364670647; // TODO;
+  }
+
+  /**
+   * Bring up a new window with a desired width and height
+   */
+  openwin(url, name, w, h) {
+    const left = window.screenLeft + 100;
+    const top = window.screenTop + 60;
+    const availW = screen.availWidth - left - 20;
+    const availH = screen.availHeight - top - 20;
+
+    if (w >= availW) {
+      w = availW;
+    }
+    if (h >= availH) {
+      h = availH;
+    }
+
+    window.open(url, name, `left=${left},top=${top},width=${w},height=${h}`);
+    return false;
   }
 
   hideAlert(): boolean {

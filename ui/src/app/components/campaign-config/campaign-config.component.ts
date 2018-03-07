@@ -15,6 +15,7 @@ export class CampaignConfigComponent implements OnInit {
   @Input()
   advertiserId: number;
 
+  env: any;
   campaign: Campaign;
   campaign_original: Campaign;
   campaign_config_loaded = false;
@@ -22,6 +23,7 @@ export class CampaignConfigComponent implements OnInit {
   is_changed = false;
 
   constructor(private messageService: MessageService, private campaignService: CampaignService) {
+    this.env = environment;
     this.campaign = new Campaign();
   }
 

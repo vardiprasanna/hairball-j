@@ -26,5 +26,14 @@ export const environment = {
   geminiStopSuccessful: 'Successfully stopped.',
   installInst0: `Sign in to Yahoo Gemini account in order to use this application. If you do not have an account with Gemini, click on the register button and follow the steps.`,
   installInst1: 'When signing in, you will be asked to allow us to access your Gemini account.',
-  installInst2: `Before setting up a Gemini product campaign, you will be asked to grant Gemini to view your Shopify products and add a product pixel. Gemini will not view your customers or orders.`
+  installInst2: `Before setting up a Gemini product campaign, you will be asked to grant Gemini to view your Shopify products and add a product pixel. Gemini will not view your customers or orders.`,
+
+  legalTC: 'https://info.yahoo.com/legal/us/yahoo/advertising/masterterms/masterterms-322.html',
+  legalPrivacy: 'https://info.yahoo.com/privacy/us/yahoo/',
+  prodContact: 'https://www.oath.com/advertising/contact-us/',
+  prodFeedback: 'mailto:helloGemini@cc.yahoo-inc.com?subject=Gemini+Shopify+feedback',
+  prodFQA: 'assets/fqa.html',
+
+  helpTipBudget: 'The maximum amount you are willing to pay a day for the campaign.',
+  helpTipCPC: 'The maximum amount you are willing to pay if someone clicks on your ad.'
 };

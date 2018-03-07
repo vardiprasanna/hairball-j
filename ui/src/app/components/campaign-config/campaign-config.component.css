@@ -42,3 +42,18 @@ button.gemini-button:first-child {
 button.gemini-button {
   margin: 0 10px;
 }
+
+div.form-label-group {
+  display: flex;
+  align-items: flex-start;
+  margin-top: 10px;
+}
+
+i.helptip-icon {
+  padding-bottom: 10px;
+  padding-left: 5px;
+}
+
+i.helptip-icon:hover {
+  cursor: pointer;
+}
