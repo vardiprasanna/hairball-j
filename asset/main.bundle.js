@@ -1115,7 +1115,7 @@ exports = module.exports = __webpack_require__("../../../../css-loader/lib/css-b
 
 
 // module
-exports.push([module.i, ".login-container {\n  margin-top: 100px;\n  margin-left: 40px;\n  font-size: 125%;\n}\n\n.install-info {\n  display: table;\n  margin: -60px 0 10px 20px;\n  max-width: 600px;\n}\n\n.login-content {\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -ms-flex-wrap: nowrap;\n      flex-wrap: nowrap;\n  -webkit-box-pack: start;\n      -ms-flex-pack: start;\n          justify-content: start;\n  -webkit-box-align: start;\n      -ms-flex-align: start;\n          align-items: flex-start;\n  max-width: 600px;\n  margin: 0 10px;\n}\n\n.login-content > div:first-child {\n  color: #461aa0;\n  font-size: 200%;\n}\n\n.login-content > div {\n  margin: 10px;\n}\n\ndiv[class=gemini-button-group] {\n  padding-left: 10px;\n  margin-top: 30px;\n}\n\n.gemini-button-group > div {\n  margin: 0 10px;\n}\n", ""]);
+exports.push([module.i, ".login-container {\n  margin-top: 100px;\n  margin-left: 40px;\n  font-size: 125%;\n}\n\n.install-info {\n  display: table;\n  margin: -60px 0 10px 20px;\n  max-width: 600px;\n}\n\n.login-content {\n  display: table;\n  margin: -60px 0 10px 20px;\n  max-width: 600px;\n  color: black;\n}\n\n.login-row {\n  display: table-row;\n  margin: 20px 0;\n}\n\n.login-icon1 {\n  font-size: 150%;\n  color: #461aa0;\n  padding-right: 10px;\n}\n\n.login-icon2 {\n  font-size: 150%;\n  color: #cf1616;\n  padding-right: 10px;\n}\n\ndiv[class=gemini-button-group] {\n  padding-left: 10px;\n  padding-right: 10px;\n  margin-top: 30px;\n}\n\n.gemini-button-group > div {\n  margin: 0 10px;\n}\n", ""]);
 
 // exports
 
@@ -1128,7 +1128,7 @@ module.exports = module.exports.toString();
 /***/ "../../../../../src/app/components/login/login.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<div class=\"login-container\">\n  <div class=\"install-info\" *ngIf=\"first_timer\">\n    <div style=\"display:table-row; vertical-align: middle\">\n      <div style=\"display:table-cell; width: 70%; white-space: nowrap\">\n        <img src=\"../../../favicon.ico\">\n        <img src=\"../../../assets/dot-double-arrow.png\">\n        <img src=\"../../../assets/shopify-logo.png\">\n      </div>\n    </div>\n    <hr/>\n    <div style=\"display:table-row\">\n      <div style=\"display:table-cell\">\n        <ul *ngFor=\"let info of first_timer\">\n          <li>{{info}}</li>\n        </ul>\n      </div>\n    </div>\n  </div>\n  <div class=\"login-content\" *ngIf=\"!first_timer\">\n    <div>\n      <i class=\"fa fa-exclamation-circle\" aria-hidden=\"true\"></i>\n    </div>\n    <div>\n      {{login_instruction}}\n    </div>\n  </div>\n  <div class=\"gemini-button-group\">\n    <div>\n      <button class=\"gemini-button\" (click)=\"signIn()\" autofocus=\"true\">\n        Sign In\n      </button>\n    </div>\n    <div>\n      <button class=\"gemini-button\" (click)=\"signUp()\">\n        Register\n      </button>\n    </div>\n  </div>\n</div>\n"
+module.exports = "<div class=\"login-container\">\n  <div class=\"install-info\" *ngIf=\"first_timer\">\n    <div style=\"display:table-row; vertical-align: middle\">\n      <div style=\"display:table-cell; width: 70%; white-space: nowrap\">\n        <img src=\"../../../favicon.ico\">\n        <img src=\"../../../assets/dot-double-arrow.png\">\n        <img src=\"../../../assets/shopify-logo.png\">\n      </div>\n    </div>\n    <hr/>\n    <div style=\"display:table-row\">\n      <div style=\"display:table-cell\">\n        <ul *ngFor=\"let info of first_timer\">\n          <li>{{info}}</li>\n        </ul>\n      </div>\n    </div>\n  </div>\n  <div class=\"login-content\" *ngIf=\"!first_timer\">\n    <div class=\"login-row\">\n      <h2>{{env.installHeader}}</h2>\n    </div>\n    <div class=\"login-row\" style=\"height:40px\"></div>\n    <div class=\"login-row\">\n        <i class=\"fa fa-exclamation-circle login-icon1\" aria-hidden=\"true\"></i>\n        <span>{{env.installBenefit}}</span>\n    </div>\n    <div class=\"login-row\" style=\"height:40px\"></div>\n    <div class=\"login-row\">\n        <i class=\"fa fa-exclamation-circle login-icon2\" aria-hidden=\"true\"></i>\n        <span>{{login_instruction}}</span>\n    </div>\n  </div>\n  <div class=\"gemini-button-group\">\n    <div>\n      <button class=\"gemini-button\" (click)=\"signIn()\" autofocus=\"true\">\n        Sign In\n      </button>\n    </div>\n    <div>\n      <button class=\"gemini-button\" (click)=\"signUp()\">\n        Register\n      </button>\n    </div>\n  </div>\n</div>\n"
 
 /***/ }),
 
@@ -1162,6 +1162,7 @@ var LoginComponent = (function () {
         this.messageService = messageService;
         this.campaignService = campaignService;
         this.login_loaded = false;
+        this.env = __WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */];
         this.login_instruction = __WEBPACK_IMPORTED_MODULE_4__environments_environment__["a" /* environment */].installInst0;
     }
     LoginComponent.prototype.ngOnInit = function () {
@@ -2018,7 +2019,9 @@ var environment = {
     geminiUpdateSuccessful: 'Successfully updated.',
     geminiStartSuccessful: 'Successfully started.',
     geminiStopSuccessful: 'Successfully stopped.',
-    installInst0: "Sign in to Yahoo Gemini account in order to use this application. If you do not have an account with Gemini, click on the register button and follow the steps.",
+    installHeader: 'Connect your store with Gemini',
+    installBenefit: 'Yahoo! Gemini can help you promote your products to 1B users globally so you can find new customers and re-market to existing customers.',
+    installInst0: "The application is designed for the existing Gemini users. Continuing without an existing Gemini account will result in an error.",
     installInst1: 'When signing in, you will be asked to allow us to access your Gemini account.',
     installInst2: "Before setting up a Gemini product campaign, you will be asked to grant Gemini to view your Shopify products and add a product pixel. Gemini will not view your customers or orders.",
     legalTC: 'https://info.yahoo.com/legal/us/yahoo/advertising/masterterms/masterterms-322.html',
