@@ -1,4 +1,10 @@
 div.campaign-config {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+div.campaign-config > div {
   padding: 0.5em;
 }
 
@@ -55,4 +61,23 @@ i.helptip-icon {
 
 i.helptip-icon:hover {
   cursor: pointer;
+}
+
+div.run-steps {
+  margin: 10px;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  border: 1px solid gray;
+}
+
+div.run-steps-header {
+  padding: 5px 20px;
+  width: 100%;
+  border-bottom: 1px solid gray;
+  background-color: lightgrey
+}
+
+div.run-steps-body {
+  margin: 10px 20px 10px 0;
 }
