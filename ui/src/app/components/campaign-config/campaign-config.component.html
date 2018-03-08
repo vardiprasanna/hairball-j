@@ -2,12 +2,11 @@
   <div style="margin: 5px;" *ngIf="campaign.adv_status != 'ACTIVE'">
     <div class="alert alert-warning" role="alert"
          style="position: relative; top: 50; left: 50; width: 100%; opacity: 0.8;">
-      <strong>Your Yahoo Gemini account is inactive!</strong> Open <a target="_blank" href="https://gemini.yahoo.com">Yahoo Gemini</a> to learn more.
-      important.
+      {{env.geminiAcctInactive}}
     </div>
   </div>
-  <div style="display:flex; flex-direction:row;justify-content: space-between">
-    <div class="campaign-config">
+  <div  class="campaign-config">
+    <div>
       <div class="campaign-config-body">
         <div class="form-group">
           <div class="form-label-group">
@@ -40,15 +39,15 @@
       </div>
     </div>
     <div>
-      <div style="margin: 10px; padding: 0; border: 0; border-radius: 5px; border: 1px solid gray;">
-        <div style="padding: 5px 20px; width: 100%; border-bottom: 1px solid gray; background-color: lightgrey">
-          To get started
+      <div class="run-steps">
+        <div class="run-steps-header">
+          {{env.runStepHeader}}
         </div>
-        <div style="margin: 10px 20px 10px 0">
+        <div class="run-steps-body">
           <ol>
-            <li>Provide the daily budget</li>
-            <li>Provide the bid per click</li>
-            <li>Start the campaign</li>
+            <li>{{env.runStep1}}</li>
+            <li>{{env.runStep2}}</li>
+            <li>{{env.runStep3}}</li>
           </ol>
         </div>
       </div>
