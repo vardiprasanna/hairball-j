@@ -13,12 +13,14 @@ import { environment } from '../../../environments/environment';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent implements OnInit {
+  env: any;
   login_loaded = false;
   login_loaded_err: string;
   login_instruction: string;
   first_timer: string[];
 
   constructor(private route: ActivatedRoute, private messageService: MessageService, private campaignService: CampaignService) {
+    this.env = environment;
     this.login_instruction = environment.installInst0;
   }
 

@@ -11,25 +11,32 @@
 }
 
 .login-content {
-  display: flex;
-  flex-wrap: nowrap;
-  justify-content: start;
-  align-items: flex-start;
+  display: table;
+  margin: -60px 0 10px 20px;
   max-width: 600px;
-  margin: 0 10px;
+  color: black;
 }
 
-.login-content > div:first-child {
+.login-row {
+  display: table-row;
+  margin: 20px 0;
+}
+
+.login-icon1 {
+  font-size: 150%;
   color: #461aa0;
-  font-size: 200%;
+  padding-right: 10px;
 }
 
-.login-content > div {
-  margin: 10px;
+.login-icon2 {
+  font-size: 150%;
+  color: #cf1616;
+  padding-right: 10px;
 }
 
 div[class=gemini-button-group] {
   padding-left: 10px;
+  padding-right: 10px;
   margin-top: 30px;
 }
 
