@@ -6,36 +6,52 @@
       important.
     </div>
   </div>
-  <div class="campaign-config">
-    <div class="campaign-config-body">
-      <div class="form-group">
-        <div class="form-label-group">
-          <label>Budget:</label>
-          <i class="fa fa-question-circle-o helptip-icon" aria-hidden="true" data-toggle="tooltip"
-             [title]="env.helpTipBudget"></i>
+  <div style="display:flex; flex-direction:row;justify-content: space-between">
+    <div class="campaign-config">
+      <div class="campaign-config-body">
+        <div class="form-group">
+          <div class="form-label-group">
+            <label>Budget:</label>
+            <i class="fa fa-question-circle-o helptip-icon" aria-hidden="true" data-toggle="tooltip"
+               [title]="env.helpTipBudget"></i>
+          </div>
+          <input required class="form-control" type="number" name="budget"
+                 [(ngModel)]="campaign.budget" (change)="change()" placeholder="max spend">
         </div>
-        <input required class="form-control" type="number" name="budget"
-               [(ngModel)]="campaign.budget" (change)="change()" placeholder="max spend">
+        <div class="form-group">
+          <div class="form-label-group">
+            <label>Bid Per Click:</label>
+            <i class="fa fa-question-circle-o helptip-icon" aria-hidden="true" data-toggle="tooltip"
+               [title]="env.helpTipCPC"></i>
+          </div>
+          <input required class="form-control" type="number" name="cpc"
+                 [(ngModel)]="campaign.price" (change)="change()" placeholder="unit price">
+        </div>
       </div>
-      <div class="form-group">
-        <div class="form-label-group">
-          <label>Bid Per Click:</label>
-          <i class="fa fa-question-circle-o helptip-icon" aria-hidden="true" data-toggle="tooltip"
-             [title]="env.helpTipCPC"></i>
-        </div>
-        <input required class="form-control" type="number" name="cpc"
-               [(ngModel)]="campaign.price" (change)="change()" placeholder="unit price">
+
+      <!-- toggle start and stop a campaign -->
+      <div class="gemini-button-group">
+        <button class="gemini-button" [disabled]="!campaignForm.valid" (click)="updateStatus()">
+          {{ campaign.is_running ? 'Stop' : 'Start' }}
+        </button>
+        <button class="gemini-button" [disabled]="!is_changed || !campaignForm.valid" (click)="updateCost()">
+          Update
+        </button>
       </div>
     </div>
-
-    <!-- toggle start and stop a campaign -->
-    <div class="gemini-button-group">
-      <button class="gemini-button" [disabled]="!campaignForm.valid" (click)="updateStatus()">
-        {{ campaign.is_running ? 'Stop' : 'Start' }}
-      </button>
-      <button class="gemini-button" [disabled]="!is_changed || !campaignForm.valid" (click)="updateCost()">
-        Update
-      </button>
+    <div>
+      <div style="margin: 10px; padding: 0; border: 0; border-radius: 5px; border: 1px solid gray;">
+        <div style="padding: 5px 20px; width: 100%; border-bottom: 1px solid gray; background-color: lightgrey">
+          To get started
+        </div>
+        <div style="margin: 10px 20px 10px 0">
+          <ol>
+            <li>Provide the daily budget</li>
+            <li>Provide the bid per click</li>
+            <li>Start the campaign</li>
+          </ol>
+        </div>
+      </div>
     </div>
   </div>
 </form>

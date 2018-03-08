@@ -5,7 +5,6 @@ div.campaign-config {
 div.campaign-config-body {
   display: flex;
   flex-direction: row;
-  flex-wrap: nowrap;
   justify-content: start;
   align-content: flex-start;
 }
