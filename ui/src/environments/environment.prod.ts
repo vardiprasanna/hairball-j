@@ -30,7 +30,8 @@ export const environment = {
   legalPrivacy: 'https://info.yahoo.com/privacy/us/yahoo/',
   prodContact: 'https://www.oath.com/advertising/contact-us/',
   prodFeedback: 'mailto:helloGemini@cc.yahoo-inc.com?subject=Gemini+Shopify+feedback',
-  prodFAQ: 'assets/faq.html',
+  prodFAQ: 'faq.html',
+  prodQuickStart: 'faq.html#id.ezzbp4ii0qrb',
 
   helpTipBudget: 'The maximum amount you are willing to pay a day for the campaign.',
   helpTipCPC: 'The maximum amount you are willing to pay if someone clicks on your ad.',
