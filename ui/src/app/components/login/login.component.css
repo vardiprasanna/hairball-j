@@ -41,5 +41,10 @@ div[class=gemini-button-group] {
 }
 
 .gemini-button-group > div {
-  margin: 0 10px;
+  margin-right: 30px;
+}
+
+.gemini-button-group > div:last-child > a {
+  font-size: 12px;
+  color: #461aa0;
 }
