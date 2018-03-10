@@ -1,3 +1,15 @@
+.campaign-chart {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.go-gemini > a {
+  font-size: 12px;
+  color: #461aa0;
+}
+
+
 .campaign-chart-option {
   float: right;
   margin-top: 0.25em;
