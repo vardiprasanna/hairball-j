@@ -44,5 +44,8 @@ export const environment = {
   runStepHeader: 'To get started',
   runStep1: 'Provide the daily budget',
   runStep2: 'Provide the bid per click',
-  runStep3: 'Start the campaign'
+  runStep3: 'Start the campaign',
+
+  labelGo4MoreReports: 'Go for advanced reports ...',
+  lableGo4MoreSetting: 'Go for advanced settings ...'
 };
