@@ -18,12 +18,12 @@ body {
   text-align: center;
 }
 
-
 .gemini-button-group {
-  display: inline-flex;
+  display: flex;
   flex-direction: row;
-  flex-wrap: nowrap;
-  justify-content: start;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: flex-end;
   align-content: center;
 }
 
