@@ -812,7 +812,7 @@ exports = module.exports = __webpack_require__("../../../../css-loader/lib/css-b
 
 
 // module
-exports.push([module.i, "div.campaign-config {\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-orient: horizontal;\n  -webkit-box-direction: normal;\n      -ms-flex-direction: row;\n          flex-direction: row;\n  -webkit-box-pack: justify;\n      -ms-flex-pack: justify;\n          justify-content: space-between;\n}\n\ndiv.campaign-config > div {\n  padding: 0.5em;\n}\n\ndiv.campaign-config-body {\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-orient: horizontal;\n  -webkit-box-direction: normal;\n      -ms-flex-direction: row;\n          flex-direction: row;\n  -webkit-box-pack: start;\n      -ms-flex-pack: start;\n          justify-content: start;\n  -ms-flex-line-pack: start;\n      align-content: flex-start;\n}\n\ndiv.campaign-config-body > div {\n  margin-left: 10px;\n  margin-right: 10px;\n}\n\ninput.form-control {\n  width: 10em;\n  margin-left: 1em;\n  margin-right: 1em;\n}\n\ndiv[class=gemini-button-group] {\n  padding-left: 10px;\n  margin-top: 30px;\n  padding-bottom: 10px;\n}\n\ninput.ng-valid {\n  border-left: 5px solid #42a948;\n}\n\ninput.ng-invalid {\n  border-left: 5px solid #a94442;\n}\n\nbutton.gemini-button:first-child {\n  margin-left: 0\n}\n\nbutton.gemini-button {\n  margin: 0 10px;\n}\n\ndiv.form-label-group {\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-align: start;\n      -ms-flex-align: start;\n          align-items: flex-start;\n  margin-top: 10px;\n}\n\ni.helptip-icon {\n  padding-bottom: 10px;\n  padding-left: 5px;\n}\n\ni.helptip-icon:hover {\n  cursor: pointer;\n}\n\ndiv.run-steps {\n  margin: 10px;\n  padding: 0;\n  border: 0;\n  border-radius: 5px;\n  border: 1px solid gray;\n}\n\ndiv.run-steps-header {\n  padding: 5px 20px;\n  width: 100%;\n  border-bottom: 1px solid gray;\n  background-color: lightgrey\n}\n\ndiv.run-steps-body {\n  margin: 10px 20px 10px 0;\n}\n", ""]);
+exports.push([module.i, "div.campaign-config {\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-orient: horizontal;\n  -webkit-box-direction: normal;\n      -ms-flex-direction: row;\n          flex-direction: row;\n  -webkit-box-pack: justify;\n      -ms-flex-pack: justify;\n          justify-content: space-between;\n}\n\ndiv.campaign-config > div {\n  padding: 0.5em;\n}\n\ndiv.campaign-config-body {\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-orient: horizontal;\n  -webkit-box-direction: normal;\n      -ms-flex-direction: row;\n          flex-direction: row;\n  -webkit-box-pack: start;\n      -ms-flex-pack: start;\n          justify-content: flex-start;\n  -ms-flex-line-pack: start;\n      align-content: start;\n}\n\ndiv.campaign-config-body > div {\n  margin-left: 10px;\n  margin-right: 10px;\n}\n\ninput.form-control {\n  width: 10em;\n  margin-left: 1em;\n  margin-right: 1em;\n}\n\ndiv[class=gemini-button-group] {\n  padding-left: 10px;\n  margin-top: 30px;\n  padding-bottom: 10px;\n}\n\ninput.ng-valid {\n  border-left: 5px solid #42a948;\n}\n\ninput.ng-invalid {\n  border-left: 5px solid #a94442;\n}\n\nbutton.gemini-button:first-child {\n  margin-left: 0\n}\n\nbutton.gemini-button {\n  margin: 0 10px;\n}\n\ndiv.form-label-group {\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-align: start;\n      -ms-flex-align: start;\n          align-items: flex-start;\n  margin-top: 10px;\n}\n\ni.helptip-icon {\n  padding-bottom: 10px;\n  padding-left: 5px;\n}\n\ni.helptip-icon:hover {\n  cursor: pointer;\n}\n\ndiv.run-steps {\n  margin: 10px;\n  padding: 0;\n  border: 0;\n  border-radius: 5px;\n  border: 1px solid gray;\n}\n\ndiv.run-steps-header {\n  padding: 5px 20px;\n  width: 100%;\n  border-bottom: 1px solid gray;\n  background-color: lightgrey\n}\n\ndiv.run-steps-body {\n  margin: 10px 20px 10px 0;\n}\n", ""]);
 
 // exports
 
@@ -1115,7 +1115,7 @@ exports = module.exports = __webpack_require__("../../../../css-loader/lib/css-b
 
 
 // module
-exports.push([module.i, ".login-container {\n  margin-top: 100px;\n  margin-left: 40px;\n  font-size: 125%;\n}\n\n.install-info {\n  display: table;\n  margin: -60px 0 10px 20px;\n  max-width: 600px;\n}\n\n.login-content {\n  display: table;\n  margin: -60px 0 10px 20px;\n  max-width: 600px;\n  color: black;\n}\n\n.login-row {\n  display: table-row;\n  margin: 20px 0;\n}\n\n.login-icon1 {\n  font-size: 150%;\n  color: #461aa0;\n  padding-right: 10px;\n}\n\n.login-icon2 {\n  font-size: 150%;\n  color: #cf1616;\n  padding-right: 10px;\n}\n\ndiv[class=gemini-button-group] {\n  padding-left: 10px;\n  padding-right: 10px;\n  margin-top: 30px;\n}\n\n.gemini-button-group > div {\n  margin: 0 10px;\n}\n", ""]);
+exports.push([module.i, ".login-container {\n  margin-top: 100px;\n  margin-left: 40px;\n  font-size: 125%;\n}\n\n.install-info {\n  display: table;\n  margin: -60px 0 10px 20px;\n  max-width: 600px;\n}\n\n.login-content {\n  display: table;\n  margin: -60px 0 10px 20px;\n  max-width: 600px;\n  color: black;\n}\n\n.login-row {\n  display: table-row;\n  margin: 20px 0;\n}\n\n.login-icon1 {\n  font-size: 150%;\n  color: #461aa0;\n  padding-right: 10px;\n}\n\n.login-icon2 {\n  font-size: 150%;\n  color: #cf1616;\n  padding-right: 10px;\n}\n\ndiv[class=gemini-button-group] {\n  padding-left: 10px;\n  padding-right: 10px;\n  margin-top: 30px;\n}\n\n.gemini-button-group > div {\n  margin-right: 30px;\n}\n\n.gemini-button-group > div:last-child > a {\n  font-size: 12px;\n  color: #461aa0;\n}\n", ""]);
 
 // exports
 
@@ -1128,7 +1128,7 @@ module.exports = module.exports.toString();
 /***/ "../../../../../src/app/components/login/login.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<div class=\"login-container\">\n  <div class=\"install-info\" *ngIf=\"first_timer\">\n    <div style=\"display:table-row; vertical-align: middle\">\n      <div style=\"display:table-cell; width: 70%; white-space: nowrap\">\n        <img src=\"../../../favicon.ico\">\n        <img src=\"../../../assets/dot-double-arrow.png\">\n        <img src=\"../../../assets/shopify-logo.png\">\n      </div>\n    </div>\n    <hr/>\n    <div style=\"display:table-row\">\n      <div style=\"display:table-cell\">\n        <ul *ngFor=\"let info of first_timer\">\n          <li>{{info}}</li>\n        </ul>\n      </div>\n    </div>\n  </div>\n  <div class=\"login-content\" *ngIf=\"!first_timer\">\n    <div class=\"login-row\">\n      <h2>{{env.installHeader}}</h2>\n    </div>\n    <div class=\"login-row\" style=\"height:40px\"></div>\n    <div class=\"login-row\">\n        <i class=\"fa fa-exclamation-circle login-icon1\" aria-hidden=\"true\"></i>\n        <span>{{env.installBenefit}}</span>\n    </div>\n    <div class=\"login-row\" style=\"height:40px\"></div>\n    <div class=\"login-row\">\n        <i class=\"fa fa-exclamation-circle login-icon2\" aria-hidden=\"true\"></i>\n        <span>{{login_instruction}}</span>\n    </div>\n  </div>\n  <div class=\"gemini-button-group\">\n    <div>\n      <button class=\"gemini-button\" (click)=\"signIn()\" autofocus=\"true\">\n        Sign In\n      </button>\n    </div>\n    <div>\n      <button class=\"gemini-button\" (click)=\"signUp()\">\n        Register\n      </button>\n    </div>\n  </div>\n</div>\n"
+module.exports = "<div class=\"login-container\">\n  <div class=\"install-info\" *ngIf=\"first_timer\">\n    <div style=\"display:table-row; vertical-align: middle\">\n      <div style=\"display:table-cell; width: 70%; white-space: nowrap\">\n        <img src=\"../../../favicon.ico\">\n        <img src=\"../../../assets/dot-double-arrow.png\">\n        <img src=\"../../../assets/shopify-logo.png\">\n      </div>\n    </div>\n    <hr/>\n    <div style=\"display:table-row\">\n      <div style=\"display:table-cell\">\n        <ul *ngFor=\"let info of first_timer\">\n          <li>{{info}}</li>\n        </ul>\n      </div>\n    </div>\n  </div>\n  <div class=\"login-content\" *ngIf=\"!first_timer\">\n    <div class=\"login-row\">\n      <h2>{{env.installHeader}}</h2>\n    </div>\n    <div class=\"login-row\" style=\"height:40px\"></div>\n    <div class=\"login-row\">\n      <i class=\"fa fa-exclamation-circle login-icon1\" aria-hidden=\"true\"></i>\n      <span>{{env.installBenefit}}</span>\n    </div>\n    <div class=\"login-row\" style=\"height:40px\"></div>\n    <div class=\"login-row\">\n      <i class=\"fa fa-exclamation-circle login-icon2\" aria-hidden=\"true\"></i>\n      <span>{{login_instruction}}</span>\n    </div>\n  </div>\n  <div class=\"gemini-button-group\">\n    <div>\n      <button class=\"gemini-button\" (click)=\"signIn()\" autofocus=\"true\">\n        Sign In\n      </button>\n    </div>\n    <div>\n      <button class=\"gemini-button\" (click)=\"signUp()\">\n        Register\n      </button>\n    </div>\n    <div>\n      <a href=\"#\" (click)=\"openwin(env.prodQuickStart, 'prodQuickStart', 1100, 800)\">need help?</a>\n    </div>\n  </div>\n</div>\n"
 
 /***/ }),
 
@@ -1248,6 +1248,23 @@ var LoginComponent = (function () {
                 }
             });
         }
+        return false;
+    };
+    /**
+     * Bring up a new window with a desired width and height
+     */
+    LoginComponent.prototype.openwin = function (url, name, w, h) {
+        var left = window.screenLeft + 100;
+        var top = window.screenTop + 60;
+        var availW = screen.availWidth - left - 20;
+        var availH = screen.availHeight - top - 20;
+        if (w >= availW) {
+            w = availW;
+        }
+        if (h >= availH) {
+            h = availH;
+        }
+        window.open(url, name, "left=" + left + ",top=" + top + ",width=" + w + ",height=" + h);
         return false;
     };
     LoginComponent = __decorate([
@@ -2028,7 +2045,8 @@ var environment = {
     legalPrivacy: 'https://info.yahoo.com/privacy/us/yahoo/',
     prodContact: 'https://www.oath.com/advertising/contact-us/',
     prodFeedback: 'mailto:helloGemini@cc.yahoo-inc.com?subject=Gemini+Shopify+feedback',
-    prodFAQ: 'assets/faq.html',
+    prodFAQ: 'faq.html',
+    prodQuickStart: 'faq.html#id.ezzbp4ii0qrb',
     helpTipBudget: 'The maximum amount you are willing to pay a day for the campaign.',
     helpTipCPC: 'The maximum amount you are willing to pay if someone clicks on your ad.',
     runStepHeader: 'To get started',

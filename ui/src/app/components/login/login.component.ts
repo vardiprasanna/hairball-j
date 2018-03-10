@@ -114,5 +114,25 @@ export class LoginComponent implements OnInit {
     }
     return false;
   }
+
+  /**
+   * Bring up a new window with a desired width and height
+   */
+  openwin(url, name, w, h) {
+    const left = window.screenLeft + 100;
+    const top = window.screenTop + 60;
+    const availW = screen.availWidth - left - 20;
+    const availH = screen.availHeight - top - 20;
+
+    if (w >= availW) {
+      w = availW;
+    }
+    if (h >= availH) {
+      h = availH;
+    }
+
+    window.open(url, name, `left=${left},top=${top},width=${w},height=${h}`);
+    return false;
+  }
 }
 

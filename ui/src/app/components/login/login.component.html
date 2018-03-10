@@ -22,13 +22,13 @@
     </div>
     <div class="login-row" style="height:40px"></div>
     <div class="login-row">
-        <i class="fa fa-exclamation-circle login-icon1" aria-hidden="true"></i>
-        <span>{{env.installBenefit}}</span>
+      <i class="fa fa-exclamation-circle login-icon1" aria-hidden="true"></i>
+      <span>{{env.installBenefit}}</span>
     </div>
     <div class="login-row" style="height:40px"></div>
     <div class="login-row">
-        <i class="fa fa-exclamation-circle login-icon2" aria-hidden="true"></i>
-        <span>{{login_instruction}}</span>
+      <i class="fa fa-exclamation-circle login-icon2" aria-hidden="true"></i>
+      <span>{{login_instruction}}</span>
     </div>
   </div>
   <div class="gemini-button-group">
@@ -41,6 +41,9 @@
       <button class="gemini-button" (click)="signUp()">
         Register
       </button>
+    </div>
+    <div>
+      <a href="#" (click)="openwin(env.prodQuickStart, 'prodQuickStart', 1100, 800)">need help?</a>
     </div>
   </div>
 </div>
