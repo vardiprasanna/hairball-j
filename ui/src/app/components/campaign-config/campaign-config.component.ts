@@ -16,6 +16,7 @@ export class CampaignConfigComponent implements OnInit {
   advertiserId: number;
 
   env: any;
+  gemini_landing: string;
   campaign: Campaign;
   campaign_original: Campaign;
   campaign_config_loaded = false;
@@ -41,6 +42,7 @@ export class CampaignConfigComponent implements OnInit {
       this.campaign_config_loaded_err = (err.message ? err.message : JSON.stringify(err));
     }).then(() => {
       this.campaign_config_loaded = true;
+      this.gemini_landing = `https://gemini.yahoo.com/advertiser/${this.advertiserId}/campaign/${this.campaignId}`;
     });
   }
 

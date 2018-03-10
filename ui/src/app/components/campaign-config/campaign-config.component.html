@@ -1,11 +1,11 @@
 <form #campaignForm="ngForm" *ngIf="campaign_config_loaded && !campaign_config_loaded_err">
   <div style="margin: 5px;" *ngIf="campaign.adv_status != 'ACTIVE'">
     <div class="alert alert-warning" role="alert"
-         style="position: relative; top: 50; left: 50; width: 100%; opacity: 0.8;">
+         style="position: relative; top: 50px; left: 50px; width: 100%; opacity: 0.8;">
       {{env.geminiAcctInactive}}
     </div>
   </div>
-  <div  class="campaign-config">
+  <div class="campaign-config">
     <div>
       <div class="campaign-config-body">
         <div class="form-group">
@@ -30,12 +30,19 @@
 
       <!-- toggle start and stop a campaign -->
       <div class="gemini-button-group">
-        <button class="gemini-button" [disabled]="!campaignForm.valid" (click)="updateStatus()">
-          {{ campaign.is_running ? 'Stop' : 'Start' }}
-        </button>
-        <button class="gemini-button" [disabled]="!is_changed || !campaignForm.valid" (click)="updateCost()">
-          Update
-        </button>
+        <div>
+          <button class="gemini-button" [disabled]="!campaignForm.valid" (click)="updateStatus()">
+            {{ campaign.is_running ? 'Stop' : 'Start' }}
+          </button>
+        </div>
+        <div>
+          <button class="gemini-button" [disabled]="!is_changed || !campaignForm.valid" (click)="updateCost()">
+            Update
+          </button>
+        </div>
+        <div>
+          <a href="{{ gemini_landing }}" target="_top">Go for advanced ...</a>
+        </div>
       </div>
     </div>
     <div>
