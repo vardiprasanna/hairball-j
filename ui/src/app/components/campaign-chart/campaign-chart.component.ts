@@ -4,6 +4,7 @@ import { chart } from 'highcharts';
 import { CampaignService } from '../../services/campaign.service';
 import { MessageService } from '../../services/message.service';
 import { Metric } from '../../model/metric';
+import { environment } from '../../../environments/environment';
 
 const stats_options = {
   'Impressions': {
@@ -77,6 +78,8 @@ export class CampaignChartComponent implements OnInit, AfterContentInit, OnDestr
   chartTarget: ElementRef;
   chart: Highcharts.ChartObject;
 
+  env: any;
+  gemini_landing: string;
   current_report: ReportOption;
   report_choices: any = report_choices; // define a local to work around angular's static var access
   report_loaded_err: any;
@@ -85,6 +88,7 @@ export class CampaignChartComponent implements OnInit, AfterContentInit, OnDestr
   stats: Metric;
 
   constructor(private messageService: MessageService, private campaignService: CampaignService) {
+    this.env = environment;
   }
 
   private static subtractDays(srcDate: Date, days: number): Date {
@@ -137,6 +141,7 @@ export class CampaignChartComponent implements OnInit, AfterContentInit, OnDestr
       console.log(err.message ? err.message : JSON.stringify(err));
     }).then(() => {
         this.report_loaded = true;
+        this.gemini_landing = `https://gemini.yahoo.com/advertiser/${this.advertiserId}/reportBuilder2`;
       }
     );
   }
