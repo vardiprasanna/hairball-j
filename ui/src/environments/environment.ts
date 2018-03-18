@@ -27,7 +27,7 @@ export const environment = {
 
   installHeader: 'Connect your store with Gemini',
   installBenefit: 'Yahoo! Gemini can help you promote your products to 1B users globally so you can find new customers and re-market to existing customers.',
-  installInst0: `The application is designed for the existing Gemini users. Continuing without an existing Gemini account will result in an error.`,
+  installInst0: `Please click on ‘need help?’ to follow steps to create a Gemini account before using the app.`,
   installInst1: 'When signing in, you will be asked to allow us to access your Gemini account.',
   installInst2: `Before setting up a Gemini product campaign, you will be asked to grant Gemini to view your Shopify products and add a product pixel. Gemini will not view your customers or orders.`,
 

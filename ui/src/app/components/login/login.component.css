@@ -22,15 +22,9 @@
   margin: 20px 0;
 }
 
-.login-icon1 {
+.login-icon1, .login-icon2 {
   font-size: 150%;
   color: #461aa0;
-  padding-right: 10px;
-}
-
-.login-icon2 {
-  font-size: 150%;
-  color: #cf1616;
   padding-right: 10px;
 }
 
