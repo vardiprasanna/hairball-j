@@ -11,8 +11,10 @@
         <div class="form-group">
           <div class="form-label-group">
             <label>Budget:</label>
-            <i class="fa fa-question-circle-o helptip-icon" aria-hidden="true" data-toggle="tooltip"
-               [title]="env.helpTipBudget"></i>
+            <a class="xtooltip" href="#">
+              <i class="fa fa-question-circle-o helptip-icon" aria-hidden="true"></i>
+              <span class="info">{{env.helpTipBudget}}</span>
+            </a>
           </div>
           <input required class="form-control" type="number" name="budget"
                  [(ngModel)]="campaign.budget" (change)="change()" placeholder="max spend">
@@ -20,8 +22,10 @@
         <div class="form-group">
           <div class="form-label-group">
             <label>Bid Per Click:</label>
-            <i class="fa fa-question-circle-o helptip-icon" aria-hidden="true" data-toggle="tooltip"
-               [title]="env.helpTipCPC"></i>
+            <a class="xtooltip" href="#">
+              <i class="fa fa-question-circle-o helptip-icon" aria-hidden="true"></i>
+              <span class="info">{{env.helpTipCPC}}</span>
+            </a>
           </div>
           <input required class="form-control" type="number" name="cpc"
                  [(ngModel)]="campaign.price" (change)="change()" placeholder="unit price">
