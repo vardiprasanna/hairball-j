@@ -241,7 +241,8 @@ public class ShopifyOnboardResource {
                 EWSAccessTokenData tokens = ewsAuthService.getAccessTokenFromRefreshToken(acctEntity.getYahooAccessToken());
                 EWSClientService ews = new EWSClientService(tokens);
 
-                new Archetype(ps, ews, databaseService).tearDown(acctEntity);
+                System.err.println("Warning: uninstall store account for shop " + shop);
+                new Archetype(ps.getShopName(), ews, databaseService).tearDown(acctEntity);
                 databaseService.delete(acctEntity);
             } else {
                 System.err.println("No store account found for shop " + shop);
@@ -447,7 +448,7 @@ public class ShopifyOnboardResource {
         StoreCampaignEntity storeCmpEntity = null; // TODO databaseService.findByAcctId(StoreCampaignEntity.class, storeAcctEntity.getId());
 
         if (storeCmpEntity == null) {
-            Archetype archeType = new Archetype(ps, ews, databaseService);
+            Archetype archeType = new Archetype(ps.getShopName(), ews, databaseService);
             if (archeType.getAdvertiserData().getStatus() != EWSConstant.StatusEnum.ACTIVE) {
                 return Response.status(Status.FORBIDDEN).entity("account" + archeType.getAdvertiserId() + " is inactive").build();
             }
