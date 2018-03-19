@@ -27,9 +27,12 @@ public class ShopifyClientService {
     public ShopifyClientService(String shop, String accessToken) {
         this.shop = shop;
         this.accessToken = accessToken;
+        shopName = toShopName(shop);
+    }
 
+    public static String toShopName(String shop) {
         int dot = shop.indexOf('.');
-        shopName = dot >= 0 ? shop.substring(0, dot) : shop;
+        return dot >= 0 ? shop.substring(0, dot) : shop;
     }
 
     public Request headers(Request request) {

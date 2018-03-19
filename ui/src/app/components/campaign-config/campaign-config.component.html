@@ -1,7 +1,7 @@
 <form #campaignForm="ngForm" *ngIf="campaign_config_loaded && !campaign_config_loaded_err">
   <div style="margin: 5px;" *ngIf="campaign.adv_status != 'ACTIVE'">
     <div class="alert alert-warning" role="alert"
-         style="position: relative; top: 50px; left: 50px; width: 100%; opacity: 0.8;">
+         style="position: relative; top: 0; left: 0; width: 100%; opacity: 0.8;">
       {{env.geminiAcctInactive}}
     </div>
   </div>

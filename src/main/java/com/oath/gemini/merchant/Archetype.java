@@ -18,7 +18,6 @@ import com.oath.gemini.merchant.ews.json.CampaignData;
 import com.oath.gemini.merchant.ews.json.ProductFeedData;
 import com.oath.gemini.merchant.ews.json.ProductRuleData;
 import com.oath.gemini.merchant.ews.json.ProductSetData;
-import com.oath.gemini.merchant.shopify.ShopifyClientService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.sql.Date;
@@ -46,7 +45,7 @@ public class Archetype {
     @Getter
     private long advertiserId;
 
-    public Archetype(ShopifyClientService svc, EWSClientService ews, DatabaseService ds) throws Exception {
+    public Archetype(String shopName, EWSClientService ews, DatabaseService ds) throws Exception {
         this.ews = ews;
         this.databaseService = ds;
         EWSResponseData<AdvertiserData> advResponse = ews.get(AdvertiserData.class, EWSEndpointEnum.ADVERTISER);
@@ -58,7 +57,7 @@ public class Archetype {
 
         advertiserData = advResponse.get(0);
         advertiserId = advertiserData.getId();
-        entityAutoGenName = svc.getShopName() + "-autogen";
+        entityAutoGenName = shopName + "-autogen";
     }
 
     /**
