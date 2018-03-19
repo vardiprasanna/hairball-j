@@ -223,7 +223,6 @@ public class ShopifyOnboardResource {
      * </pre>
      */
     @POST
-    @GET
     @Path("uninstall")
     public Response uninstall(@Context HttpServletRequest req, @HeaderParam("X-Shopify-Topic") String topics,
             @HeaderParam("X-Shopify-Shop-Domain") String shop, @HeaderParam("X-Shopify-Hmac-Sha256") String hmac) {
