@@ -434,10 +434,10 @@ public class EWSClientResource {
                 System.err.println("registerStoreAccountIfRequired() - unmatched gemini native acct id=" + geminiNativeAcctId);
                 return null;
             }
-//            if (!isInstalled(req, shop, storeFreshToken)) {
-//                System.err.println("the app has been uninstalled, and no need to recover a shop's account");
-//                return null;
-//            }
+            if (!isInstalled(req, shop, storeFreshToken)) {
+                System.err.println("the app has been uninstalled, and no need to recover a shop's account");
+                return null;
+            }
 
             StoreSysEntity storeSysEntity = registerStoreSystemIfRequired();
             storeAcct = new StoreAcctEntity();
@@ -463,11 +463,6 @@ public class EWSClientResource {
         StoreCampaignEntity storeCampaign = databaseService.findStoreCampaignByGeminiCampaignId(geminiNativeCmpId);
 
         if (storeCampaign == null && StringUtils.isNotBlank(shop) && StringUtils.isNotBlank(yahooRefreshToken)) {
-            StoreAcctEntity storeAcct = registerStoreAccountIfRequired(req, shop, storeFreshToken, yahooRefreshToken, -1);
-            if (storeAcct == null) {
-                return null;
-            }
-
             // Fetch the access token to be used to invoke Gemini
             EWSAccessTokenData tokens = ewsAuthService.getAccessTokenFromRefreshToken(yahooRefreshToken);
             if (!tokens.isOk()) {
@@ -483,6 +478,12 @@ public class EWSClientResource {
                 CampaignData cmpData = campaignResponse.get(0);
                 storeCampaign = new StoreCampaignEntity();
                 long adGroupId = getGeminiNativeAdgroupId(ews, shop, cmpData.getId());
+                int geminiNativeAcctId = cmpData.getAdvertiserId().intValue();
+
+                StoreAcctEntity storeAcct = registerStoreAccountIfRequired(req, shop, storeFreshToken, yahooRefreshToken, geminiNativeAcctId);
+                if (storeAcct == null) {
+                    return null;
+                }
 
                 storeCampaign.setAdvId(cmpData.getAdvertiserId());
                 storeCampaign.setCampaignId(cmpData.getId());
