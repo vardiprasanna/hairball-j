@@ -280,6 +280,7 @@ public class ShopifyOnboardResource {
 
         StoreAcctEntity storeAcct = databaseService.findStoreAcctByDomain(shop);
         UIAccountDTO accountDTO = mapToAccountDTO(storeAcct);
+        accountDTO.setShop(shop);
         prepareAuthUrls(req, info, shop, accountDTO);
 
         return Response.ok(accountDTO).build();
@@ -345,6 +346,7 @@ public class ShopifyOnboardResource {
             }
 
             accountDTO = mapToAccountDTO(storeAcct);
+            accountDTO.setShop(shop);
 
         } catch (EWSAccountAccessException ae) {
             // keep going so that UI can tell user that this Yahoo account is not associated with Gemini
@@ -395,6 +397,7 @@ public class ShopifyOnboardResource {
 
         StoreAcctEntity storeAcct = databaseService.findStoreAcctByDomain(shop);
         UIAccountDTO accountDTO = mapToAccountDTO(storeAcct);
+        accountDTO.setShop(shop);
 
         if (StringUtils.isNotBlank(tokens.getAccessToken())) {
             accountDTO.setStoreAccessToken(tokens.getAccessToken());

@@ -60,4 +60,7 @@ public class UIAccountDTO {
 
     @JsonProperty(value = "yahoo_auth_uri")
     private String yahooAuthUrl;
+
+    // shop domain - e.g., dpa-bridge.myshopify.com
+    private String shop;
 }
