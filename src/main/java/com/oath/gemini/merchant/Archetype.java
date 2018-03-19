@@ -120,8 +120,9 @@ public class Archetype {
             if (adGroupData != null) {
                 tearProductSet(adGroupData.getProductSetId());
             }
-
-            tearProductFeed(sce.getProductFeedId());
+            if (sce.getProductFeedId() != null) {
+                tearProductFeed(sce.getProductFeedId());
+            }
             tearCampaign(sce.getCampaignId());
 
             sce.setStatus(StatusEnum.PAUSED);
