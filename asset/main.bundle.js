@@ -1850,6 +1850,9 @@ var CampaignService = (function () {
             return this._account;
         },
         set: function (acct) {
+            if (!this.isAccountChanged(acct)) {
+                return;
+            }
             this._account = new __WEBPACK_IMPORTED_MODULE_2__model_account__["a" /* Account */](acct);
             if (this.isAccountReady()) {
                 acct.last_access = new Date();
@@ -1902,7 +1905,7 @@ var CampaignService = (function () {
             .toPromise();
     };
     CampaignService.prototype.getMetric = function (id, query) {
-        var path = '/g/ui/reporting/' + id;
+        var path = '/g/ui/reporting/' + id + this.appendTokens();
         return this.http.post(this.base_uri + path, query)
             .toPromise();
     };
@@ -1930,6 +1933,22 @@ var CampaignService = (function () {
             query = '?' + query.substring(1);
         }
         return query;
+    };
+    CampaignService.prototype.isAccountChanged = function (acct) {
+        if (!acct || !this._account) {
+            console.log('account is changed due to nullness');
+            return true;
+        }
+        for (var name_1 in acct) {
+            if (!acct.hasOwnProperty(name_1) || name_1 === 'last_access') {
+                continue;
+            }
+            if (acct[name_1] !== this._account[name_1]) {
+                console.log('account is changed due to "' + name_1 + '"=' + acct[name_1] + ' vs ' + this._account[name_1]);
+                return true;
+            }
+        }
+        return false;
     };
     CampaignService = __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["D" /* Injectable */])(),

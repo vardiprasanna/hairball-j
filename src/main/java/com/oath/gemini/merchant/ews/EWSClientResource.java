@@ -236,7 +236,8 @@ public class EWSClientResource {
 
     @POST
     @Path("reporting/{cmpId}")
-    public Response getReport(@PathParam("cmpId") long id, String payload) {
+    public Response getReport(@PathParam("cmpId") long id, @QueryParam("shop") String shop, @QueryParam("st") String storeToken,
+            @QueryParam("yt") String yahooToken, String payload) {
         // if (true) {
         // return Response.ok(data).build();
         // }
@@ -246,7 +247,7 @@ public class EWSClientResource {
 
         // Fetch the info stored locally in this app
         try {
-            storeCampaign = databaseService.findStoreCampaignByGeminiCampaignId(id);
+            storeCampaign = registerStoreCampaignIfRequired(shop, storeToken, yahooToken, id);
             if (storeCampaign == null) {
                 return errorResponse(ERR_LOCAL_DB, Status.NOT_FOUND, "No campaign found with this id=%s", id);
             }
