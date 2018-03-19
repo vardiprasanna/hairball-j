@@ -829,7 +829,7 @@ module.exports = module.exports.toString();
 /***/ "../../../../../src/app/components/campaign-config/campaign-config.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<form #campaignForm=\"ngForm\" *ngIf=\"campaign_config_loaded && !campaign_config_loaded_err\">\n  <div style=\"margin: 5px;\" *ngIf=\"campaign.adv_status != 'ACTIVE'\">\n    <div class=\"alert alert-warning\" role=\"alert\"\n         style=\"position: relative; top: 50px; left: 50px; width: 100%; opacity: 0.8;\">\n      {{env.geminiAcctInactive}}\n    </div>\n  </div>\n  <div class=\"campaign-config\">\n    <div>\n      <div class=\"campaign-config-body\">\n        <div class=\"form-group\">\n          <div class=\"form-label-group\">\n            <label>Budget:</label>\n            <a class=\"xtooltip\" href=\"#\">\n              <i class=\"fa fa-question-circle-o helptip-icon\" aria-hidden=\"true\"></i>\n              <span class=\"info\">{{env.helpTipBudget}}</span>\n            </a>\n          </div>\n          <input required class=\"form-control\" type=\"number\" name=\"budget\"\n                 [(ngModel)]=\"campaign.budget\" (change)=\"change()\" placeholder=\"max spend\">\n        </div>\n        <div class=\"form-group\">\n          <div class=\"form-label-group\">\n            <label>Bid Per Click:</label>\n            <a class=\"xtooltip\" href=\"#\">\n              <i class=\"fa fa-question-circle-o helptip-icon\" aria-hidden=\"true\"></i>\n              <span class=\"info\">{{env.helpTipCPC}}</span>\n            </a>\n          </div>\n          <input required class=\"form-control\" type=\"number\" name=\"cpc\"\n                 [(ngModel)]=\"campaign.price\" (change)=\"change()\" placeholder=\"unit price\">\n        </div>\n      </div>\n\n      <!-- toggle start and stop a campaign -->\n      <div class=\"gemini-button-group\">\n        <div>\n          <button class=\"gemini-button\" [disabled]=\"!campaignForm.valid\" (click)=\"updateStatus()\">\n            {{ campaign.is_running ? 'Stop' : 'Start' }}\n          </button>\n        </div>\n        <div>\n          <button class=\"gemini-button\" [disabled]=\"!is_changed || !campaignForm.valid\" (click)=\"updateCost()\">\n            Update\n          </button>\n        </div>\n        <div>\n          <a href=\"{{ gemini_landing }}\" target=\"_top\">{{ env.lableGo4MoreSetting }}</a>\n        </div>\n      </div>\n    </div>\n    <div>\n      <div class=\"run-steps\">\n        <div class=\"run-steps-header\">\n          {{env.runStepHeader}}\n        </div>\n        <div class=\"run-steps-body\">\n          <ol>\n            <li>{{env.runStep1}}</li>\n            <li>{{env.runStep2}}</li>\n            <li>{{env.runStep3}}</li>\n          </ol>\n        </div>\n      </div>\n    </div>\n  </div>\n</form>\n\n<div *ngIf=\"campaign_config_loaded && campaign_config_loaded_err\" class=\"alert alert-danger\" role=\"alert\">\n  <strong>Doh!</strong> {{ campaign_config_loaded_err }}\n</div>\n"
+module.exports = "<form #campaignForm=\"ngForm\" *ngIf=\"campaign_config_loaded && !campaign_config_loaded_err\">\n  <div style=\"margin: 5px;\" *ngIf=\"campaign.adv_status != 'ACTIVE'\">\n    <div class=\"alert alert-warning\" role=\"alert\"\n         style=\"position: relative; top: 0; left: 0; width: 100%; opacity: 0.8;\">\n      {{env.geminiAcctInactive}}\n    </div>\n  </div>\n  <div class=\"campaign-config\">\n    <div>\n      <div class=\"campaign-config-body\">\n        <div class=\"form-group\">\n          <div class=\"form-label-group\">\n            <label>Budget:</label>\n            <a class=\"xtooltip\" href=\"#\">\n              <i class=\"fa fa-question-circle-o helptip-icon\" aria-hidden=\"true\"></i>\n              <span class=\"info\">{{env.helpTipBudget}}</span>\n            </a>\n          </div>\n          <input required class=\"form-control\" type=\"number\" name=\"budget\"\n                 [(ngModel)]=\"campaign.budget\" (change)=\"change()\" placeholder=\"max spend\">\n        </div>\n        <div class=\"form-group\">\n          <div class=\"form-label-group\">\n            <label>Bid Per Click:</label>\n            <a class=\"xtooltip\" href=\"#\">\n              <i class=\"fa fa-question-circle-o helptip-icon\" aria-hidden=\"true\"></i>\n              <span class=\"info\">{{env.helpTipCPC}}</span>\n            </a>\n          </div>\n          <input required class=\"form-control\" type=\"number\" name=\"cpc\"\n                 [(ngModel)]=\"campaign.price\" (change)=\"change()\" placeholder=\"unit price\">\n        </div>\n      </div>\n\n      <!-- toggle start and stop a campaign -->\n      <div class=\"gemini-button-group\">\n        <div>\n          <button class=\"gemini-button\" [disabled]=\"!campaignForm.valid\" (click)=\"updateStatus()\">\n            {{ campaign.is_running ? 'Stop' : 'Start' }}\n          </button>\n        </div>\n        <div>\n          <button class=\"gemini-button\" [disabled]=\"!is_changed || !campaignForm.valid\" (click)=\"updateCost()\">\n            Update\n          </button>\n        </div>\n        <div>\n          <a href=\"{{ gemini_landing }}\" target=\"_top\">{{ env.lableGo4MoreSetting }}</a>\n        </div>\n      </div>\n    </div>\n    <div>\n      <div class=\"run-steps\">\n        <div class=\"run-steps-header\">\n          {{env.runStepHeader}}\n        </div>\n        <div class=\"run-steps-body\">\n          <ol>\n            <li>{{env.runStep1}}</li>\n            <li>{{env.runStep2}}</li>\n            <li>{{env.runStep3}}</li>\n          </ol>\n        </div>\n      </div>\n    </div>\n  </div>\n</form>\n\n<div *ngIf=\"campaign_config_loaded && campaign_config_loaded_err\" class=\"alert alert-danger\" role=\"alert\">\n  <strong>Doh!</strong> {{ campaign_config_loaded_err }}\n</div>\n"
 
 /***/ }),
 
@@ -1836,6 +1836,17 @@ var CampaignService = (function () {
     }
     Object.defineProperty(CampaignService.prototype, "account", {
         get: function () {
+            if (!this._account && window.sessionStorage) {
+                var cachedAcct = window.sessionStorage.getItem('geminiDpaAccount');
+                if (cachedAcct) {
+                    try {
+                        this._account = new __WEBPACK_IMPORTED_MODULE_2__model_account__["a" /* Account */](JSON.parse(cachedAcct));
+                    }
+                    catch (err) {
+                        console.log('cached acct: ' + err);
+                    }
+                }
+            }
             return this._account;
         },
         set: function (acct) {
@@ -1879,13 +1890,13 @@ var CampaignService = (function () {
             .toPromise();
     };
     CampaignService.prototype.getAccount = function (id, query) {
-        var path = '/g/ui/account/' + id;
+        var path = '/g/ui/account/' + id + this.appendTokens();
         return this.http
             .get(this.base_uri + path)
             .toPromise();
     };
     CampaignService.prototype.getCampaign = function (id, query) {
-        var path = '/g/ui/campaign/' + id;
+        var path = '/g/ui/campaign/' + id + this.appendTokens();
         return this.http
             .get(this.base_uri + path)
             .toPromise();
@@ -1900,6 +1911,25 @@ var CampaignService = (function () {
         return this.http
             .put(this.base_uri + path, cmp)
             .toPromise();
+    };
+    CampaignService.prototype.appendTokens = function () {
+        var acct = this.account;
+        var query = '';
+        if (acct) {
+            if (acct.store_access_token) {
+                query += '&st=' + acct.store_access_token;
+            }
+            if (acct.yahoo_access_token) {
+                query += '&yt=' + acct.yahoo_access_token;
+            }
+            if (acct.shop) {
+                query += '&shop=' + acct.shop;
+            }
+        }
+        if (query.startsWith('&')) {
+            query = '?' + query.substring(1);
+        }
+        return query;
     };
     CampaignService = __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["D" /* Injectable */])(),
@@ -2024,11 +2054,11 @@ var MessageService = (function () {
 // 'ng build --env=prod' then 'environment.prod.ts' will be used instead.
 // The list of which env maps to which file can be found in '.angular-cli.json'.
 var environment = {
-    production: true,
+    production: false,
     yauth_default: 'https://api.login.yahoo.com/oauth2/request_auth?response_type=code&language=en-us' +
-        '&client_id=dj0yJmk9YTl4bFUxYXJYSFlpJmQ9WVdrOWVHTTFkMkprTm1jbWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmeD02OQ--' +
-        '&redirect_uri=https%3A%2F%2Fgemini-shopify.herokuapp.com%2Findex.html%3Froute%3Df%2Fshopify%2Fews',
-    ewsBaseUrl: '',
+        '&client_id=dj0yJmk9NEJVRHRaRnpWa09SJmQ9WVdrOVREQktiREUzTjJrbWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmeD1iYQ--' +
+        '&redirect_uri=https%3A%2F%2Fhairball.herokuapp.com%2Findex.html%3Froute%3Df%2Fshopify%2Fews',
+    ewsBaseUrl: 'https://localhost:4443',
     appTitle: 'promote your products and bring users to your site',
     geminiAcctInvalid: 'A Yahoo account you used to sign in has no Gemini access.',
     geminiAcctInactive: 'Your Yahoo Gemini account is inactive. Please click the contact link at top left to reach out to Oath for support.',

@@ -42,6 +42,17 @@ export class CampaignService {
   }
 
   get account(): Account {
+    if (!this._account && window.sessionStorage) {
+      const cachedAcct = window.sessionStorage.getItem('geminiDpaAccount');
+      if (cachedAcct) {
+        try {
+          this._account = new Account(JSON.parse(cachedAcct));
+        } catch (err) {
+          console.log('cached acct: ' + err);
+        }
+      }
+    }
+
     return this._account;
   }
 
@@ -71,14 +82,14 @@ export class CampaignService {
   }
 
   getAccount(id: number, query?: string): Promise<Account> {
-    const path = '/g/ui/account/' + id;
+    const path = '/g/ui/account/' + id + this.appendTokens();
     return this.http
       .get<Account>(this.base_uri + path)
       .toPromise();
   }
 
   getCampaign(id: number, query?: string): Promise<any> {
-    const path = '/g/ui/campaign/' + id;
+    const path = '/g/ui/campaign/' + id + this.appendTokens();
     return this.http
       .get<Campaign>(this.base_uri + path)
       .toPromise();
@@ -95,5 +106,26 @@ export class CampaignService {
     return this.http
       .put<Campaign>(this.base_uri + path, cmp)
       .toPromise();
+  }
+
+  appendTokens(): string {
+    const acct = this.account;
+    let query = '';
+
+    if (acct) {
+      if (acct.store_access_token) {
+        query += '&st=' + acct.store_access_token;
+      }
+      if (acct.yahoo_access_token) {
+        query += '&yt=' + acct.yahoo_access_token;
+      }
+      if (acct.shop) {
+        query += '&shop=' + acct.shop;
+      }
+    }
+    if (query.startsWith('&')) {
+      query = '?' + query.substring(1);
+    }
+    return query;
   }
 }
