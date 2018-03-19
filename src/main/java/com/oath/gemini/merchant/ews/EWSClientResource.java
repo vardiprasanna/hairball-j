@@ -402,19 +402,23 @@ public class EWSClientResource {
      */
     private StoreAcctEntity registerStoreAccountIfRequired(String shop, String storeFreshToken, String yahooRefreshToken,
             int geminiNativeAcctId) throws Exception {
-        StoreAcctEntity storeAcct;
         int tokenBasedGeminiAcctId = -1;
 
-        if (geminiNativeAcctId < 0) {
-            geminiNativeAcctId = (int) getGeminiNativeAccountId(yahooRefreshToken);
+        if (geminiNativeAcctId < 0 && StringUtils.isNotBlank(yahooRefreshToken)) {
+            tokenBasedGeminiAcctId = (int) getGeminiNativeAccountId(yahooRefreshToken);
+            geminiNativeAcctId = tokenBasedGeminiAcctId;
         }
 
         // Fetch the info stored locally in this app
-        storeAcct = new StoreAcctEntity();
+        if (geminiNativeAcctId < 0) {
+            return null;
+        }
+
+        StoreAcctEntity storeAcct = new StoreAcctEntity();
         storeAcct.setGeminiNativeAcctId(geminiNativeAcctId);
         storeAcct = databaseService.findByAny(storeAcct);
 
-        if (geminiNativeAcctId > 0 && storeAcct == null && StringUtils.isNotBlank(shop) && StringUtils.isNotBlank(yahooRefreshToken)) {
+        if (storeAcct == null && StringUtils.isNotBlank(shop) && StringUtils.isNotBlank(yahooRefreshToken)) {
             if (tokenBasedGeminiAcctId < 0) {
                 tokenBasedGeminiAcctId = (int) getGeminiNativeAccountId(yahooRefreshToken);
             }
@@ -446,9 +450,11 @@ public class EWSClientResource {
             long geminiNativeCmpId) throws Exception {
         StoreCampaignEntity storeCampaign = databaseService.findStoreCampaignByGeminiCampaignId(geminiNativeCmpId);
 
-        if (storeCampaign == null && StringUtils.isNotBlank(shop) && StringUtils.isNotBlank(yahooRefreshToken)
-                && StringUtils.isNotBlank(storeFreshToken)) {
+        if (storeCampaign == null && StringUtils.isNotBlank(shop) && StringUtils.isNotBlank(yahooRefreshToken)) {
             StoreAcctEntity storeAcct = registerStoreAccountIfRequired(shop, storeFreshToken, yahooRefreshToken, -1);
+            if (storeAcct == null) {
+                return null;
+            }
 
             // Fetch the access token to be used to invoke Gemini
             EWSAccessTokenData tokens = ewsAuthService.getAccessTokenFromRefreshToken(yahooRefreshToken);
