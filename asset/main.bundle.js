@@ -1850,9 +1850,9 @@ var CampaignService = (function () {
             return this._account;
         },
         set: function (acct) {
-            if (!this.isAccountChanged(acct)) {
-                return;
-            }
+            // if (!this.isAccountChanged(acct)) {
+            //   return;
+            // }
             this._account = new __WEBPACK_IMPORTED_MODULE_2__model_account__["a" /* Account */](acct);
             if (this.isAccountReady()) {
                 acct.last_access = new Date();
@@ -1918,20 +1918,20 @@ var CampaignService = (function () {
     CampaignService.prototype.appendTokens = function () {
         var acct = this.account;
         var query = '';
-        if (acct) {
-            if (acct.store_access_token) {
-                query += '&st=' + acct.store_access_token;
-            }
-            if (acct.yahoo_access_token) {
-                query += '&yt=' + acct.yahoo_access_token;
-            }
-            if (acct.shop) {
-                query += '&shop=' + acct.shop;
-            }
-        }
-        if (query.startsWith('&')) {
-            query = '?' + query.substring(1);
-        }
+        // if (acct) {
+        //   if (acct.store_access_token) {
+        //     query += '&st=' + acct.store_access_token;
+        //   }
+        //   if (acct.yahoo_access_token) {
+        //     query += '&yt=' + acct.yahoo_access_token;
+        //   }
+        //   if (acct.shop) {
+        //     query += '&shop=' + acct.shop;
+        //   }
+        // }
+        // if (query.startsWith('&')) {
+        //   query = '?' + query.substring(1);
+        // }
         return query;
     };
     CampaignService.prototype.isAccountChanged = function (acct) {
