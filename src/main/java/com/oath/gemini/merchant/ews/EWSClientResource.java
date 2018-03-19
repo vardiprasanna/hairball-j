@@ -18,12 +18,15 @@ import com.oath.gemini.merchant.ews.json.CampaignData;
 import com.oath.gemini.merchant.fe.UIAccountDTO;
 import com.oath.gemini.merchant.fe.UICampaignDTO;
 import com.oath.gemini.merchant.shopify.ShopifyClientService;
+import com.oath.gemini.merchant.shopify.ShopifyOnboardResource;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.sql.Timestamp;
 import javax.annotation.Resource;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -31,6 +34,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -42,7 +46,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.http.HttpHeader;
 import lombok.extern.slf4j.Slf4j;
-import java.sql.Timestamp;
 
 /**
  * It is an internal service for UI
@@ -74,13 +77,13 @@ public class EWSClientResource {
      */
     @GET
     @Path("account/{id}")
-    public Response getAccount(@PathParam("id") int id, @QueryParam("shop") String shop, @QueryParam("st") String storeToken,
-            @QueryParam("yt") String yahooToken) {
+    public Response getAccount(@Context HttpServletRequest req, @PathParam("id") int id, @QueryParam("shop") String shop,
+            @QueryParam("st") String storeToken, @QueryParam("yt") String yahooToken) {
         StoreAcctEntity storeAcct;
 
         // Fetch the info stored locally in this app
         try {
-            storeAcct = registerStoreAccountIfRequired(shop, storeToken, yahooToken, id);
+            storeAcct = registerStoreAccountIfRequired(req, shop, storeToken, yahooToken, id);
             if (storeAcct == null) {
                 return errorResponse(ERR_LOCAL_DB, Status.NOT_FOUND, "No account found with this campaign id=%s", id);
             }
@@ -96,14 +99,14 @@ public class EWSClientResource {
 
     @GET
     @Path("campaign/{cmpId}")
-    public Response getCampaign(@PathParam("cmpId") long id, @QueryParam("shop") String shop, @QueryParam("st") String storeToken,
-            @QueryParam("yt") String yahooToken) {
+    public Response getCampaign(@Context HttpServletRequest req, @PathParam("cmpId") long id, @QueryParam("shop") String shop,
+            @QueryParam("st") String storeToken, @QueryParam("yt") String yahooToken) {
         StoreCampaignEntity storeCampaign;
         StoreAcctEntity storeAcct;
 
         // Fetch the info stored locally in this app
         try {
-            storeCampaign = registerStoreCampaignIfRequired(shop, storeToken, yahooToken, id);
+            storeCampaign = registerStoreCampaignIfRequired(req, shop, storeToken, yahooToken, id);
             if (storeCampaign == null) {
                 return errorResponse(ERR_LOCAL_DB, Status.NOT_FOUND, "No campaign found with this id=%s", id);
             }
@@ -236,8 +239,8 @@ public class EWSClientResource {
 
     @POST
     @Path("reporting/{cmpId}")
-    public Response getReport(@PathParam("cmpId") long id, @QueryParam("shop") String shop, @QueryParam("st") String storeToken,
-            @QueryParam("yt") String yahooToken, String payload) {
+    public Response getReport(@Context HttpServletRequest req, @PathParam("cmpId") long id, @QueryParam("shop") String shop,
+            @QueryParam("st") String storeToken, @QueryParam("yt") String yahooToken, String payload) {
         // if (true) {
         // return Response.ok(data).build();
         // }
@@ -247,7 +250,7 @@ public class EWSClientResource {
 
         // Fetch the info stored locally in this app
         try {
-            storeCampaign = registerStoreCampaignIfRequired(shop, storeToken, yahooToken, id);
+            storeCampaign = registerStoreCampaignIfRequired(req, shop, storeToken, yahooToken, id);
             if (storeCampaign == null) {
                 return errorResponse(ERR_LOCAL_DB, Status.NOT_FOUND, "No campaign found with this id=%s", id);
             }
@@ -379,9 +382,11 @@ public class EWSClientResource {
     }
 
     /**
+     * <pre>
      * ================================================================================================
      * Below are set of functions used to restore a shop which passes in session data. This is because we do not have a centralized database
      * ================================================================================================
+     * </pre>
      */
     /**
      * To register Shopify as an e-commerce system if it has never been done before
@@ -403,8 +408,8 @@ public class EWSClientResource {
     /**
      * To register a Shopify's shop, which typically happens when the shop installs our application.
      */
-    private StoreAcctEntity registerStoreAccountIfRequired(String shop, String storeFreshToken, String yahooRefreshToken,
-            int geminiNativeAcctId) throws Exception {
+    private StoreAcctEntity registerStoreAccountIfRequired(HttpServletRequest req, String shop, String storeFreshToken,
+            String yahooRefreshToken, int geminiNativeAcctId) throws Exception {
         int tokenBasedGeminiAcctId = -1;
 
         if (geminiNativeAcctId < 0 && StringUtils.isNotBlank(yahooRefreshToken)) {
@@ -429,6 +434,10 @@ public class EWSClientResource {
                 System.err.println("registerStoreAccountIfRequired() - unmatched gemini native acct id=" + geminiNativeAcctId);
                 return null;
             }
+            if (!isInstalled(req, shop, storeFreshToken)) {
+                System.err.println("the app has been uninstalled, and no need to recover a shop's account");
+                return null;
+            }
 
             StoreSysEntity storeSysEntity = registerStoreSystemIfRequired();
             storeAcct = new StoreAcctEntity();
@@ -449,12 +458,12 @@ public class EWSClientResource {
     /**
      * To register campaign info if we haven't done so; otherwise update an existing entity
      */
-    private StoreCampaignEntity registerStoreCampaignIfRequired(String shop, String storeFreshToken, String yahooRefreshToken,
-            long geminiNativeCmpId) throws Exception {
+    private StoreCampaignEntity registerStoreCampaignIfRequired(HttpServletRequest req, String shop, String storeFreshToken,
+            String yahooRefreshToken, long geminiNativeCmpId) throws Exception {
         StoreCampaignEntity storeCampaign = databaseService.findStoreCampaignByGeminiCampaignId(geminiNativeCmpId);
 
         if (storeCampaign == null && StringUtils.isNotBlank(shop) && StringUtils.isNotBlank(yahooRefreshToken)) {
-            StoreAcctEntity storeAcct = registerStoreAccountIfRequired(shop, storeFreshToken, yahooRefreshToken, -1);
+            StoreAcctEntity storeAcct = registerStoreAccountIfRequired(req, shop, storeFreshToken, yahooRefreshToken, -1);
             if (storeAcct == null) {
                 return null;
             }
@@ -521,6 +530,24 @@ public class EWSClientResource {
             }
         }
         return -1;
+    }
+
+    /**
+     * Check the presence of a webhook to determine whether our app has been installed
+     * Note, a localhost cannot have a webhook, and therefore skipping a localhost validation
+     */
+    private boolean isInstalled(HttpServletRequest req, String shop, String storeFreshToken) {
+        String address = req.getRequestURL().toString();
+        boolean isInstalled = true;
+
+        if (!address.contains("localhost")) {
+            try {
+                isInstalled = (ShopifyOnboardResource.prepareUninstalledWebhook(shop, storeFreshToken, req) == null);
+            } catch (Exception e) {
+                // ignored
+            }
+        }
+        return isInstalled;
     }
 
     public static String query = "{\"cube\":\"performance_stats\",\"fields\":[{\\\"field\\\":\\\"Day\\\"},{\"field\":\"Advertiser ID\"},{\"field\":\"Campaign ID\"},{\"field\":\"Impressions\"},{\"field\":\"Clicks\"},{\"field\":\"Conversions\"},{\"field\":\"Spend\"},{\"field\":\"Average CPC\"},{\"field\":\"Average CPM\"},{\"field\":\"Source\"}],\"filters\":[{\"field\":\"Advertiser ID\",\"operator\":\"=\",\"value\":1648887},{\"field\":\"Campaign ID\",\"operator\":\"IN\",\"values\":[363525108]},{\"field\":\"Day\",\"operator\":\"between\",\"from\":\"2018-01-11\",\"to\":\"2018-01-11\"}]}";

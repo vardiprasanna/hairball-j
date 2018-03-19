@@ -665,9 +665,21 @@ public class ShopifyOnboardResource {
     }
 
     /**
-     * Set the event listener when our app is uninstalled
+     * Prepare a web hook data for un-installation of the app if it has not already be set yet.
+     * 
+     * @return null if the hook has already been set
      */
-    private void registerWebhook(ShopifyClientService ps, HttpServletRequest req) throws Exception {
+    public static ShopifyWebHookData prepareUninstalledWebhook(String shop, String storeToken, HttpServletRequest req) throws Exception {
+        ShopifyClientService ps = new ShopifyClientService(shop, storeToken);
+        return prepareUninstalledWebhook(ps, req);
+    }
+
+    /**
+     * Prepare a web hook data for un-installation of the app if it has not already be set yet.
+     * 
+     * @return null if the hook has already been set
+     */
+    public static ShopifyWebHookData prepareUninstalledWebhook(ShopifyClientService ps, HttpServletRequest req) throws Exception {
         ShopifyWebHooksData[] webhooks = ps.get(ShopifyWebHooksData[].class, ShopifyEndpointEnum.SHOPIFY_WEBHOOK_ALL);
         ShopifyWebHookData webhook = new ShopifyWebHookData();
         String address = req.getRequestURL().toString();
@@ -683,15 +695,25 @@ public class ShopifyOnboardResource {
         if (webhooks != null) {
             for (ShopifyWebHooksData wh : webhooks) {
                 if (wh.getTopic().equals(webhook.getTopic()) && wh.getAddress().equals(webhook.getAddress())) {
-                    return;
+                    return null;
                 }
             }
         }
+        return webhook;
+    }
 
-        try {
-            ps.post(ShopifyWebHookData.class, webhook, ShopifyEndpointEnum.SHOPIFY_WEBHOOK_ALL);
-        } catch (Exception e) {
-            log.warn("Failed to register '{}' for the event '{}'", webhook.getAddress(), webhook.getTopic(), e);
+    /**
+     * Set the event listener when our app is uninstalled
+     */
+    private void registerWebhook(ShopifyClientService ps, HttpServletRequest req) throws Exception {
+        ShopifyWebHookData webhook = prepareUninstalledWebhook(ps, req);
+
+        if (webhook != null) {
+            try {
+                ps.post(ShopifyWebHookData.class, webhook, ShopifyEndpointEnum.SHOPIFY_WEBHOOK_ALL);
+            } catch (Exception e) {
+                log.warn("Failed to register '{}' for the event '{}'", webhook.getAddress(), webhook.getTopic(), e);
+            }
         }
     }
 
