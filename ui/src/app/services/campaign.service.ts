@@ -24,6 +24,9 @@ export class CampaignService {
   }
 
   set account(acct: Account) {
+    if (!this.isAccountChanged(acct)) {
+      return;
+    }
     this._account = new Account(acct);
     if (this.isAccountReady()) {
       acct.last_access = new Date();
@@ -96,7 +99,7 @@ export class CampaignService {
   }
 
   getMetric(id: number, query: string): Promise<any> {
-    const path = '/g/ui/reporting/' + id;
+    const path = '/g/ui/reporting/' + id + this.appendTokens();
     return this.http.post(this.base_uri + path, query)
       .toPromise();
   }
@@ -127,5 +130,22 @@ export class CampaignService {
       query = '?' + query.substring(1);
     }
     return query;
+  }
+
+  isAccountChanged(acct: Account): boolean {
+    if (!acct || !this._account) {
+      console.log('account is changed due to nullness');
+      return true;
+    }
+    for (const name in acct) {
+      if (!acct.hasOwnProperty(name) || name === 'last_access') {
+        continue;
+      }
+      if (acct[name] !== this._account[name]) {
+        console.log('account is changed due to "' + name + '"=' + acct[name] + ' vs ' + this._account[name]);
+        return true;
+      }
+    }
+    return false;
   }
 }
