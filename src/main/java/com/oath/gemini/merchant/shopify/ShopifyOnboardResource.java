@@ -39,6 +39,7 @@ import javax.servlet.http.HttpSession;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
@@ -221,6 +222,8 @@ public class ShopifyOnboardResource {
      * You should monitor the admin of your webhook tool for failing webhooks.
      * </pre>
      */
+    @POST
+    @GET
     @Path("uninstall")
     public Response uninstall(@Context HttpServletRequest req, @HeaderParam("X-Shopify-Topic") String topics,
             @HeaderParam("X-Shopify-Shop-Domain") String shop, @HeaderParam("X-Shopify-Hmac-Sha256") String hmac) {
@@ -245,7 +248,7 @@ public class ShopifyOnboardResource {
                 new Archetype(ps.getShopName(), ews, databaseService).tearDown(acctEntity);
                 databaseService.delete(acctEntity);
             } else {
-                System.err.println("No store account found for shop " + shop);
+                // System.err.println("No store account found for shop " + shop);
                 log.warn("No store account found for shop {}", shop);
             }
 
