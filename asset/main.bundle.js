@@ -1850,9 +1850,9 @@ var CampaignService = (function () {
             return this._account;
         },
         set: function (acct) {
-            // if (!this.isAccountChanged(acct)) {
-            //   return;
-            // }
+            if (!this.isAccountChanged(acct)) {
+                return;
+            }
             this._account = new __WEBPACK_IMPORTED_MODULE_2__model_account__["a" /* Account */](acct);
             if (this.isAccountReady()) {
                 acct.last_access = new Date();

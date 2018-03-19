@@ -24,9 +24,9 @@ export class CampaignService {
   }
 
   set account(acct: Account) {
-    // if (!this.isAccountChanged(acct)) {
-    //   return;
-    // }
+    if (!this.isAccountChanged(acct)) {
+      return;
+    }
     this._account = new Account(acct);
     if (this.isAccountReady()) {
       acct.last_access = new Date();
