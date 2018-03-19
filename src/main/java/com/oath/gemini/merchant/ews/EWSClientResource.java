@@ -10,12 +10,15 @@ import com.oath.gemini.merchant.db.DatabaseResource;
 import com.oath.gemini.merchant.db.DatabaseService;
 import com.oath.gemini.merchant.db.StoreAcctEntity;
 import com.oath.gemini.merchant.db.StoreCampaignEntity;
+import com.oath.gemini.merchant.db.StoreSysEntity;
 import com.oath.gemini.merchant.ews.EWSConstant.ReportingJobStatusEnum;
+import com.oath.gemini.merchant.ews.EWSConstant.StatusEnum;
 import com.oath.gemini.merchant.ews.json.AdGroupData;
 import com.oath.gemini.merchant.ews.json.AdvertiserData;
 import com.oath.gemini.merchant.ews.json.CampaignData;
 import com.oath.gemini.merchant.fe.UIAccountDTO;
 import com.oath.gemini.merchant.fe.UICampaignDTO;
+import com.oath.gemini.merchant.shopify.ShopifyClientService;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
@@ -28,6 +31,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -39,6 +43,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.http.HttpHeader;
 import lombok.extern.slf4j.Slf4j;
+import java.sql.Timestamp;
 
 /**
  * It is an internal service for UI
@@ -70,14 +75,13 @@ public class EWSClientResource {
      */
     @GET
     @Path("account/{id}")
-    public Response getAccount(@PathParam("id") int id) {
+    public Response getAccount(@PathParam("id") int id, @QueryParam("shop") String shop, @QueryParam("st") String storeToken,
+            @QueryParam("yt") String yahooToken) {
         StoreAcctEntity storeAcct;
 
         // Fetch the info stored locally in this app
         try {
-            storeAcct = new StoreAcctEntity();
-            storeAcct.setGeminiNativeAcctId(id);
-            storeAcct = databaseService.findByAny(storeAcct);
+            storeAcct = registerStoreAccountIfRequired(shop, storeToken, yahooToken, id);
             if (storeAcct == null) {
                 return errorResponse(ERR_LOCAL_DB, Status.NOT_FOUND, "No account found with this campaign id=%s", id);
             }
@@ -90,13 +94,14 @@ public class EWSClientResource {
 
     @GET
     @Path("campaign/{cmpId}")
-    public Response getCampaign(@PathParam("cmpId") long id) {
+    public Response getCampaign(@PathParam("cmpId") long id, @QueryParam("shop") String shop, @QueryParam("st") String storeToken,
+            @QueryParam("yt") String yahooToken) {
         StoreCampaignEntity storeCampaign;
         StoreAcctEntity storeAcct;
 
         // Fetch the info stored locally in this app
         try {
-            storeCampaign = databaseService.findStoreCampaignByGeminiCampaignId(id);
+            storeCampaign = registerStoreCampaignIfRequired(shop, storeToken, yahooToken, id);
             if (storeCampaign == null) {
                 return errorResponse(ERR_LOCAL_DB, Status.NOT_FOUND, "No campaign found with this id=%s", id);
             }
@@ -370,6 +375,145 @@ public class EWSClientResource {
         return Response.status(status).entity(httpStatus).build();
     }
 
+    /**
+     * ================================================================================================
+     * Below are set of functions used to restore a shop which passes in session data. This is because we do not have a centralized database
+     * ================================================================================================
+     */
+    /**
+     * To register Shopify as an e-commerce system if it has never been done before
+     */
+    private StoreSysEntity registerStoreSystemIfRequired() {
+        StoreSysEntity storeSys = databaseService.findStoreSysByDoman("www.shopify.com");
+
+        if (storeSys == null) {
+            storeSys = new StoreSysEntity();
+            storeSys.setDomain("www.shopify.com");
+            storeSys.setDescription("shopify e-commerce system");
+            storeSys.setName("shopify");
+            databaseService.save(storeSys);
+            storeSys = databaseService.findStoreSysByDoman("www.shopify.com");
+        }
+        return storeSys;
+    }
+
+    /**
+     * To register a Shopify's shop, which typically happens when the shop installs our application.
+     */
+    private StoreAcctEntity registerStoreAccountIfRequired(String shop, String storeFreshToken, String yahooRefreshToken,
+            int geminiNativeAcctId) throws Exception {
+        StoreAcctEntity storeAcct;
+        int tokenBasedGeminiAcctId = -1;
+
+        if (geminiNativeAcctId < 0) {
+            geminiNativeAcctId = (int) getGeminiNativeAccountId(yahooRefreshToken);
+        }
+
+        // Fetch the info stored locally in this app
+        storeAcct = new StoreAcctEntity();
+        storeAcct.setGeminiNativeAcctId(geminiNativeAcctId);
+        storeAcct = databaseService.findByAny(storeAcct);
+
+        if (geminiNativeAcctId > 0 && storeAcct == null && StringUtils.isNotBlank(shop) && StringUtils.isNotBlank(yahooRefreshToken)) {
+            if (tokenBasedGeminiAcctId < 0) {
+                tokenBasedGeminiAcctId = (int) getGeminiNativeAccountId(yahooRefreshToken);
+            }
+            if (geminiNativeAcctId != tokenBasedGeminiAcctId) {
+                System.err.println("registerStoreAccountIfRequired() - unmatched gemini native acct id=" + geminiNativeAcctId);
+                return null;
+            }
+
+            StoreSysEntity storeSysEntity = registerStoreSystemIfRequired();
+            storeAcct = new StoreAcctEntity();
+            storeAcct.setName(shop);
+            storeAcct.setDomain(shop);
+            storeAcct.setEmail("dummy@shopify.com");
+            storeAcct.setYahooAccessToken(yahooRefreshToken);
+            storeAcct.setStoreAccessToken(storeFreshToken);
+            storeAcct.setStoreSysId(storeSysEntity.getId());
+            storeAcct.setGeminiNativeAcctId(geminiNativeAcctId);
+            storeAcct.setPixelId(-1);
+            databaseService.save(storeAcct);
+        }
+
+        return storeAcct;
+    }
+
+    /**
+     * To register campaign info if we haven't done so; otherwise update an existing entity
+     */
+    private StoreCampaignEntity registerStoreCampaignIfRequired(String shop, String storeFreshToken, String yahooRefreshToken,
+            long geminiNativeCmpId) throws Exception {
+        StoreCampaignEntity storeCampaign = databaseService.findStoreCampaignByGeminiCampaignId(geminiNativeCmpId);
+
+        if (storeCampaign == null && StringUtils.isNotBlank(shop) && StringUtils.isNotBlank(yahooRefreshToken)
+                && StringUtils.isNotBlank(storeFreshToken)) {
+            StoreAcctEntity storeAcct = registerStoreAccountIfRequired(shop, storeFreshToken, yahooRefreshToken, -1);
+
+            // Fetch the access token to be used to invoke Gemini
+            EWSAccessTokenData tokens = ewsAuthService.getAccessTokenFromRefreshToken(yahooRefreshToken);
+            if (!tokens.isOk()) {
+                return null;
+            }
+
+            // Fill the campaign object for UI consumption
+            EWSResponseData<CampaignData> campaignResponse;
+            EWSClientService ews = new EWSClientService(tokens);
+            campaignResponse = ews.get(CampaignData.class, EWSEndpointEnum.CAMPAIGN_BY_ID, geminiNativeCmpId);
+
+            if (campaignResponse.isOk()) {
+                CampaignData cmpData = campaignResponse.get(0);
+                storeCampaign = new StoreCampaignEntity();
+                long adGroupId = getGeminiNativeAdgroupId(ews, shop, cmpData.getId());
+
+                storeCampaign.setAdvId(cmpData.getAdvertiserId());
+                storeCampaign.setCampaignId(cmpData.getId());
+                storeCampaign.setName(cmpData.getCampaignName());
+                storeCampaign.setAdgroupId(adGroupId);
+                storeCampaign.setStartDate(new Timestamp(System.currentTimeMillis()));
+                storeCampaign.setEndDate(new Timestamp(System.currentTimeMillis() + (86400 * 365 * 1000l)));
+                storeCampaign.setPrice(0f);
+                storeCampaign.setBudget(cmpData.getBudget().floatValue());
+                storeCampaign.setStatus(EWSConstant.StatusEnum.ACTIVE);
+                storeCampaign.setProductFeedId(-1l);
+                storeCampaign.setStoreAcctId(storeAcct.getId());
+                databaseService.save(storeCampaign);
+            }
+        }
+
+        return storeCampaign;
+    }
+
+    /**
+     * Fetch a Gemini account id of a given Yahoo refresh token
+     */
+    private long getGeminiNativeAccountId(String yahooRefreshToken) throws Exception {
+        EWSAccessTokenData tokens = ewsAuthService.getAccessTokenFromRefreshToken(yahooRefreshToken);
+
+        if (tokens.isOk()) {
+            EWSClientService ews = new EWSClientService(tokens);
+            EWSResponseData<AdvertiserData> advResponse = ews.get(AdvertiserData.class, EWSEndpointEnum.ADVERTISER);
+            if (advResponse.isOk()) {
+                return advResponse.get(0).getId();
+            }
+        }
+        return -1;
+    }
+
+    private long getGeminiNativeAdgroupId(EWSClientService ews, String shop, long geminiNativeCmpId) throws Exception {
+        EWSResponseData<AdGroupData> adGroupResponse = ews.get(AdGroupData.class, EWSEndpointEnum.ADGROUP_BY_CAMPAIGN, geminiNativeCmpId);
+        String shopName = ShopifyClientService.toShopName(shop);
+
+        if (EWSResponseData.isNotEmpty(adGroupResponse)) {
+            for (AdGroupData g : adGroupResponse.getObjects()) {
+                if (g.getAdGroupName().contains(shopName) && g.getStatus() != EWSConstant.StatusEnum.DELETED) {
+                    return g.getId();
+                }
+            }
+        }
+        return -1;
+    }
+
     public static String query = "{\"cube\":\"performance_stats\",\"fields\":[{\\\"field\\\":\\\"Day\\\"},{\"field\":\"Advertiser ID\"},{\"field\":\"Campaign ID\"},{\"field\":\"Impressions\"},{\"field\":\"Clicks\"},{\"field\":\"Conversions\"},{\"field\":\"Spend\"},{\"field\":\"Average CPC\"},{\"field\":\"Average CPM\"},{\"field\":\"Source\"}],\"filters\":[{\"field\":\"Advertiser ID\",\"operator\":\"=\",\"value\":1648887},{\"field\":\"Campaign ID\",\"operator\":\"IN\",\"values\":[363525108]},{\"field\":\"Day\",\"operator\":\"between\",\"from\":\"2018-01-11\",\"to\":\"2018-01-11\"}]}";
-    public static String data = "[[\"Day\",\"Advertiser ID\",\"Campaign ID\",\"Impressions\",\"Clicks\",\"Conversions\",\"Spend\",\"Average CPC\",\"Average CPM\",\"Source\"],[\"2018-01-10\",1648887,363115331,13,0,5,1.7,0,0,1],[\"2018-01-11\",1648887,363525108,15,3,27,3.14,0.0799999982,15.9999996424,1]]";
+    public static String data = "[[\"Day\",\"Advertiser ID\",\"Campaign ID\",\"Impressions\",\"Clicks\",\"Conversions\",\"Spend\",\"Average CPC\",\"Average CPM\",\"Source\"],[\"2018-02-25\",1648887,363115331,13,0,5,1.7,0,0,1],[\"2018-03-05\",1648887,363525108,15,3,27,3.14,0.0799999982,15.9999996424,1]]";
 }
