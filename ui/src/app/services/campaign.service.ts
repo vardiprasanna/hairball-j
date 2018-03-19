@@ -24,9 +24,9 @@ export class CampaignService {
   }
 
   set account(acct: Account) {
-    if (!this.isAccountChanged(acct)) {
-      return;
-    }
+    // if (!this.isAccountChanged(acct)) {
+    //   return;
+    // }
     this._account = new Account(acct);
     if (this.isAccountReady()) {
       acct.last_access = new Date();
@@ -113,22 +113,22 @@ export class CampaignService {
 
   appendTokens(): string {
     const acct = this.account;
-    let query = '';
+    const query = '';
 
-    if (acct) {
-      if (acct.store_access_token) {
-        query += '&st=' + acct.store_access_token;
-      }
-      if (acct.yahoo_access_token) {
-        query += '&yt=' + acct.yahoo_access_token;
-      }
-      if (acct.shop) {
-        query += '&shop=' + acct.shop;
-      }
-    }
-    if (query.startsWith('&')) {
-      query = '?' + query.substring(1);
-    }
+    // if (acct) {
+    //   if (acct.store_access_token) {
+    //     query += '&st=' + acct.store_access_token;
+    //   }
+    //   if (acct.yahoo_access_token) {
+    //     query += '&yt=' + acct.yahoo_access_token;
+    //   }
+    //   if (acct.shop) {
+    //     query += '&shop=' + acct.shop;
+    //   }
+    // }
+    // if (query.startsWith('&')) {
+    //   query = '?' + query.substring(1);
+    // }
     return query;
   }
 
