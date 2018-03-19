@@ -434,10 +434,10 @@ public class EWSClientResource {
                 System.err.println("registerStoreAccountIfRequired() - unmatched gemini native acct id=" + geminiNativeAcctId);
                 return null;
             }
-            if (!isInstalled(req, shop, storeFreshToken)) {
-                System.err.println("the app has been uninstalled, and no need to recover a shop's account");
-                return null;
-            }
+//            if (!isInstalled(req, shop, storeFreshToken)) {
+//                System.err.println("the app has been uninstalled, and no need to recover a shop's account");
+//                return null;
+//            }
 
             StoreSysEntity storeSysEntity = registerStoreSystemIfRequired();
             storeAcct = new StoreAcctEntity();
