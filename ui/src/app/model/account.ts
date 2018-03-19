@@ -15,6 +15,7 @@ export class Account {
   store_auth_uri?: string;
   yahoo_access_token?: string;
   yahoo_auth_uri?: string;
+  shop?: string;
 
   store_token_valid? = false;
   yahoo_token_valid? = false;
