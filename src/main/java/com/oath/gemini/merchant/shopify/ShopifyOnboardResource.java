@@ -243,11 +243,10 @@ public class ShopifyOnboardResource {
                 EWSAccessTokenData tokens = ewsAuthService.getAccessTokenFromRefreshToken(acctEntity.getYahooAccessToken());
                 EWSClientService ews = new EWSClientService(tokens);
 
-                System.err.println("Warning: uninstall store account for shop " + shop);
+                log.warn("Ready to uninstall store account for shop {}", shop);
                 new Archetype(ps.getShopName(), ews, databaseService).tearDown(acctEntity);
                 databaseService.delete(acctEntity);
             } else {
-                // System.err.println("No store account found for shop " + shop);
                 log.warn("No store account found for shop {}", shop);
             }
 
