@@ -12,7 +12,6 @@ import com.oath.gemini.merchant.db.StoreAcctEntity;
 import com.oath.gemini.merchant.db.StoreCampaignEntity;
 import com.oath.gemini.merchant.db.StoreSysEntity;
 import com.oath.gemini.merchant.ews.EWSConstant.ReportingJobStatusEnum;
-import com.oath.gemini.merchant.ews.EWSConstant.StatusEnum;
 import com.oath.gemini.merchant.ews.json.AdGroupData;
 import com.oath.gemini.merchant.ews.json.AdvertiserData;
 import com.oath.gemini.merchant.ews.json.CampaignData;
@@ -89,7 +88,10 @@ public class EWSClientResource {
             return errorResponse(ERR_LOCAL_DB, Status.INTERNAL_SERVER_ERROR, "Failed to fetch the campaign=%s: %s", id, e.getMessage());
         }
 
-        return Response.ok(mapToAccountDTO(storeAcct)).build();
+        UIAccountDTO accountDTO = mapToAccountDTO(storeAcct);
+        accountDTO.setShop(shop);
+
+        return Response.ok(accountDTO).build();
     }
 
     @GET
