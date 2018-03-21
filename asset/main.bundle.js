@@ -1836,17 +1836,16 @@ var CampaignService = (function () {
     }
     Object.defineProperty(CampaignService.prototype, "account", {
         get: function () {
-            if (!this._account && window.sessionStorage) {
-                var cachedAcct = window.sessionStorage.getItem('geminiDpaAccount');
-                if (cachedAcct) {
-                    try {
-                        this._account = new __WEBPACK_IMPORTED_MODULE_2__model_account__["a" /* Account */](JSON.parse(cachedAcct));
-                    }
-                    catch (err) {
-                        console.log('cached acct: ' + err);
-                    }
-                }
-            }
+            // if (!this._account && window.sessionStorage) {
+            //   const cachedAcct = window.sessionStorage.getItem('geminiDpaAccount');
+            //   if (cachedAcct) {
+            //     try {
+            //       this._account = new Account(JSON.parse(cachedAcct));
+            //     } catch (err) {
+            //       console.log('cached acct: ' + err);
+            //     }
+            //   }
+            // }
             return this._account;
         },
         set: function (acct) {
