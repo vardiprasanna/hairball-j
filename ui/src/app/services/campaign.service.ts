@@ -45,16 +45,16 @@ export class CampaignService {
   }
 
   get account(): Account {
-    if (!this._account && window.sessionStorage) {
-      const cachedAcct = window.sessionStorage.getItem('geminiDpaAccount');
-      if (cachedAcct) {
-        try {
-          this._account = new Account(JSON.parse(cachedAcct));
-        } catch (err) {
-          console.log('cached acct: ' + err);
-        }
-      }
-    }
+    // if (!this._account && window.sessionStorage) {
+    //   const cachedAcct = window.sessionStorage.getItem('geminiDpaAccount');
+    //   if (cachedAcct) {
+    //     try {
+    //       this._account = new Account(JSON.parse(cachedAcct));
+    //     } catch (err) {
+    //       console.log('cached acct: ' + err);
+    //     }
+    //   }
+    // }
 
     return this._account;
   }
