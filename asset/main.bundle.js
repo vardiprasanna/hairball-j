@@ -1068,8 +1068,8 @@ var CampaignComponent = (function () {
         this.campaign_loaded = false;
     }
     CampaignComponent.prototype.ngOnInit = function () {
+        var acct = this.campaignService.account;
         if (!this.campaignService.isAccountReady()) {
-            var acct = this.campaignService.account;
             if (acct && acct.hasValidYahooToken() && !acct.adv_id) {
                 // With a valid Yahoo OAuth token but not a Gemini account ID
                 this.campaign_loaded_err = __WEBPACK_IMPORTED_MODULE_5__environments_environment__["a" /* environment */].geminiAcctInvalid;
@@ -1081,8 +1081,13 @@ var CampaignComponent = (function () {
                 return;
             }
         }
+        else if (!acct.cmp_id) {
+            this.router.navigateByUrl('f/login', { skipLocationChange: true });
+            this.campaign_loaded_err = 'missing a campaign id.';
+            this.campaign_loaded = true;
+            return;
+        }
         else {
-            var acct = this.campaignService.account;
             this.advId = acct.adv_id; // 1643580;
             this.cmpId = acct.cmp_id; // 364710042;
             if (acct.adv_status !== 'ACTIVE') {
