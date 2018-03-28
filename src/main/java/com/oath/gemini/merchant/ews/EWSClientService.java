@@ -92,7 +92,8 @@ public class EWSClientService {
                 // return response;
                 // }
                 if (!httpStatus.isOk()) {
-                    ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                    ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                            .configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true);
                     JsonNode errorMsg = mapper.readTree(httpStatus.getMessage());
                     response = new EWSResponseData<>();
 
@@ -130,7 +131,8 @@ public class EWSClientService {
 
             // Convert a raw response to a list of T objects
             if (res != null && res.get("response") != null) {
-                ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                        .configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true);
                 Object rawResponse = res.get("response");
                 T[] ewsObjects = null;
 

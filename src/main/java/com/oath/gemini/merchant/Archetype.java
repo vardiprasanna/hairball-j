@@ -199,7 +199,7 @@ public class Archetype {
             cmp.setBudget(BigDecimal.valueOf(20L));
             cmp.setLanguage("en");
             cmp.setChannel(EWSConstant.ChannelEnum.NATIVE);
-            cmp.setObjective(EWSConstant.ObjectiveEnum.VISIT_OFFER);
+            //cmp.setObjective(EWSConstant.ObjectiveEnum.VISIT_OFFER);
             cmp.setIsPartnerNetwork("TRUE");
             cmpResponse = ews.create(CampaignData.class, cmp, EWSEndpointEnum.CAMPAIGN_OPS);
             cmpData = cmpResponse.get(0);
