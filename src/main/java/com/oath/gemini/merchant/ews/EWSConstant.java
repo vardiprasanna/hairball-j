@@ -51,7 +51,7 @@ public class EWSConstant {
     }
 
     public enum ObjectiveEnum {
-        VISIT_WEB, VISIT_OFFER, PROMOTE_BRAND, INSTALL_APP, REENGAGE_APP
+        //VISIT_WEB, VISIT_OFFER, PROMOTE_BRAND, INSTALL_APP, REENGAGE_APP
     }
 
     public enum BudgetTypeEnum {
