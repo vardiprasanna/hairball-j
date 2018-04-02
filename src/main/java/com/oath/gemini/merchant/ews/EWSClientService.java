@@ -92,8 +92,7 @@ public class EWSClientService {
                 // return response;
                 // }
                 if (!httpStatus.isOk()) {
-                    ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                            .configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true);
+                    ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
                     JsonNode errorMsg = mapper.readTree(httpStatus.getMessage());
                     response = new EWSResponseData<>();
 
