@@ -125,4 +125,12 @@ public class EWSConstant {
     public enum ReportingJobStatusEnum {
         submitted, running, failed, completed, killed;
     }
+
+    public enum ConversionCategoryEnum {
+        PURCHASE, SIGN_UP, LEAD, ADD_TO_CART, APP_INSTALL, OTHERS;
+    }
+
+    public enum ConversionRuleStatus {
+        ACTIVE, DELETED;
+    }
 }
