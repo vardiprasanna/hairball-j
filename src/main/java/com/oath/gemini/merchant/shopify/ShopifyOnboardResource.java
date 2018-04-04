@@ -758,12 +758,10 @@ public class ShopifyOnboardResource {
             dt.setAdvertiserId(advertiserId);
             dt.setName("default dot tag for " + advertiserId);
             dt.setDefaultPixel(true);
-            dt.setId(1234L);
-            pixel = dt;
 
             //To DO test the creation of DOT Tag once again for Missing mdm id for advertiser
-            //tagEWSResponseData = ews.create(DotTag.class, dt, EWSEndpointEnum.DOT_TAG_BY_ADVERTISER, advertiserId);
-            //pixel = tagEWSResponseData.get(0);
+            tagEWSResponseData = ews.create(DotTagData.class, dt, EWSEndpointEnum.DOT_TAG_BY_ADVERTISER, advertiserId);
+            pixel = tagEWSResponseData.get(0);
         }
         return pixel;
     }
