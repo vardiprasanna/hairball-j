@@ -3,6 +3,7 @@ package com.oath.gemini.merchant.ews.json;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.oath.gemini.merchant.ews.EWSConstant;
 import lombok.Getter;
 import lombok.Setter;
@@ -27,6 +28,9 @@ public class ConversionRuleData {
 
     @JsonProperty(required = true)
     private EWSConstant.ConversionCategoryEnum conversionCategory;
+
+    @JsonProperty(required = true)
+    private JsonNode rule;
 
     private double conversionValue;
 
