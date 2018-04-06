@@ -22,7 +22,7 @@ public class AppConfiguration {
                 config = new PropertiesConfiguration(pfile);
             } else {
                 // Alternatively, load from an embedded property file in non-production environment
-                InputStream inputStream = AppConfiguration.class.getResourceAsStream("application.properties");
+                InputStream inputStream = AppConfiguration.class.getResourceAsStream("/application.properties");
                 config = new PropertiesConfiguration();
                 ((PropertiesConfiguration) config).load(inputStream);
             }
