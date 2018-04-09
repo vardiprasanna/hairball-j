@@ -21,7 +21,10 @@ public class ConversionRuleData {
     private Long id;
 
     @JsonProperty(required = true)
-    private Long tagId;
+    private Long advertiserId;
+
+    @JsonProperty(required = true)
+    private int tagId;
 
     @JsonProperty(required = true)
     private String name;
@@ -40,6 +43,4 @@ public class ConversionRuleData {
 
     private EWSConstant.ConversionRuleStatus status;
 
-    @JsonProperty(required = true)
-    private boolean defaultPixel;
 }

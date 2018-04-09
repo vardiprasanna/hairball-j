@@ -6,6 +6,9 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+
+import com.oath.gemini.merchant.ews.json.ConversionRuleData;
+import org.apache.commons.lang3.Conversion;
 import org.hibernate.annotations.Where;
 import lombok.Getter;
 import lombok.Setter;
@@ -50,4 +53,7 @@ public class StoreAcctEntity extends StoreBaseEntity {
 
     @Column(name = "pixel_id", nullable = false)
     private Integer pixelId;
+
+    @Column(name = "conversion_rule_id", nullable = false)
+    private Long conversionRuleId;
 }

@@ -15,6 +15,7 @@ import com.oath.gemini.merchant.ews.EWSConstant;
 import com.oath.gemini.merchant.ews.EWSEndpointEnum;
 import com.oath.gemini.merchant.ews.EWSResponseData;
 import com.oath.gemini.merchant.ews.json.AdvertiserData;
+import com.oath.gemini.merchant.ews.json.ConversionRuleData;
 import com.oath.gemini.merchant.ews.json.DotTagData;
 import com.oath.gemini.merchant.fe.UIAccountDTO;
 import com.oath.gemini.merchant.security.SigningService;
@@ -627,6 +628,7 @@ public class ShopifyOnboardResource {
                 newStoreAcct.setStoreSysId(storeSysEntity.getId());
                 newStoreAcct.setGeminiNativeAcctId(geminiNativeAcctId.intValue());
                 newStoreAcct.setPixelId(extractDotTag(ews, geminiNativeAcctId).getId().intValue());
+                newStoreAcct.setConversionRuleId(createConversionRule(ews, geminiNativeAcctId, newStoreAcct.getPixelId()));
                 databaseService.save(newStoreAcct);
                 return newStoreAcct;
             } else {
@@ -739,7 +741,7 @@ public class ShopifyOnboardResource {
     /**
      * Extract the dot Tags and create one if it doesn't exist
      */
-    public DotTagData extractDotTag(EWSClientService ews, Long advertiserId) throws Exception {
+    private DotTagData extractDotTag(EWSClientService ews, Long advertiserId) throws Exception {
         DotTagData pixel = null;
         EWSResponseData<DotTagData> tagEWSResponseData = ews.get(DotTagData.class, EWSEndpointEnum.DOT_TAG_BY_ADVERTISER, advertiserId);
         if (EWSResponseData.isNotEmpty(tagEWSResponseData)) {
@@ -764,6 +766,36 @@ public class ShopifyOnboardResource {
             pixel = tagEWSResponseData.get(0);
         }
         return pixel;
+    }
+
+    private Long createConversionRule(EWSClientService ews, Long advertiserId, int pixelId) throws Exception {
+        ConversionRuleData conversionRuleData = null;
+        EWSResponseData<ConversionRuleData> conversionRuleDataEWSResponseData =
+                ews.get(ConversionRuleData.class, EWSEndpointEnum.CONVERSION_RULE_BY_ADVERTISER, advertiserId);
+
+        if (EWSResponseData.isNotEmpty(conversionRuleDataEWSResponseData)) {
+            for (ConversionRuleData rule : conversionRuleDataEWSResponseData.getObjects()) {
+                if (rule.getTagId() == pixelId) {
+                    conversionRuleData = rule;
+                    break;
+                }
+            }
+        }
+
+        // if the Conversion rule doesn't exist for the advertisers create new one
+        if (conversionRuleData == null) {
+
+            ConversionRuleData rule = new ConversionRuleData();
+            rule.setName("Conversion rule for" + advertiserId);
+            rule.setAdvertiserId(advertiserId);
+            rule.setTagId(pixelId);
+            //pixel = dt;
+
+            //To DO test the creation of DOT Tag once again for Missing mdm id for advertiser
+            //tagEWSResponseData = ews.create(DotTag.class, dt, EWSEndpointEnum.DOT_TAG_BY_ADVERTISER, advertiserId);
+            //pixel = tagEWSResponseData.get(0);
+        }
+        return conversionRuleData.getId();
     }
 
     /**

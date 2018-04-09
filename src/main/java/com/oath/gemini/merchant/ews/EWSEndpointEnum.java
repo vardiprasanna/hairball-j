@@ -26,6 +26,10 @@ public enum EWSEndpointEnum {
     // https://developer.yahoo.com/gemini/guide/audience-management/how-to-utilize-dot-tags-conversion-rules/
     DOT_TAG_OPS("tag/"), DOT_TAG_BY_ID("tag/?id=${0}&details=true"), DOT_TAG_BY_ADVERTISER("tag/?advertiserId=${0}"),
 
+    // https://developer.yahoo.com/gemini/guide/audience-management/conversion-rules/
+    CONVERSION_RULE_OPS("conversionrule/"), CONVERSION_RULE_BY_ID("conversionrule/?id=${0}"), CONVERSION_RULE_BY_ADVERTISER(
+            "conversionrule?advertiserId=${0}"),
+
     // https://developer.yahoo.com/gemini/guide/reporting/
     REPORT_JOB_SUBMISSION("reports/custom"), REPORT_JOB_STATUS("reports/custom/${0}?advertiserId=${1}");
     private String url = "";
