@@ -1,6 +1,9 @@
 package com.oath.gemini.merchant.shopify;
 
 import static com.oath.gemini.merchant.HttpUtils.buildQueries;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oath.gemini.merchant.Archetype;
 import com.oath.gemini.merchant.HttpUtils;
 import com.oath.gemini.merchant.db.DatabaseService;
@@ -789,11 +792,17 @@ public class ShopifyOnboardResource {
             rule.setName("Conversion rule for" + advertiserId);
             rule.setAdvertiserId(advertiserId);
             rule.setTagId(pixelId);
-            //pixel = dt;
+            rule.setConversionCategory(EWSConstant.ConversionCategoryEnum.SIGN_UP);
+            rule.setConversionValue(15);
+
+            String ruleObj = "{\"url\":{\"i_contains\":\"signup\"}}"; // TODO: hard-coded color
+
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode ruleNode = mapper.readTree(ruleObj);
 
             //To DO test the creation of DOT Tag once again for Missing mdm id for advertiser
-            //tagEWSResponseData = ews.create(DotTag.class, dt, EWSEndpointEnum.DOT_TAG_BY_ADVERTISER, advertiserId);
-            //pixel = tagEWSResponseData.get(0);
+            conversionRuleDataEWSResponseData = ews.create(ConversionRuleData.class, rule, EWSEndpointEnum.CONVERSION_RULE_OPS, advertiserId);
+            conversionRuleData = conversionRuleDataEWSResponseData.get(0);
         }
         return conversionRuleData.getId();
     }
