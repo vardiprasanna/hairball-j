@@ -792,7 +792,7 @@ public class ShopifyOnboardResource {
             rule.setName("Conversion rule for" + advertiserId);
             rule.setAdvertiserId(advertiserId);
             rule.setTagId(pixelId);
-            rule.setConversionCategory(EWSConstant.ConversionCategoryEnum.SIGN_UP);
+            rule.setConversionCategory(EWSConstant.ConversionCategoryEnum.ADD_TO_CART);
             rule.setConversionValue(15);
 
             String ruleObj = "{\"url\":{\"i_contains\":\"signup\"}}"; // TODO: hard-coded color
