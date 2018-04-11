@@ -577,6 +577,7 @@ public class ShopifyOnboardResource {
             newStoreAcct.setStoreNativeAcctId(Long.toString(shop.getId()));
             newStoreAcct.setGeminiNativeAcctId(geminiNativeAcctId.intValue());
             newStoreAcct.setPixelId(extractDotTag(ews, geminiNativeAcctId).getId().intValue());
+            newStoreAcct.setConversionRuleId(createConversionRule(ews, ps.getShopName(), geminiNativeAcctId, newStoreAcct.getPixelId()));
             databaseService.save(newStoreAcct);
             return newStoreAcct;
         } else {
@@ -631,7 +632,7 @@ public class ShopifyOnboardResource {
                 newStoreAcct.setStoreSysId(storeSysEntity.getId());
                 newStoreAcct.setGeminiNativeAcctId(geminiNativeAcctId.intValue());
                 newStoreAcct.setPixelId(extractDotTag(ews, geminiNativeAcctId).getId().intValue());
-                newStoreAcct.setConversionRuleId(createConversionRule(ews, geminiNativeAcctId, newStoreAcct.getPixelId()));
+                newStoreAcct.setConversionRuleId(createConversionRule(ews, shop, geminiNativeAcctId, newStoreAcct.getPixelId()));
                 databaseService.save(newStoreAcct);
                 return newStoreAcct;
             } else {
@@ -771,7 +772,7 @@ public class ShopifyOnboardResource {
         return pixel;
     }
 
-    private Long createConversionRule(EWSClientService ews, Long advertiserId, int pixelId) throws Exception {
+    private Long createConversionRule(EWSClientService ews, String shopName, Long advertiserId, int pixelId) throws Exception {
         ConversionRuleData conversionRuleData = null;
         EWSResponseData<ConversionRuleData> conversionRuleDataEWSResponseData =
                 ews.get(ConversionRuleData.class, EWSEndpointEnum.CONVERSION_RULE_BY_ADVERTISER, advertiserId);
@@ -789,16 +790,17 @@ public class ShopifyOnboardResource {
         if (conversionRuleData == null) {
 
             ConversionRuleData rule = new ConversionRuleData();
-            rule.setName("Conversion rule for" + advertiserId);
+            rule.setName(shopName + "-autogen");
             rule.setAdvertiserId(advertiserId);
             rule.setTagId(pixelId);
             rule.setConversionCategory(EWSConstant.ConversionCategoryEnum.ADD_TO_CART);
             rule.setConversionValue(15);
 
-            String ruleObj = "{\"url\":{\"i_contains\":\"signup\"}}"; // TODO: hard-coded color
+            String ruleObj = "{\"url\":{\"i_contains\":\"ADD_TO_CART\"}}"; // TODO: hard-coded rule
 
             ObjectMapper mapper = new ObjectMapper();
             JsonNode ruleNode = mapper.readTree(ruleObj);
+            rule.setRule(ruleNode);
 
             //To DO test the creation of DOT Tag once again for Missing mdm id for advertiser
             conversionRuleDataEWSResponseData = ews.create(ConversionRuleData.class, rule, EWSEndpointEnum.CONVERSION_RULE_OPS, advertiserId);

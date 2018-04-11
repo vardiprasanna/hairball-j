@@ -54,6 +54,6 @@ public class StoreAcctEntity extends StoreBaseEntity {
     @Column(name = "pixel_id", nullable = false)
     private Integer pixelId;
 
-    @Column(name = "conversion_rule_id", nullable = false)
+    @Column(name = "conversion_rule_id")
     private Long conversionRuleId;
 }

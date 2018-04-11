@@ -63,9 +63,6 @@
       <column name="pixel_id" type="int(10)">
         <constraints nullable="false" />
       </column>
-      <column name="conversion_rule_id" type="bigint(20)">
-        <constraints nullable="false" />
-      </column>
       <column name="is_deleted" type="boolean" defaultValueBoolean="false">
         <constraints nullable="true" />
       </column>
@@ -152,5 +149,10 @@
         <constraints nullable="false" />
       </column>
     </createTable>
+  </changeSet>
+  <changeSet author="pvardi" id="add_conversion_rule_id_to_store_acct">
+    <addColumn tableName="store_acct">
+      <column name="conversion_rule_id" type="bigint(20)"/>
+    </addColumn>
   </changeSet>
 </databaseChangeLog>
