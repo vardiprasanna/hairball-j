@@ -779,7 +779,7 @@ public class ShopifyOnboardResource {
 
         if (EWSResponseData.isNotEmpty(conversionRuleDataEWSResponseData)) {
             for (ConversionRuleData rule : conversionRuleDataEWSResponseData.getObjects()) {
-                if (rule.getTagId() == pixelId) {
+                if (rule.getName().contains(shopName + "-autogen") && rule.getStatus() != EWSConstant.ConversionRuleStatus.DELETED) {
                     conversionRuleData = rule;
                     break;
                 }
