@@ -790,17 +790,24 @@ public class ShopifyOnboardResource {
         if (conversionRuleData == null) {
 
             ConversionRuleData rule = new ConversionRuleData();
-            rule.setName(shopName + "-autogen");
             rule.setAdvertiserId(advertiserId);
             rule.setTagId(pixelId);
-            rule.setConversionCategory(EWSConstant.ConversionCategoryEnum.ADD_TO_CART);
             rule.setConversionValue(15);
+            String ruleObj = null;
+            String conversionCategory = "addToCart";
 
-            String ruleObj = "{\"url\":{\"i_contains\":\"ADD_TO_CART\"}}"; // TODO: hard-coded rule
+            if (conversionCategory.equals("addToCart")) {
+                rule.setConversionCategory(EWSConstant.ConversionCategoryEnum.ADD_TO_CART);
+                ruleObj = "{\"url\":{\"i_contains\":\"ADD_TO_CART\"}}"; // TODO: hard-coded rule
+            } else if (conversionCategory.equals("purchase")) {
+                rule.setConversionCategory(EWSConstant.ConversionCategoryEnum.PURCHASE);
+                ruleObj = "{\"url\":{\"i_contains\":\"PURCHASE\"}}"; // TODO: hard-coded rule
+            }
 
             ObjectMapper mapper = new ObjectMapper();
             JsonNode ruleNode = mapper.readTree(ruleObj);
             rule.setRule(ruleNode);
+            rule.setName(shopName + "-autogen ConversionRule for " + conversionCategory);
 
             //To DO test the creation of DOT Tag once again for Missing mdm id for advertiser
             conversionRuleDataEWSResponseData = ews.create(ConversionRuleData.class, rule, EWSEndpointEnum.CONVERSION_RULE_OPS, advertiserId);
