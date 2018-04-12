@@ -6,9 +6,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
-
-import com.oath.gemini.merchant.ews.json.ConversionRuleData;
-import org.apache.commons.lang3.Conversion;
 import org.hibernate.annotations.Where;
 import lombok.Getter;
 import lombok.Setter;
